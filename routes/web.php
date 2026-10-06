@@ -15,6 +15,7 @@ use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Branches\BranchController;
+use App\Modules\Customers\CustomerController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\OutstandingController;
@@ -114,6 +115,20 @@ $router->post('/branches/{id}', [BranchController::class, 'update'], ['auth', 'c
 $router->post('/branches/{id}/status', [BranchController::class, 'toggleStatus'], ['auth', 'can:branches.edit', 'csrf']);
 $router->post('/branches/{id}/delete', [BranchController::class, 'destroy'], ['auth', 'can:branches.delete', 'csrf']);
 $router->get('/branches/export', [BranchController::class, 'export'], ['auth', 'can:branches.view', 'can:branches.export']);
+
+// -----------------------------------------------------------------------------
+// Customers
+// -----------------------------------------------------------------------------
+$router->get('/customers', [CustomerController::class, 'index'], ['auth', 'can:customers.view']);
+$router->get('/customers/new', [CustomerController::class, 'create'], ['auth', 'can:customers.add']);
+$router->post('/customers', [CustomerController::class, 'store'], ['auth', 'can:customers.add', 'csrf']);
+$router->get('/customers/export', [CustomerController::class, 'export'], ['auth', 'can:customers.view', 'can:customers.export']);
+$router->get('/customers/lookup', [CustomerController::class, 'lookup'], ['auth', 'can:customers.view']);
+$router->get('/customers/{id}', [CustomerController::class, 'show'], ['auth', 'can:customers.view']);
+$router->get('/customers/{id}/edit', [CustomerController::class, 'edit'], ['auth', 'can:customers.edit']);
+$router->post('/customers/{id}', [CustomerController::class, 'update'], ['auth', 'can:customers.edit', 'csrf']);
+$router->post('/customers/{id}/status', [CustomerController::class, 'setStatus'], ['auth', 'can:customers.edit', 'csrf']);
+$router->post('/customers/{id}/delete', [CustomerController::class, 'destroy'], ['auth', 'can:customers.delete', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)
