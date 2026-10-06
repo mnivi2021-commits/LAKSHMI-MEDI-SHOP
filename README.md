@@ -2,8 +2,7 @@
 
 Sales performance, payment collection, pending order, sample / DC, mail and SMS management for a multi-branch sales team.
 
-> **Status:** Phase 4 – Roles & permissions (permission matrix, per-user overrides, data scope, user management).
-> Phase 3 – Authentication, public intro page, Wi-Fi access.
+> **Status:** Phase 5 – Dashboard framework (filters, as-on date logic, quick ADD panel, KPI card layout).
 > Built one module at a time; each phase is reviewed and approved before the next starts.
 
 ---
@@ -146,6 +145,9 @@ C:
 mppphpphp.exe testsdb.php      # permissions + data scope (seeded DB, rolled back)
 bash tests/e2e/auth.sh                 # web + API sign-in flow   (needs a FRESHLY seeded local DB)
 bash tests/e2e/access.sh               # users, roles, enforcement (needs a FRESHLY seeded local DB)
+C:
+mpp\php\php.exe tests\dashboard.php   # dashboard context + quick ADD (seeded DB, rolled back)
+bash tests/e2e/dashboard.sh            # dashboard, scoped lookups, quick ADD over HTTP (FRESH seed)
 ```
 
 ### 6. Open it from phones and laptops on the same Wi-Fi
@@ -206,6 +208,19 @@ POST /api/auth/logout   Authorization: Bearer <token>   (revokes the token)
 ```
 
 Tokens are random 256-bit values. Only their SHA-256 is stored, and they expire after `API_TOKEN_TTL_DAYS` (30). The API sets no cookies. Error codes: 401 invalid credentials or token, 403 `password_change_required` / `account_disabled`, 429 too many attempts (with `Retry-After`). CORS is allowed only for `API_ALLOWED_ORIGINS`.
+
+## Dashboard
+
+* **Filters:** Financial Year · Month · Branch · Sales Employee · Customer · Product. They are GET parameters, so every view is a shareable link. Every filter is re-checked against the user's data scope, and a tampered URL is ignored and explained.
+* **As-on date:** the current FY or month uses **today** ("Live"). A past month uses its last day, and a past FY uses 31 March ("Closed period"). All KPI windows (FY to previous day, month to previous day, today) are measured from this date and never overlap.
+* **+ ADD** (right of the header) opens a side panel to enter:
+  * a **Sales Target** for one month, or a yearly amount split exactly over 12 months (re-saving replaces it and needs `targets.edit`)
+  * a **Sale** (GST from the product, due date from the customer's credit days)
+  * a **Collection**, adjusted against the customer's oldest open bills and kept on account if larger
+  * a **Pending Order**, **Sample** or **DC**
+
+  Each tab appears only with its `*.add` permission, and the server re-checks permission, data scope, dates (no future dates, financial year not locked), duplicate document numbers and amounts. Amounts use exact integer paise.
+* **Latest entries in your view** shows how current the data is before you trust a number.
 
 ## Roles, permissions & data scope
 

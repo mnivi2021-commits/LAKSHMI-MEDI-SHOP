@@ -14,6 +14,7 @@ use App\Modules\Auth\ApiAuthController;
 use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
+use App\Modules\Dashboard\DashboardController;
 
 /** @var Router $router */
 
@@ -29,8 +30,12 @@ $router->get('/', static function (): void {
         Response::redirect('/password/change');
         return;
     }
-    Response::view('home', ['title' => 'Home · Marketing CRM', 'user' => Auth::user(), 'flash' => Session::takeFlash()]);
+    DashboardController::index();     // dashboard, or a simple home page without dashboard.view
 });
+
+// Dashboard quick-add (JSON, session + CSRF header) and scope-limited lookups
+$router->post('/dashboard/add/{type}', [DashboardController::class, 'quickAdd'], ['auth', 'csrf']);
+$router->get('/dashboard/lookup/{type}', [DashboardController::class, 'lookup'], ['auth', 'can:dashboard.view']);
 
 // -----------------------------------------------------------------------------
 // Authentication (web)

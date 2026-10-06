@@ -96,6 +96,10 @@ final class Database
     public static function transaction(callable $work): mixed
     {
         $pdo = self::connection();
+        // Already inside a transaction: join it (the outer caller commits or rolls back).
+        if ($pdo->inTransaction()) {
+            return $work($pdo);
+        }
         $pdo->beginTransaction();
         try {
             $result = $work($pdo);

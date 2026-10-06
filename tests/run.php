@@ -114,5 +114,25 @@ check('backslash trick blocked', '/', Request::safeRedirectPath('/\\evil.example
 check('header injection blocked', '/', Request::safeRedirectPath("/a\r\nSet-Cookie: x=1"));
 check('empty uses default', '/', Request::safeRedirectPath(''));
 
+// --- Money (integer paise) -------------------------------------------------------------
+use App\Core\Money;
+
+check('parse plain', 1250050, Money::parse('12500.50'));
+check('parse Indian grouping + symbol', 100000000, Money::parse('₹ 10,00,000'));
+check('parse one decimal', 1050, Money::parse('10.5'));
+check('reject 3 decimals', null, Money::parse('10.555'));
+check('reject negative', null, Money::parse('-5'));
+check('reject text', null, Money::parse('12abc'));
+check('reject too large', null, Money::parse('99999999999999'));
+check('toDecimal', '123456.07', Money::toDecimal(12345607));
+check('toDecimal zero', '0.00', Money::toDecimal(0));
+check('GST 18% exact', 180000, Money::percentOf(1000000, '18'));
+check('GST rounds half up', 2, Money::percentOf(11, '18'));        // 1.98 paise -> 2
+check('GST 12.5%', 125, Money::percentOf(1000, '12.5'));
+check('split remainder to last month', [833333, 833333, 833333, 833333, 833333, 833333, 833333, 833333, 833333, 833333, 833333, 833337], Money::split(10000000, 12));
+check('split sums exactly', 10000001, array_sum(Money::split(10000001, 12)));
+check('per unit rate', 333, Money::perUnit(1000, '3'));             // 10.00 / 3 = 3.33
+check('per unit fractional qty', 400, Money::perUnit(1000, '2.5'));
+
 echo PHP_EOL . "{$passed} passed, {$failed} failed" . PHP_EOL;
 exit($failed > 0 ? 1 : 0);

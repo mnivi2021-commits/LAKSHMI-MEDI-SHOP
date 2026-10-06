@@ -59,7 +59,7 @@ t=$(csrf b /password/change)
 r=$(req b POST /password/change --data-urlencode "_csrf=$t" --data-urlencode "current_password=Admin@2026" --data-urlencode "new_password=$NEWPASS" --data-urlencode "confirm_password=$NEWPASS")
 expect "strong password accepted" "$r" "303 $BASE/"
 r=$(req b GET /);                      expect "home now reachable" "${r%% *}" 200
-contains "home shows user" "$TMP/body" "Welcome, Admin Head"
+contains "home shows signed-in user" "$TMP/body" "<span class=\"user-name\">Admin Head</span>"
 r=$(req b GET /login);                 expect "signed-in user sent away from login" "$r" "303 $BASE/"
 
 echo "== Password change signs out other sessions"

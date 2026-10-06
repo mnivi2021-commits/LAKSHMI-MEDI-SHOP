@@ -27,7 +27,7 @@
     // Prevent double submission of forms.
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function (e) {
-            if (e.defaultPrevented) { return; }
+            if (e.defaultPrevented || form.hasAttribute('data-quick-add')) { return; }
             var submit = form.querySelector('[type="submit"]');
             if (submit) {
                 setTimeout(function () { submit.disabled = true; }, 0);
