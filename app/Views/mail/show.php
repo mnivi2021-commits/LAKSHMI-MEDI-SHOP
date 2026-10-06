@@ -42,6 +42,7 @@ ob_start();
 
         <section class="card table-card">
             <h2>History</h2>
+            <?php if ($activity === []): ?><p class="empty">No changes recorded yet.</p><?php endif; ?>
             <ul class="timeline padded">
                 <?php foreach ($activity as $a): ?>
                     <li><span class="muted small"><?= e(date('d-m-Y H:i', strtotime($a['created_at']))) ?> · <?= e($a['user_name'] ?? 'System') ?></span>

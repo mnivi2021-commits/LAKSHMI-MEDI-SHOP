@@ -591,3 +591,9 @@ tr.unread td { font-weight: 600; }
 .rule-card { display: grid; gap: 8px; }
 .rule-card h3 { margin: 0; font-size: .95rem; }
 .rule-card textarea { width: 100%; font: inherit; font-size: .85rem; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); }
+.inline-form select, .inline-form input[type="text"], .stack-form > select, .stack-form > input[type="text"], .table td > select {
+    min-height: 38px; padding: 0 10px; font: inherit; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.stack-form > select, .stack-form > input[type="text"] { width: 100%; }
+.table td > select { min-width: 200px; }
