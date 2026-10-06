@@ -22,6 +22,8 @@ use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Mail\MailController;
 use App\Modules\Products\ProductController;
+use App\Modules\Settings\AuditController;
+use App\Modules\Settings\SettingsController;
 use App\Modules\Reports\ReportController;
 use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
@@ -231,6 +233,16 @@ $router->post('/sms/templates', [SmsController::class, 'saveTemplate'], ['auth',
 $router->get('/reports', [ReportController::class, 'index'], ['auth', 'can:reports.view']);
 $router->get('/reports/{key}', [ReportController::class, 'show'], ['auth', 'can:reports.view']);
 $router->get('/reports/{key}/export/{format}', [ReportController::class, 'export'], ['auth', 'can:reports.view', 'can:reports.export']);
+
+// -----------------------------------------------------------------------------
+// Settings and audit log
+// -----------------------------------------------------------------------------
+$router->get('/settings', [SettingsController::class, 'index'], ['auth', 'can_any:settings.manage,audit.view']);
+$router->post('/settings', [SettingsController::class, 'save'], ['auth', 'can:settings.manage', 'csrf']);
+$router->post('/settings/years', [SettingsController::class, 'addYear'], ['auth', 'can:settings.manage', 'csrf']);
+$router->post('/settings/years/{id}/lock', [SettingsController::class, 'toggleLock'], ['auth', 'can:settings.manage', 'csrf']);
+$router->get('/settings/audit', [AuditController::class, 'index'], ['auth', 'can:audit.view']);
+$router->get('/settings/audit/export', [AuditController::class, 'export'], ['auth', 'can:audit.view']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations

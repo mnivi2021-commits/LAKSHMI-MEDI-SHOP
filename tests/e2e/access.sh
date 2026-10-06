@@ -39,7 +39,7 @@ first_login A admin 'Admin@2026' "$ADMIN_PW"
 r=$(req A GET /access/users);        expect "admin opens Users" "${r%% *}" 200
 contains "lists the 3 seeded users" "$TMP/body" "3 users"
 contains "sidebar shows Access" "$TMP/body" 'href="/marketing_crm/access/users"'
-contains "unbuilt modules marked Soon" "$TMP/body" "Soon"
+lacks "all modules built (no Soon badges)" "$TMP/body" ">Soon<"
 
 echo "== Create user (validation, temp password)"
 r=$(post A /access/users /access/users/new --data "name=Senthil Nathan&username=senthil&email=senthil@example.com&role_id=5&employee_id=8")

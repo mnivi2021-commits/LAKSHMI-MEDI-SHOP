@@ -21,5 +21,5 @@ return [
     ['key' => 'customers', 'label' => 'Customers',      'path' => '/customers',    'any' => ['customers.view'], 'ready' => true],
     ['key' => 'leads',     'label' => 'Leads',          'path' => '/leads',        'any' => ['leads.view'],     'ready' => true],
     ['key' => 'products',  'label' => 'Products',       'path' => '/products',     'any' => ['products.view'],  'ready' => true],
-    ['key' => 'settings',  'label' => 'Settings',       'path' => '/settings',     'any' => ['settings.manage', 'audit.view'], 'ready' => false],
+    ['key' => 'settings',  'label' => 'Settings',       'path' => '/settings',     'any' => ['settings.manage', 'audit.view'], 'ready' => true],
 ];
