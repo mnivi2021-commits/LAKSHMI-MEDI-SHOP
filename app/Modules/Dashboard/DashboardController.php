@@ -23,6 +23,16 @@ final class DashboardController
 
         $today = new DateTimeImmutable('today');
         $ctx = DashboardContext::fromRequest($user, $_GET, $today);
+        $employees = $ctx->employeeOptions($ctx->filters['branch_id']);
+
+        // Step B: the selected representative's panel. A user who can see only one
+        // representative (e.g. a Sales Executive) always gets their own panel.
+        $repId = $ctx->filters['employee_id'] ?? (count($employees) === 1 ? (int) array_key_first($employees) : null);
+        $rep = null;
+        if ($repId !== null) {
+            $repCtx = $ctx->filters['employee_id'] === $repId ? $ctx : DashboardContext::fromRequest($user, array_merge($_GET, ['employee' => (string) $repId]), $today);
+            $rep = self::repPanel($repCtx, $repId);
+        }
 
         Response::view('dashboard/index', [
             'title'      => 'Dashboard · Marketing CRM',
@@ -32,7 +42,8 @@ final class DashboardController
             'fyOptions'  => DashboardContext::financialYearOptions($today),
             'months'     => $ctx->monthOptions($today),
             'branches'   => $ctx->branchOptions(),
-            'employees'  => $ctx->employeeOptions($ctx->filters['branch_id']),
+            'employees'  => $employees,
+            'rep'        => $rep,
             'addTypes'   => QuickAddService::allowedTypes($user),
             'freshness'  => self::freshness($ctx),
             'sales'      => (new Kpi\SalesKpi($ctx))->summary(),
@@ -45,6 +56,49 @@ final class DashboardController
             'allFys'     => Database::fetchAll('SELECT id, label, start_date FROM financial_years WHERE is_locked = 0 ORDER BY start_date'),
             'currentFyId'=> (int) $ctx->fyRow['id'],
         ]);
+    }
+
+    /**
+     * Everything shown for one sales representative, for the same period and filters.
+     *
+     * @return array<string, mixed>
+     */
+    public static function repPanel(DashboardContext $ctx, int $employeeId): array
+    {
+        $emp = Database::fetch(
+            "SELECT e.id, e.employee_code, e.name, e.short_name, e.mobile, e.email, b.name AS branch, b.branch_code,
+                    d.name AS designation, m.name AS manager
+             FROM employees e JOIN branches b ON b.id = e.branch_id
+             LEFT JOIN designations d ON d.id = e.designation_id
+             LEFT JOIN employees m ON m.id = e.reporting_manager_id
+             WHERE e.id = ?",
+            [$employeeId]
+        );
+
+        $monthStart = $ctx->asOn->modify('first day of this month')->format('Y-m-d 00:00:00');
+        $asOnEnd = $ctx->asOn->format('Y-m-d 23:59:59');
+        [$lw, $lp] = $ctx->where(['branch' => 'l.branch_id', 'employee' => 'l.employee_id', 'customer' => 'l.customer_id', 'product' => 'l.product_id']);
+        $leads = Database::fetch(
+            "SELECT COUNT(CASE WHEN l.created_at BETWEEN ? AND ? THEN 1 END) AS new_this_month,
+                    COUNT(CASE WHEN l.status NOT IN ('won','lost') AND l.created_at <= ? THEN 1 END) AS open_leads,
+                    COUNT(CASE WHEN l.status NOT IN ('won','lost') AND l.next_followup_at <= ? THEN 1 END) AS followups_due
+             FROM leads l WHERE l.deleted_at IS NULL AND {$lw}",
+            array_merge([$monthStart, $asOnEnd, $asOnEnd, $asOnEnd], $lp)
+        );
+
+        $sales = (new Kpi\SalesKpi($ctx))->summary();
+        $sales['month_to_date'] = $sales['sales_month_to_previous_day'] + $sales['sales_today'];
+
+        return [
+            'employee'    => $emp,
+            'query'       => $ctx->query(),
+            'sales'       => $sales,
+            'collection'  => (new Kpi\CollectionKpi($ctx))->summary(),
+            'pending'     => (new Kpi\PendingOrderKpi($ctx))->summary(),
+            'sampleDc'    => (new Kpi\SampleDcKpi($ctx))->summary(),
+            'outstanding' => (new Kpi\OutstandingKpi($ctx))->categories(),
+            'leads'       => array_map('intval', $leads),
+        ];
     }
 
     /** POST /dashboard/add/{type} - JSON in, JSON out. */
