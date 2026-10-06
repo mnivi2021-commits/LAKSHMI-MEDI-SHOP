@@ -492,3 +492,29 @@ tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent);
 
 /* ---- Phase 12: branch details ---- */
 .field input.uppercase { text-transform: uppercase; }
+
+/* ---- Phase 16: leads ---- */
+.badge-info { background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
+.field textarea {
+    width: 100%; padding: 10px 12px; font: inherit; color: var(--text); resize: vertical;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.mt { margin-top: 22px; }
+.pipeline { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; padding: 0; overflow: hidden; }
+@media (max-width: 1000px) { .pipeline { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pipeline-step {
+    display: grid; gap: 2px; padding: 12px 14px; text-decoration: none; color: var(--text);
+    border-right: 1px solid var(--border); border-bottom: 3px solid transparent;
+}
+.pipeline-step:last-child { border-right: 0; }
+.pipeline-step:hover { background: var(--bg); }
+.pipeline-step.active { background: color-mix(in srgb, var(--primary) 8%, var(--surface)); border-bottom-color: var(--primary); }
+.pipeline-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+.pipeline-step strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.pipeline-step small { font-size: .75rem; color: var(--muted); }
+.pipeline-won strong { color: var(--ok-fg); }
+.pipeline-lost strong { color: var(--danger); }
+.fu-panel { min-width: 260px; }
+.fu-panel .form { gap: 6px; margin: 0; padding: 4px; }
+.fu-panel input[type="text"] { width: 100%; min-height: 36px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; background: var(--surface); color: var(--text); }
+.badge-stack { display: grid; gap: 4px; justify-items: start; }

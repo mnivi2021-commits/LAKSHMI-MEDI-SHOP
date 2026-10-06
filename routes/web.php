@@ -16,6 +16,7 @@ use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Branches\BranchController;
 use App\Modules\Customers\CustomerController;
+use App\Modules\Leads\LeadController;
 use App\Modules\Products\ProductController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
@@ -142,6 +143,22 @@ $router->get('/products/{id}/edit', [ProductController::class, 'edit'], ['auth',
 $router->post('/products/{id}', [ProductController::class, 'update'], ['auth', 'can:products.edit', 'csrf']);
 $router->post('/products/{id}/status', [ProductController::class, 'toggleStatus'], ['auth', 'can:products.edit', 'csrf']);
 $router->post('/products/{id}/delete', [ProductController::class, 'destroy'], ['auth', 'can:products.delete', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Leads
+// -----------------------------------------------------------------------------
+$router->get('/leads', [LeadController::class, 'index'], ['auth', 'can:leads.view']);
+$router->get('/leads/new', [LeadController::class, 'create'], ['auth', 'can:leads.add']);
+$router->post('/leads', [LeadController::class, 'store'], ['auth', 'can:leads.add', 'csrf']);
+$router->get('/leads/export', [LeadController::class, 'export'], ['auth', 'can:leads.view', 'can:leads.export']);
+$router->get('/leads/{id}', [LeadController::class, 'show'], ['auth', 'can:leads.view']);
+$router->get('/leads/{id}/edit', [LeadController::class, 'edit'], ['auth', 'can:leads.edit']);
+$router->post('/leads/{id}', [LeadController::class, 'update'], ['auth', 'can:leads.edit', 'csrf']);
+$router->post('/leads/{id}/status', [LeadController::class, 'changeStatus'], ['auth', 'can:leads.edit', 'csrf']);
+$router->post('/leads/{id}/followups', [LeadController::class, 'addFollowup'], ['auth', 'can:leads.edit', 'csrf']);
+$router->post('/leads/{id}/followups/{fid}/complete', [LeadController::class, 'completeFollowup'], ['auth', 'can:leads.edit', 'csrf']);
+$router->post('/leads/{id}/convert', [LeadController::class, 'convert'], ['auth', 'can:leads.edit', 'csrf']);
+$router->post('/leads/{id}/delete', [LeadController::class, 'destroy'], ['auth', 'can:leads.delete', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)
