@@ -56,6 +56,8 @@ Every query also takes the dashboard filters (branch, employee, customer, produc
 
 ### A1: Sales Performance
 
+> Implemented exactly as below in `app/Modules/Dashboard/Kpi/SalesKpi.php` and verified against independent SQL on the base tables in `tests/sales_kpi.php`.
+
 | Figure | Definition |
 |---|---|
 | Annual Target | `SUM(sales_targets.sales_target)` where `financial_year_id` = FY |

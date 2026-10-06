@@ -66,6 +66,29 @@ function inr_number(string|int|float|null $amount, int $decimals = 2): string
     return ($negative && !$isZero ? '-' : '') . $int . ($decimals > 0 ? '.' . $frac : '');
 }
 
+/** Integer paise -> "₹10,00,000.00" (or with $decimals = 0: "₹10,00,000"). */
+function rupees(?int $paise, int $decimals = 0): string
+{
+    return $paise === null ? '—' : inr(\App\Core\Money::toDecimal($paise), $decimals);
+}
+
+/** Integer paise -> short Indian form for axes and tight spaces: ₹1.25 Cr, ₹38.2 L, ₹45.6 K, ₹950. */
+function rupees_short(?int $paise): string
+{
+    if ($paise === null) {
+        return '—';
+    }
+    $sign = $paise < 0 ? '-' : '';
+    $r = abs($paise) / 100;
+    $fmt = static fn (float $v, string $unit): string => rtrim(rtrim(number_format($v, $v < 10 ? 2 : 1, '.', ''), '0'), '.') . $unit;
+    return $sign . '₹' . match (true) {
+        $r >= 1e7 => $fmt($r / 1e7, ' Cr'),
+        $r >= 1e5 => $fmt($r / 1e5, ' L'),
+        $r >= 1e3 => $fmt($r / 1e3, ' K'),
+        default   => (string) round($r),
+    };
+}
+
 /** "0999" -> "1000", "99" -> "100" */
 function digit_string_increment(string $digits): string
 {

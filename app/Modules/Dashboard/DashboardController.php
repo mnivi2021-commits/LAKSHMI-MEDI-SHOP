@@ -35,6 +35,8 @@ final class DashboardController
             'employees'  => $ctx->employeeOptions($ctx->filters['branch_id']),
             'addTypes'   => QuickAddService::allowedTypes($user),
             'freshness'  => self::freshness($ctx),
+            'sales'      => (new Kpi\SalesKpi($ctx))->summary(),
+            'canSalesDetail' => Gate::allows('sales.view', $user),
             'today'      => $today,
             'allFys'     => Database::fetchAll('SELECT id, label, start_date FROM financial_years WHERE is_locked = 0 ORDER BY start_date'),
             'currentFyId'=> (int) $ctx->fyRow['id'],

@@ -134,5 +134,24 @@ check('split sums exactly', 10000001, array_sum(Money::split(10000001, 12)));
 check('per unit rate', 333, Money::perUnit(1000, '3'));             // 10.00 / 3 = 3.33
 check('per unit fractional qty', 400, Money::perUnit(1000, '2.5'));
 
+// --- CSV export: spreadsheet formula injection --------------------------------------------
+use App\Modules\Dashboard\SalesController;
+
+check('formula neutralised', "'=HYPERLINK(\"x\")", SalesController::csvSafe('=HYPERLINK("x")'));
+check('plus neutralised', "'+cmd", SalesController::csvSafe('+cmd'));
+check('at neutralised', "'@SUM(A1)", SalesController::csvSafe('@SUM(A1)'));
+check('negative number kept', '-2360.00', SalesController::csvSafe('-2360.00'));
+check('dash text neutralised', "'-cmd", SalesController::csvSafe('-cmd'));
+check('normal text untouched', 'Sri Balaji Traders', SalesController::csvSafe('Sri Balaji Traders'));
+check('null becomes empty', '', SalesController::csvSafe(null));
+
+// --- Short rupee format (chart axes) ----------------------------------------------------------
+check('crore', '₹1.25 Cr', rupees_short(1250000000));
+check('lakh', '₹38.2 L', rupees_short(382320000));
+check('thousand', '₹45.6 K', rupees_short(4560000));
+check('small', '₹950', rupees_short(95000));
+check('zero', '₹0', rupees_short(0));
+check('negative', '-₹2.36 K', rupees_short(-236000));
+
 echo PHP_EOL . "{$passed} passed, {$failed} failed" . PHP_EOL;
 exit($failed > 0 ? 1 : 0);

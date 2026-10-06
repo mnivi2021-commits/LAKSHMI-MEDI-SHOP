@@ -15,6 +15,7 @@ use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Dashboard\DashboardController;
+use App\Modules\Dashboard\SalesController;
 
 /** @var Router $router */
 
@@ -36,6 +37,11 @@ $router->get('/', static function (): void {
 // Dashboard quick-add (JSON, session + CSRF header) and scope-limited lookups
 $router->post('/dashboard/add/{type}', [DashboardController::class, 'quickAdd'], ['auth', 'csrf']);
 $router->get('/dashboard/lookup/{type}', [DashboardController::class, 'lookup'], ['auth', 'can:dashboard.view']);
+
+// Step A1 - Sales Performance drill-down, export, mobile API
+$router->get('/dashboard/sales', [SalesController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:sales.view']);
+$router->get('/dashboard/sales/export', [SalesController::class, 'export'], ['auth', 'can:sales.view', 'can:sales.export']);
+$router->get('/api/dashboard/sales', [SalesController::class, 'api'], ['api_auth', 'can:dashboard.view']);
 
 // -----------------------------------------------------------------------------
 // Authentication (web)

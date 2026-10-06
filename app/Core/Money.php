@@ -28,6 +28,21 @@ final class Money
         return $paise <= self::MAX_PAISE ? $paise : null;
     }
 
+    /** Signed DECIMAL string from MySQL ("-2360.00", "38.5", null) -> paise. Null/empty = 0. */
+    public static function fromDb(string|int|float|null $value): int
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+        $s = trim((string) $value);
+        $negative = str_starts_with($s, '-');
+        $paise = self::parse(ltrim($s, '-+'));
+        if ($paise === null) {
+            throw new InvalidArgumentException("Not a money value: {$s}");
+        }
+        return $negative ? -$paise : $paise;
+    }
+
     /** Paise -> "123456.70" (for SQL DECIMAL parameters). */
     public static function toDecimal(int $paise): string
     {

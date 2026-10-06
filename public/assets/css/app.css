@@ -377,3 +377,56 @@ body.drawer-open { overflow: hidden; }
     .topbar-right { flex-wrap: nowrap; gap: 6px; }
     .user-chip { margin-right: 0; }
 }
+
+/* ---- Phase 6: Sales Performance (A1) ---------------------------------------- */
+:root { --series-1: #2a78d6; --series-2: #eb6834; --good: #17663a; }
+@media (prefers-color-scheme: dark) { :root { --series-1: #3987e5; --series-2: #d95926; --good: #7bd8a0; } }
+
+.kpi-title-link { color: inherit; text-decoration: none; }
+.kpi-title-link:hover { color: var(--primary); }
+.kpi-hero { display: grid; gap: 4px; padding-bottom: 4px; }
+.kpi-hero-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.kpi-hero-value { font-size: 1.85rem; font-weight: 750; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi-hero-value a, .kpi-lines dd a { color: inherit; text-decoration: none; border-bottom: 1px dashed color-mix(in srgb, var(--primary) 45%, transparent); }
+.kpi-hero-value a:hover, .kpi-lines dd a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+.kpi-hero-sub { font-size: .85rem; color: var(--muted); }
+.progress { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; margin: 4px 0 2px; }
+.progress-fill { display: block; height: 100%; width: 0; background: var(--series-1); border-radius: 999px; }
+.progress-fill.done { background: var(--good); }
+.kpi-lines dt .period { display: block; font-size: .74rem; color: var(--muted); opacity: .85; }
+.kpi-lines dd.good { color: var(--good); }
+.kpi-more { margin-top: auto; align-self: flex-start; font-weight: 600; font-size: .88rem; text-decoration: none; }
+.kpi-more:hover { text-decoration: underline; }
+
+.chip { display: inline-block; padding: 1px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); font-size: .78rem; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat-grid .card { margin: 0; }
+@media (max-width: 1000px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { display: grid; gap: 4px; padding: 14px 16px; }
+.stat > span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.stat strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.split > .card { margin-bottom: 16px; }
+@media (max-width: 1500px) { .split { grid-template-columns: 1fr; } }
+.table.compact th, .table.compact td { padding: 8px 14px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.num.neg { color: var(--danger); }
+tr.future td { color: var(--muted); }
+.padded-x { padding: 0 20px; }
+p.padded { padding: 10px 20px; margin: 0; }
+
+.chart { margin: 4px 0 12px; }
+.chart-legend { display: flex; gap: 16px; font-size: .82rem; color: var(--muted); margin-bottom: 6px; }
+.chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { display: inline-block; }
+.key-sales { width: 12px; height: 12px; border-radius: 3px; background: var(--series-1); }
+.key-target { width: 16px; height: 0; border-top: 2px solid var(--series-2); }
+.chart-svg { width: 100%; height: auto; display: block; }
+.chart-svg .grid { stroke: var(--border); stroke-width: 1; }
+.chart-svg .grid.baseline { stroke: var(--muted); opacity: .6; }
+.chart-svg .axis-label { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.chart-svg .axis-label.future { opacity: .5; }
+.chart-svg .bar-sales { fill: var(--series-1); }
+.chart-svg .tick-target { stroke: var(--series-2); stroke-width: 2.5; stroke-linecap: round; }
+.chart-svg .hit { fill: transparent; }
+.chart-svg .month:hover .hit { fill: color-mix(in srgb, var(--primary) 7%, transparent); }

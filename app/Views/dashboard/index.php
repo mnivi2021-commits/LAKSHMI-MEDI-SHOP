@@ -104,16 +104,7 @@ ob_start();
 <section aria-labelledby="sec-a">
     <h2 id="sec-a" class="section-title">Performance</h2>
     <div class="kpi-grid">
-        <article class="card kpi-card" data-kpi="sales">
-            <header class="kpi-card-head"><h3>Sales Performance</h3><span class="badge badge-muted">Phase 6</span></header>
-            <dl class="kpi-lines">
-                <div><dt>Annual target</dt><dd><?= e($ctx->fyRow['label']) ?></dd></div>
-                <div><dt>Sales as on previous day</dt><dd><?= e($label($prev)) ?></dd></div>
-                <div><dt><?= e($monthName) ?> sales as on previous day</dt><dd><?= e($label($mtdPrev)) ?></dd></div>
-                <div><dt><?= $ctx->isLive ? "Today's sales" : 'Sales on ' . e($asOn) ?></dt><dd><?= e($windows['today']->label()) ?></dd></div>
-            </dl>
-            <p class="kpi-pending">Figures appear here in Phase 6.</p>
-        </article>
+        <?php require __DIR__ . '/_sales_card.php'; ?>
         <article class="card kpi-card" data-kpi="collection">
             <header class="kpi-card-head"><h3>Payment Collection</h3><span class="badge badge-muted">Phase 7</span></header>
             <dl class="kpi-lines">

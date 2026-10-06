@@ -2,7 +2,7 @@
 
 Sales performance, payment collection, pending order, sample / DC, mail and SMS management for a multi-branch sales team.
 
-> **Status:** Phase 5 – Dashboard framework (filters, as-on date logic, quick ADD panel, KPI card layout).
+> **Status:** Phase 6 – Sales Performance (Step A1): live KPI card, drill-down, month-wise chart, CSV export, mobile API.
 > Built one module at a time; each phase is reviewed and approved before the next starts.
 
 ---
@@ -148,6 +148,9 @@ bash tests/e2e/access.sh               # users, roles, enforcement (needs a FRES
 C:
 mpp\php\php.exe tests\dashboard.php   # dashboard context + quick ADD (seeded DB, rolled back)
 bash tests/e2e/dashboard.sh            # dashboard, scoped lookups, quick ADD over HTTP (FRESH seed)
+C:
+mpp\php\php.exe tests\sales_kpi.php   # Step A1 figures vs independent raw SQL (rolled back)
+bash tests/e2e/sales.sh                # Step A1 card, drill-down, CSV, API (FRESH seed)
 ```
 
 ### 6. Open it from phones and laptops on the same Wi-Fi
@@ -221,6 +224,16 @@ Tokens are random 256-bit values. Only their SHA-256 is stored, and they expire 
 
   Each tab appears only with its `*.add` permission, and the server re-checks permission, data scope, dates (no future dates, financial year not locked), duplicate document numbers and amounts. Amounts use exact integer paise.
 * **Latest entries in your view** shows how current the data is before you trust a number.
+
+### Step A1 – Sales Performance
+
+The card shows: annual target, sales as on previous day (FY start → yesterday), this month as on previous day, today, total (= previous day + today, never double-counted), target achieved %, target pending (or exceeded by), average monthly sales (completed months) and required monthly sales (pending ÷ remaining months).
+
+* Sales are **net of credit notes**. Cancelled and deleted invoices never count. The basis is taxable value, or total incl. GST via setting `finance.sales_amount_basis`.
+* Targets are per employee, so a **customer or product filter shows sales without a target**. A product filter uses invoice line items.
+* **Every amount is a link.** **View details** (`/dashboard/sales`) shows a month-wise target vs sales chart and table, breakdowns by branch and by employee, and the invoices and credit notes behind each window. Each window is labelled **matches dashboard** when its list adds up to the card.
+* **Export CSV** (needs `sales.export`) contains every document in the window plus a total row. It is protected against spreadsheet formula injection, and the export is audited.
+* **Mobile:** `GET /api/dashboard/sales` (Bearer token) returns the same figures, filters and data scope.
 
 ## Roles, permissions & data scope
 
