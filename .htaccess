@@ -1,0 +1,3 @@
+# Safety net: if the project ROOT is ever exposed by mistake (instead of public/),
+# deny everything. Point Apache / the XAMPP junction at public/ only.
+Require all denied

@@ -1,0 +1,40 @@
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+token*.json
+
+# Runtime data
+/logs/*
+!/logs/.gitkeep
+!/logs/.htaccess
+/uploads/imports/*
+!/uploads/imports/.gitkeep
+/uploads/attachments/*
+!/uploads/attachments/.gitkeep
+/storage/cache/*
+
+# Database dumps (may contain real customer data)
+*.sql.gz
+/database/backups/
+/database/dumps/
+
+# Dependencies / builds
+/vendor/
+node_modules/
+/mobile/.expo/
+/mobile/dist/
+/mobile/web-build/
+.vercel
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json

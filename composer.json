@@ -1,0 +1,30 @@
+{
+    "name": "marketing-crm/app",
+    "description": "Marketing CRM - sales performance, collection, pending order, sample/DC, mail and SMS management",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-mbstring": "*",
+        "ext-fileinfo": "*",
+        "ext-openssl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "app/Helpers/functions.php"
+        ]
+    },
+    "scripts": {
+        "test": "php tests/run.php",
+        "health": "php cli/health.php"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
