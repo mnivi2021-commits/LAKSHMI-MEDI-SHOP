@@ -110,6 +110,8 @@ ob_start();
     </div>
 </section>
 
+<?php if ($mail !== null) { require __DIR__ . '/_mail_section.php'; } ?>
+
 <?php require __DIR__ . '/_rep_section.php'; ?>
 <?php require __DIR__ . '/_customer_section.php'; ?>
 <?php require __DIR__ . '/_product_section.php'; ?>

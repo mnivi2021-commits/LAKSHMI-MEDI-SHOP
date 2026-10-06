@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Core\Gate;
 use App\Core\Response;
 use App\Core\Session;
+use App\Modules\Mail\MailQuery;
 use DateTimeImmutable;
 
 final class DashboardController
@@ -61,10 +62,45 @@ final class DashboardController
             'canCollectionDetail' => Gate::allows('collections.view', $user),
             'pending' => (new Kpi\PendingOrderKpi($ctx))->summary(),
             'canPendingDetail' => Gate::allows('pending_orders.view', $user),
+            'mail'       => Gate::allows('mail.view', $user) ? self::mailPanel($ctx, $user) : null,
             'today'      => $today,
             'allFys'     => Database::fetchAll('SELECT id, label, start_date FROM financial_years WHERE is_locked = 0 ORDER BY start_date'),
             'currentFyId'=> (int) $ctx->fyRow['id'],
         ]);
+    }
+
+    /**
+     * Email cards (New Enquiry / Order / New Lead / Payment Advice / Other): counts for the
+     * as-on day and the month to date, using exactly the Mail screen's query so each card
+     * opens a list of the same emails.
+     *
+     * @return array<string, mixed>
+     */
+    public static function mailPanel(DashboardContext $ctx, array $user): array
+    {
+        $asOn = $ctx->asOn->format('Y-m-d');
+        $monthStart = $ctx->asOn->modify('first day of this month')->format('Y-m-d');
+        $base = ['branch' => $ctx->filters['branch_id'], 'employee' => $ctx->filters['employee_id'], 'customer' => $ctx->filters['customer_id']];
+        $categories = Database::fetchAll("SELECT code, name, color FROM email_categories WHERE status = 'active' ORDER BY sort_order, id");
+        $day = MailQuery::countByCategory($user, $base + ['from' => $asOn, 'to' => $asOn]);
+        $month = MailQuery::countByCategory($user, $base + ['from' => $monthStart, 'to' => $asOn]);
+        $open = MailQuery::countByCategory($user, $base + ['to' => $asOn, 'open' => true]);
+        $link = static fn (array $extra): string => http_build_query(array_filter($base + $extra, static fn ($v) => $v !== null && $v !== ''));
+        $cards = [];
+        foreach ($categories as $c) {
+            $cards[] = $c + [
+                'day' => $day[$c['code']] ?? 0, 'month' => $month[$c['code']] ?? 0, 'open' => $open[$c['code']] ?? 0,
+                'href_month' => $link(['category' => $c['code'], 'from' => $monthStart, 'to' => $asOn]),
+                'href_day'   => $link(['category' => $c['code'], 'from' => $asOn, 'to' => $asOn]),
+                'href_open'  => $link(['category' => $c['code'], 'to' => $asOn, 'open' => '1']),
+            ];
+        }
+        return [
+            'cards'      => $cards,
+            'as_on'      => $asOn,
+            'month_name' => $ctx->asOn->format('F'),
+            'note'       => $ctx->filters['product_id'] !== null ? 'Emails are not linked to products, so the product filter is not applied here.' : null,
+        ];
     }
 
     /**

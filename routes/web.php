@@ -20,6 +20,7 @@ use App\Modules\Hrm\EmployeeController;
 use App\Modules\Imports\ImportController;
 use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
+use App\Modules\Mail\MailController;
 use App\Modules\Products\ProductController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
@@ -186,6 +187,25 @@ $router->post('/imports/{id}/map', [ImportController::class, 'saveMap'], ['auth'
 $router->post('/imports/{id}/run', [ImportController::class, 'run'], ['auth', 'csrf']);
 $router->post('/imports/{id}/cancel', [ImportController::class, 'cancel'], ['auth', 'csrf']);
 $router->get('/imports/{id}/errors', [ImportController::class, 'errors'], ['auth']);
+
+// -----------------------------------------------------------------------------
+// Mail (literal segments before {id})
+// -----------------------------------------------------------------------------
+$router->get('/mail', [MailController::class, 'index'], ['auth', 'can:mail.view']);
+$router->get('/mail/new', [MailController::class, 'create'], ['auth', 'can:mail.edit']);
+$router->post('/mail', [MailController::class, 'store'], ['auth', 'can:mail.edit', 'csrf']);
+$router->get('/mail/settings', [MailController::class, 'settings'], ['auth', 'can:mail.manage']);
+$router->post('/mail/accounts', [MailController::class, 'saveAccount'], ['auth', 'can:mail.manage', 'csrf']);
+$router->post('/mail/accounts/{id}/sync', [MailController::class, 'sync'], ['auth', 'can:mail.manage', 'csrf']);
+$router->post('/mail/categories/{id}', [MailController::class, 'saveKeywords'], ['auth', 'can:mail.manage', 'csrf']);
+$router->post('/mail/reclassify', [MailController::class, 'reclassify'], ['auth', 'can:mail.manage', 'csrf']);
+$router->get('/mail/{id}', [MailController::class, 'show'], ['auth', 'can:mail.view']);
+$router->post('/mail/{id}/category', [MailController::class, 'category'], ['auth', 'can:mail.edit', 'csrf']);
+$router->post('/mail/{id}/assign', [MailController::class, 'assign'], ['auth', 'can:mail.edit', 'csrf']);
+$router->post('/mail/{id}/status', [MailController::class, 'status'], ['auth', 'can:mail.edit', 'csrf']);
+$router->post('/mail/{id}/customer', [MailController::class, 'linkCustomer'], ['auth', 'can:mail.edit', 'csrf']);
+$router->post('/mail/{id}/lead', [MailController::class, 'createLead'], ['auth', 'can:mail.edit', 'csrf']);
+$router->get('/api/mail/summary', [MailController::class, 'api'], ['api_auth', 'can:mail.view']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations
