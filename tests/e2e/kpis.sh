@@ -96,6 +96,25 @@ r=$(req J GET "/dashboard/outstanding"); expect "JANA outstanding page" "${r%% *
 s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BASE/api/dashboard/outstanding"); expect "outstanding API" "$s" 200
 contains "API has d90 category" "$TMP/body" '"d90"'
 
+echo "== Section C: Customer / Product drill-down"
+r=$(req A GET "/?customer=1"); expect "admin selects a customer" "${r%% *}" 200
+contains "customer panel shows name" "$TMP/body" "Sri Balaji Traders"
+contains "customer panel has sales box" "$TMP/body" 'id="customer"'
+contains "customer panel has overdue grid" "$TMP/body" "Overdue payment"
+contains "customer panel shows last order/payment" "$TMP/body" "Last order"
+r=$(req A GET "/?product=3"); expect "admin selects a product" "${r%% *}" 200
+contains "product panel shows name" "$TMP/body" "BOPP Tape"
+contains "product panel has quantity sold" "$TMP/body" "Quantity sold"
+contains "product panel explains collection n/a" "$TMP/body" "not apply here"
+r=$(req A GET "/?customer=1&product=3"); contains "both panels shown together" "$TMP/body" "Sri Balaji Traders"
+contains "both panels shown together (product)" "$TMP/body" "BOPP Tape"
+r=$(req J GET "/?customer=1"); expect "JANA selects her own customer" "${r%% *}" 200
+contains "JANA sees her customer's panel" "$TMP/body" "Sri Balaji Traders"
+r=$(req J GET "/?customer=6"); lacks "JANA cannot select another rep's customer" "$TMP/body" "Kongu Textiles"
+contains "...and is told why" "$TMP/body" "do not have access to the selected customer"
+r=$(req A GET "/"); lacks "no customer panel without a selection" "$TMP/body" 'id="customer"'
+lacks "no product panel without a selection" "$TMP/body" 'id="product"'
+
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

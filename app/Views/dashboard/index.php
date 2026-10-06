@@ -111,6 +111,8 @@ ob_start();
 </section>
 
 <?php require __DIR__ . '/_rep_section.php'; ?>
+<?php require __DIR__ . '/_customer_section.php'; ?>
+<?php require __DIR__ . '/_product_section.php'; ?>
 
 <section class="card freshness" aria-label="Data freshness">
     <h2 class="section-title">Latest entries in your view</h2>

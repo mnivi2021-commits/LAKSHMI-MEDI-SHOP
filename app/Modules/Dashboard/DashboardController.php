@@ -34,6 +34,13 @@ final class DashboardController
             $rep = self::repPanel($repCtx, $repId);
         }
 
+        // Section C: Customer / Product drill-down - shown when the dashboard's own
+        // Customer / Product filter box has a selection (no separate picker needed).
+        $customer = $ctx->filters['customer_id'] !== null && Gate::allows('customers.view', $user)
+            ? self::customerPanel($ctx, $ctx->filters['customer_id']) : null;
+        $product = $ctx->filters['product_id'] !== null && Gate::allows('products.view', $user)
+            ? self::productPanel($ctx, $ctx->filters['product_id']) : null;
+
         Response::view('dashboard/index', [
             'title'      => 'Dashboard · Marketing CRM',
             'flash'      => Session::takeFlash(),
@@ -44,6 +51,8 @@ final class DashboardController
             'branches'   => $ctx->branchOptions(),
             'employees'  => $employees,
             'rep'        => $rep,
+            'customer'   => $customer,
+            'product'    => $product,
             'addTypes'   => QuickAddService::allowedTypes($user),
             'freshness'  => self::freshness($ctx),
             'sales'      => (new Kpi\SalesKpi($ctx))->summary(),
@@ -98,6 +107,94 @@ final class DashboardController
             'sampleDc'    => (new Kpi\SampleDcKpi($ctx))->summary(),
             'outstanding' => (new Kpi\OutstandingKpi($ctx))->categories(),
             'leads'       => array_map('intval', $leads),
+        ];
+    }
+
+    /**
+     * Section C - everything shown for one customer, for the same period and filters.
+     * Collection, pending order, sample/DC and outstanding already understand a
+     * customer filter (they are customer-level by nature); only the sales target
+     * and achieved-% do not apply to one customer (SalesKpi already returns null
+     * for those when a customer filter is set).
+     *
+     * @return array<string, mixed>
+     */
+    public static function customerPanel(DashboardContext $ctx, int $customerId): array
+    {
+        $cust = Database::fetch(
+            "SELECT c.id, c.customer_code, c.name, c.company_name, c.mobile, c.email, c.city, c.state, c.status,
+                    c.credit_days, c.credit_limit, b.name AS branch, b.branch_code, e.short_name AS employee, e.name AS employee_name
+             FROM customers c JOIN branches b ON b.id = c.branch_id LEFT JOIN employees e ON e.id = c.employee_id
+             WHERE c.id = ?",
+            [$customerId]
+        );
+
+        $lastOrder = Database::value(
+            "SELECT MAX(invoice_date) FROM sales_invoices WHERE customer_id = ? AND document_type = 'invoice' AND status = 'active' AND deleted_at IS NULL",
+            [$customerId]
+        );
+        $lastPayment = Database::value(
+            "SELECT MAX(receipt_date) FROM collections WHERE customer_id = ? AND status IN ('received','cleared') AND deleted_at IS NULL",
+            [$customerId]
+        );
+        $asOnEnd = $ctx->asOn->format('Y-m-d 23:59:59');
+        $leads = Database::fetch(
+            "SELECT COUNT(CASE WHEN status NOT IN ('won','lost') THEN 1 END) AS open_leads,
+                    COUNT(CASE WHEN status NOT IN ('won','lost') AND next_followup_at <= ? THEN 1 END) AS followups_due
+             FROM leads WHERE deleted_at IS NULL AND customer_id = ?",
+            [$asOnEnd, $customerId]
+        );
+        $followupsDue = (int) Database::value(
+            "SELECT COUNT(*) FROM followups WHERE deleted_at IS NULL AND customer_id = ? AND status = 'pending' AND followup_at <= ?",
+            [$customerId, $asOnEnd]
+        );
+
+        return [
+            'customer'     => $cust,
+            'query'        => $ctx->query(),
+            'last_order'   => $lastOrder,
+            'last_payment' => $lastPayment,
+            'sales'        => (new Kpi\SalesKpi($ctx))->summary(),
+            'collection'   => (new Kpi\CollectionKpi($ctx))->summary(),
+            'pending'      => (new Kpi\PendingOrderKpi($ctx))->summary(),
+            'sampleDc'     => (new Kpi\SampleDcKpi($ctx))->summary(),
+            'outstanding'  => (new Kpi\OutstandingKpi($ctx))->categories(),
+            'leads'        => ['open_leads' => (int) $leads['open_leads'], 'followups_due' => (int) $leads['followups_due'] + $followupsDue],
+        ];
+    }
+
+    /**
+     * Section C - everything shown for one product, for the same period and filters.
+     * Collection and outstanding are tracked per invoice, not per product line, so
+     * they are not meaningful at product level (CollectionKpi/OutstandingKpi already
+     * report applies() = false for a product filter; the view explains this).
+     *
+     * @return array<string, mixed>
+     */
+    public static function productPanel(DashboardContext $ctx, int $productId): array
+    {
+        $prod = Database::fetch(
+            'SELECT id, product_code, name, category, unit, rate, gst_rate, status FROM products WHERE id = ?',
+            [$productId]
+        );
+
+        [$where, $params] = $ctx->where(['branch' => 'v.branch_id', 'employee' => 'v.employee_id', 'customer' => 'v.customer_id', 'product' => 'v.product_id']);
+        $fy = $ctx->fy;
+        $qty = Database::fetch(
+            "SELECT COALESCE(SUM(v.quantity), 0) AS qty, COUNT(DISTINCT v.customer_id) AS customers
+             FROM v_sales_lines v WHERE v.invoice_date BETWEEN ? AND ? AND {$where}",
+            array_merge([$fy->start->format('Y-m-d'), $ctx->asOn->format('Y-m-d')], $params)
+        );
+
+        return [
+            'product'      => $prod,
+            'query'        => $ctx->query(),
+            'quantity_sold'=> rtrim(rtrim((string) $qty['qty'], '0'), '.'),
+            'customers'    => (int) $qty['customers'],
+            'sales'        => (new Kpi\SalesKpi($ctx))->summary(),
+            'byEmployee'   => (new Kpi\SalesKpi($ctx))->breakdown('employee'),
+            'pending'      => (new Kpi\PendingOrderKpi($ctx))->summary(),
+            'sampleDc'     => (new Kpi\SampleDcKpi($ctx))->summary(),
         ];
     }
 
