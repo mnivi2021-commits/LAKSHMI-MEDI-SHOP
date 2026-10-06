@@ -533,3 +533,23 @@ tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent);
 .table.grid-table th, .table.grid-table td { padding: 8px 10px; }
 .grid-table th:first-child, .grid-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
 .grid-table tfoot th:first-child { background: var(--bg); }
+
+/* ---- Phase 14: Excel Upload --------------------------------------------- */
+.alert-warning { background: var(--warn-bg); color: var(--warn-fg); }
+.import-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.import-type { padding: 16px 18px; }
+.import-type h2 { font-size: 1rem; margin: 0 0 4px; }
+.import-type .form-actions { margin-top: 10px; flex-wrap: wrap; }
+.import-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 700px) { .import-stats { grid-template-columns: 1fr 1fr; } }
+.import-stats .stat { display: block; padding: 14px 16px; text-decoration: none; color: var(--text); border: 2px solid transparent; }
+.import-stats .stat span { display: block; color: var(--muted); font-size: .85rem; }
+.import-stats .stat strong { font-size: 1.5rem; }
+.import-stats .stat.active { border-color: var(--primary); }
+.import-stats .stat-ok strong { color: var(--ok-fg); }
+.import-stats .stat-fail strong { color: var(--fail-fg); }
+.import-stats .stat-warn strong { color: var(--warn-fg); }
+.import-run { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; margin-bottom: 16px; border-left: 4px solid var(--primary); }
+@media (max-width: 700px) { .import-run { flex-direction: column; align-items: stretch; } }
+.notes-list { margin: 0; padding-left: 36px; }
+.notes-list li { margin: 4px 0; }

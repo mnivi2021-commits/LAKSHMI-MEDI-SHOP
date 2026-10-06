@@ -74,6 +74,16 @@ final class Money
         return $out;
     }
 
+    /** Rate x quantity (decimal string, up to 3 places) -> paise, half-up. */
+    public static function times(int $paise, string $quantity): int
+    {
+        if (!preg_match('/^(\d{1,11})(?:\.(\d{1,3}))?$/', $quantity, $m)) {
+            throw new InvalidArgumentException('Invalid quantity');
+        }
+        $milli = (int) $m[1] * 1000 + (int) str_pad($m[2] ?? '0', 3, '0');
+        return intdiv($paise * $milli * 2 + 1000, 2000);
+    }
+
     /** Divide (e.g. value / quantity) to a paisa rate, half-up. Quantity is a decimal string with up to 3 places. */
     public static function perUnit(int $paise, string $quantity): int
     {

@@ -17,6 +17,7 @@ use App\Modules\Auth\AuthController;
 use App\Modules\Branches\BranchController;
 use App\Modules\Customers\CustomerController;
 use App\Modules\Hrm\EmployeeController;
+use App\Modules\Imports\ImportController;
 use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Products\ProductController;
@@ -171,6 +172,20 @@ $router->get('/sales', [SalesDetailsController::class, 'index'], ['auth', $sales
 $router->get('/sales/export', [SalesDetailsController::class, 'export'], ['auth', 'can:sales.export']);
 $router->get('/sales/documents/{kind}', [SalesDetailsController::class, 'documents'], ['auth']);
 $router->get('/api/sales/grid', [SalesDetailsController::class, 'api'], ['api_auth', $salesAny]);
+
+// -----------------------------------------------------------------------------
+// Excel Upload (literal segments before {id})
+// -----------------------------------------------------------------------------
+$router->get('/imports', [ImportController::class, 'index'], ['auth', ImportController::ANY_PERMISSION]);
+$router->get('/imports/new/{type}', [ImportController::class, 'create'], ['auth']);
+$router->post('/imports/new/{type}', [ImportController::class, 'upload'], ['auth', 'csrf']);
+$router->get('/imports/template/{type}', [ImportController::class, 'template'], ['auth']);
+$router->get('/imports/{id}', [ImportController::class, 'show'], ['auth']);
+$router->get('/imports/{id}/map', [ImportController::class, 'map'], ['auth']);
+$router->post('/imports/{id}/map', [ImportController::class, 'saveMap'], ['auth', 'csrf']);
+$router->post('/imports/{id}/run', [ImportController::class, 'run'], ['auth', 'csrf']);
+$router->post('/imports/{id}/cancel', [ImportController::class, 'cancel'], ['auth', 'csrf']);
+$router->get('/imports/{id}/errors', [ImportController::class, 'errors'], ['auth']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations
