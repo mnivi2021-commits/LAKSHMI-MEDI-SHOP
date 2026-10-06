@@ -7,6 +7,7 @@ namespace App\Modules\Auth;
 use App\Core\ApiTokens;
 use App\Core\Audit;
 use App\Core\Auth;
+use App\Core\Gate;
 use App\Core\Request;
 use App\Core\Response;
 
@@ -76,6 +77,8 @@ final class ApiAuthController
             'email'       => $user['email'],
             'role'        => ['slug' => $user['role_slug'], 'name' => $user['role_name'], 'data_scope' => $user['data_scope']],
             'employee_id' => $user['employee_id'] !== null ? (int) $user['employee_id'] : null,
+            // For showing/hiding app screens only - the API re-checks every request.
+            'permissions' => Gate::permissionsFor($user),
         ];
     }
 

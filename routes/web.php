@@ -11,6 +11,8 @@ use App\Core\Response;
 use App\Core\Router;
 use App\Core\Session;
 use App\Modules\Auth\ApiAuthController;
+use App\Modules\Access\RoleController;
+use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 
 /** @var Router $router */
@@ -48,6 +50,28 @@ $router->post('/logout', static function (): void {
 
 $router->get('/password/change', [AuthController::class, 'showChangePassword'], ['auth']);
 $router->post('/password/change', [AuthController::class, 'changePassword'], ['auth', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Access: users, roles, permission matrix
+// -----------------------------------------------------------------------------
+$router->get('/access/users', [UserController::class, 'index'], ['auth', 'can:users.view']);
+$router->get('/access/users/new', [UserController::class, 'create'], ['auth', 'can:users.add']);
+$router->post('/access/users', [UserController::class, 'store'], ['auth', 'can:users.add', 'csrf']);
+$router->get('/access/users/{id}/edit', [UserController::class, 'edit'], ['auth', 'can:users.edit']);
+$router->post('/access/users/{id}', [UserController::class, 'update'], ['auth', 'can:users.edit', 'csrf']);
+$router->post('/access/users/{id}/status', [UserController::class, 'toggleStatus'], ['auth', 'can:users.edit', 'csrf']);
+$router->post('/access/users/{id}/reset-password', [UserController::class, 'resetPassword'], ['auth', 'can:users.edit', 'csrf']);
+$router->post('/access/users/{id}/unlock', [UserController::class, 'unlock'], ['auth', 'can:users.edit', 'csrf']);
+$router->post('/access/users/{id}/delete', [UserController::class, 'destroy'], ['auth', 'can:users.delete', 'csrf']);
+$router->get('/access/users/{id}/permissions', [UserController::class, 'permissions'], ['auth', 'can:access.manage']);
+$router->post('/access/users/{id}/permissions', [UserController::class, 'savePermissions'], ['auth', 'can:access.manage', 'csrf']);
+
+$router->get('/access/roles', [RoleController::class, 'index'], ['auth', 'can:access.manage']);
+$router->get('/access/roles/new', [RoleController::class, 'create'], ['auth', 'can:access.manage']);
+$router->post('/access/roles', [RoleController::class, 'store'], ['auth', 'can:access.manage', 'csrf']);
+$router->get('/access/roles/{id}', [RoleController::class, 'edit'], ['auth', 'can:access.manage']);
+$router->post('/access/roles/{id}', [RoleController::class, 'update'], ['auth', 'can:access.manage', 'csrf']);
+$router->post('/access/roles/{id}/delete', [RoleController::class, 'destroy'], ['auth', 'can:access.manage', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)

@@ -21,6 +21,27 @@ final class PasswordPolicy
         'admin@2026', 'coord@2026', 'sales@2026', // seeded demo passwords
     ];
 
+    /**
+     * Random temporary password for new users / admin resets, e.g. "Kp7d-Wx3m-Qz9a".
+     * No look-alike characters (0/O, 1/l/I). The user must change it at first sign-in.
+     */
+    public static function generateTemporary(): string
+    {
+        $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        do {
+            $groups = [];
+            for ($g = 0; $g < 3; $g++) {
+                $chunk = '';
+                for ($i = 0; $i < 4; $i++) {
+                    $chunk .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+                }
+                $groups[] = $chunk;
+            }
+            $password = implode('-', $groups);
+        } while (self::validate($password) !== []);
+        return $password;
+    }
+
     /** @return list<string> human-readable problems; empty = acceptable */
     public static function validate(string $password, string $username = '', string $email = ''): array
     {

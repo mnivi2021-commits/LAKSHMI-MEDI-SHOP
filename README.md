@@ -2,7 +2,8 @@
 
 Sales performance, payment collection, pending order, sample / DC, mail and SMS management for a multi-branch sales team.
 
-> **Status:** Phase 3 – Authentication (web sign-in, lockout, forced password change, API tokens, audit) + public intro page + Wi-Fi access.
+> **Status:** Phase 4 – Roles & permissions (permission matrix, per-user overrides, data scope, user management).
+> Phase 3 – Authentication, public intro page, Wi-Fi access.
 > Built one module at a time; each phase is reviewed and approved before the next starts.
 
 ---
@@ -141,7 +142,10 @@ C:\xampp\php\php.exe tests\run.php     # financial-year, currency, password poli
 C:\xampp\php\php.exe cli\health.php    # same checks as /health
 C:\xampp\php\php.exe cli\verify-data.php   # cross-table data integrity rules
 C:\xampp\php\php.exe cli\migrate.php --status
-bash tests/e2e/auth.sh                 # web + API sign-in flow (needs a FRESHLY seeded local DB)
+C:
+mppphpphp.exe testsdb.php      # permissions + data scope (seeded DB, rolled back)
+bash tests/e2e/auth.sh                 # web + API sign-in flow   (needs a FRESHLY seeded local DB)
+bash tests/e2e/access.sh               # users, roles, enforcement (needs a FRESHLY seeded local DB)
 ```
 
 ### 6. Open it from phones and laptops on the same Wi-Fi
@@ -202,6 +206,35 @@ POST /api/auth/logout   Authorization: Bearer <token>   (revokes the token)
 ```
 
 Tokens are random 256-bit values. Only their SHA-256 is stored, and they expire after `API_TOKEN_TTL_DAYS` (30). The API sets no cookies. Error codes: 401 invalid credentials or token, 403 `password_change_required` / `account_disabled`, 429 too many attempts (with `Retry-After`). CORS is allowed only for `API_ALLOWED_ORIGINS`.
+
+## Roles, permissions & data scope
+
+**Permissions** (`module.action`, e.g. `sales.view`, `users.delete`). A user's effective permissions are:
+
+> role permissions **+** per-user *grant* overrides **−** per-user *deny* overrides
+
+* **Admin Head** always has every permission. The role can't be edited, so a matrix mistake can never lock the system.
+* **Admin Head** sets the matrix per role at **Access → Roles & permissions**. This is where the Admin Coordinator's access is configured. Exceptions for one person go under **Access → Users → Permission overrides**.
+* **Enforcement** happens on the server for every route (`can:` middleware → 403), not just by hiding buttons. The menu shows only modules the user can open.
+* **Escalation guards:**
+  * nobody can grant, or manage a user who has, permissions they don't hold themselves
+  * only an Admin Head can assign the Admin Head role
+  * nobody can change their own role, disable or delete themselves, or remove the last active Admin Head
+
+**Data scope** (`roles.data_scope`) decides *whose records* a user sees. Every dashboard, list, report and API query applies `App\Core\DataScope`:
+
+| Scope | Sees | Needs |
+|---|---|---|
+| all | every branch and employee | – |
+| branch | branches ticked on the user | ≥ 1 branch |
+| team | own employee + everyone reporting to them (whole tree) | linked employee |
+| own | own employee's records only | linked employee |
+
+A user whose scope can't be resolved sees **nothing**, never everything.
+
+**User management:** add (temporary password shown once), edit, enable/disable (signs out immediately and revokes mobile tokens), reset password, unlock, and delete (soft delete).
+
+Every change is audited: `user.created`, `user.updated`, `user.disabled`, `user.enabled`, `user.password_reset`, `user.unlocked`, `user.deleted`, `role.created`, `role.updated`, `role.deleted`, `permission.changed`, `user_permission.changed`.
 
 ## Key business rules built into the foundation
 

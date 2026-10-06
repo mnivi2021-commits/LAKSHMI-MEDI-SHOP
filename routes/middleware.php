@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\ApiTokens;
 use App\Core\Auth;
 use App\Core\Csrf;
+use App\Core\Gate;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
@@ -36,6 +37,9 @@ $router->middleware('guest', static function (): bool {
 
 // Every state-changing web form.
 $router->middleware('csrf', static fn (): bool => Csrf::enforce());
+
+// Permission check, e.g. 'can:users.view'. Use after 'auth' or 'api_auth'.
+$router->middleware('can', static fn (?string $permission): bool => $permission !== null && Gate::authorize($permission));
 
 // Bearer-token API requests (mobile app). No cookies, so no CSRF needed.
 $router->middleware('api_auth', static function (): bool {

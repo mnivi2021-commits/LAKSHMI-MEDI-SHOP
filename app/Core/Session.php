@@ -62,7 +62,15 @@ final class Session
         $_SESSION['_last_activity'] = time();
     }
 
-    /** One-time message shown on the next page: type = success | error | info */
+    /** Read and remove a value (used for old form input / validation errors after a redirect). */
+    public static function pull(string $key, mixed $default = null): mixed
+    {
+        $value = $_SESSION[$key] ?? $default;
+        unset($_SESSION[$key]);
+        return $value;
+    }
+
+    /** One-time message shown on the next page: type = success | error | info | credential */
     public static function flash(string $type, string $message): void
     {
         $_SESSION['_flash'][] = ['type' => $type, 'message' => $message];

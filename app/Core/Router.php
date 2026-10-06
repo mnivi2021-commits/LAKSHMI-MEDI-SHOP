@@ -9,15 +9,15 @@ use InvalidArgumentException;
 /**
  * Small method + path router with named middleware.
  *
- *   $router->middleware('auth', fn(): bool => ...);   // return false = stop (middleware already responded)
- *   $router->get('/api/customers/{id}', fn(array $p) => ..., ['api_auth']);
+ *   $router->middleware('auth', fn(?string $arg): bool => ...);   // return false = stop (middleware already responded)
+ *   $router->get('/api/customers/{id}', fn(array $p) => ..., ['api_auth', 'can:customers.view']);
  */
 final class Router
 {
     /** @var array<string, list<array{regex: string, handler: callable, middleware: list<string>}>> */
     private array $routes = [];
 
-    /** @var array<string, callable(): bool> */
+    /** @var array<string, callable(?string): bool> */
     private array $middleware = [];
 
     public function middleware(string $name, callable $fn): void
@@ -47,9 +47,11 @@ final class Router
             if (!preg_match($route['regex'], $path, $m)) {
                 continue;
             }
-            foreach ($route['middleware'] as $name) {
+            foreach ($route['middleware'] as $spec) {
+                // "can:users.view" -> middleware "can" with argument "users.view"
+                [$name, $arg] = array_pad(explode(':', $spec, 2), 2, null);
                 $fn = $this->middleware[$name] ?? throw new InvalidArgumentException("Unknown middleware: {$name}");
-                if ($fn() === false) {
+                if ($fn($arg) === false) {
                     return;
                 }
             }
