@@ -37,6 +37,8 @@ final class DashboardController
             'freshness'  => self::freshness($ctx),
             'sales'      => (new Kpi\SalesKpi($ctx))->summary(),
             'canSalesDetail' => Gate::allows('sales.view', $user),
+            'collection' => (new Kpi\CollectionKpi($ctx))->summary(),
+            'canCollectionDetail' => Gate::allows('collections.view', $user),
             'today'      => $today,
             'allFys'     => Database::fetchAll('SELECT id, label, start_date FROM financial_years WHERE is_locked = 0 ORDER BY start_date'),
             'currentFyId'=> (int) $ctx->fyRow['id'],

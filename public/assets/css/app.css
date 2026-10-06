@@ -430,3 +430,7 @@ p.padded { padding: 10px 20px; margin: 0; }
 .chart-svg .tick-target { stroke: var(--series-2); stroke-width: 2.5; stroke-linecap: round; }
 .chart-svg .hit { fill: transparent; }
 .chart-svg .month:hover .hit { fill: color-mix(in srgb, var(--primary) 7%, transparent); }
+
+/* ---- Phase 7: collection ---- */
+.progress-collection { background: var(--ok-fg); }
+.kpi-lines dd.bad, .stat strong.bad { color: var(--danger); }

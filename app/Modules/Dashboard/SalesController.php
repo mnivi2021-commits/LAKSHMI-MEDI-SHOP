@@ -106,16 +106,9 @@ final class SalesController
         Response::json(['success' => true, 'data' => ['summary' => $s, 'monthly' => $monthly, 'filters' => $ctx->filters, 'notices' => $ctx->notices]]);
     }
 
-    /** Neutralise spreadsheet formula injection (=, +, -, @ at the start of a cell). */
+    /** Kept for existing callers; see Csv::safe(). */
     public static function csvSafe(mixed $v): string
     {
-        $s = (string) ($v ?? '');
-        if ($s !== '' && in_array($s[0], ['=', '+', '@', "\t", "\r"], true)) {
-            return "'" . $s;
-        }
-        if ($s !== '' && $s[0] === '-' && !is_numeric($s)) {
-            return "'" . $s;
-        }
-        return $s;
+        return \App\Core\Csv::safe($v);
     }
 }

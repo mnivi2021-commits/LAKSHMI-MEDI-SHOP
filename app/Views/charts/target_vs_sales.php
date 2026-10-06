@@ -6,7 +6,11 @@
  *
  * @var list<array{month: string, label: string, target: ?int, sales: ?int}> $monthly
  * @var bool $showTarget
+ * @var string|null $barLabel   default "Sales"
+ * @var string|null $tickLabel  default "Target"
  */
+$barLabel ??= 'Sales';
+$tickLabel ??= 'Target';
 $W = 720; $H = 260; $padL = 56; $padR = 8; $padT = 12; $padB = 28;
 $plotW = $W - $padL - $padR; $plotH = $H - $padT - $padB;
 
@@ -29,11 +33,11 @@ $hasNegative = false;
 ?>
 <figure class="chart" aria-label="Month-wise sales against target">
     <div class="chart-legend" aria-hidden="true">
-        <span><i class="key key-sales"></i>Sales</span>
-        <?php if ($showTarget): ?><span><i class="key key-target"></i>Target</span><?php endif; ?>
+        <span><i class="key key-sales"></i><?= e($barLabel) ?></span>
+        <?php if ($showTarget): ?><span><i class="key key-target"></i><?= e($tickLabel) ?></span><?php endif; ?>
     </div>
     <svg viewBox="0 0 <?= $W ?> <?= $H ?>" role="img" preserveAspectRatio="xMidYMid meet" class="chart-svg">
-        <title>Month-wise sales<?= $showTarget ? ' against target' : '' ?></title>
+        <title>Month-wise <?= e(strtolower($barLabel)) ?><?= $showTarget ? ' against ' . e(strtolower($tickLabel)) : '' ?></title>
         <?php for ($i = 0; $i <= 4; $i++): $v = (int) ($niceMax * $i / 4); $gy = $y($v); ?>
             <line x1="<?= $padL ?>" x2="<?= $W - $padR ?>" y1="<?= round($gy, 1) ?>" y2="<?= round($gy, 1) ?>" class="grid<?= $i === 0 ? ' baseline' : '' ?>"/>
             <text x="<?= $padL - 8 ?>" y="<?= round($gy + 4, 1) ?>" class="axis-label" text-anchor="end"><?= e(rupees_short($v)) ?></text>
@@ -42,8 +46,8 @@ $hasNegative = false;
         <?php foreach ($monthly as $i => $m):
             $cx = $padL + $slot * $i + $slot / 2;
             $sales = $m['sales'];
-            $tip = $m['label'] . ' ' . substr($m['month'], 0, 4) . ' — Sales: ' . ($sales === null ? 'not yet' : rupees($sales))
-                 . ($showTarget ? ' · Target: ' . rupees($m['target']) : '');
+            $tip = $m['label'] . ' ' . substr($m['month'], 0, 4) . ' — ' . $barLabel . ': ' . ($sales === null ? 'not yet' : rupees($sales))
+                 . ($showTarget ? ' · ' . $tickLabel . ': ' . rupees($m['target']) : '');
         ?>
             <g class="month">
                 <title><?= e($tip) ?></title>

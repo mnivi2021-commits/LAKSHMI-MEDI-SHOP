@@ -14,6 +14,7 @@ use App\Modules\Auth\ApiAuthController;
 use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
+use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\SalesController;
 
@@ -42,6 +43,11 @@ $router->get('/dashboard/lookup/{type}', [DashboardController::class, 'lookup'],
 $router->get('/dashboard/sales', [SalesController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:sales.view']);
 $router->get('/dashboard/sales/export', [SalesController::class, 'export'], ['auth', 'can:sales.view', 'can:sales.export']);
 $router->get('/api/dashboard/sales', [SalesController::class, 'api'], ['api_auth', 'can:dashboard.view']);
+
+// Step A2 - Payment Collection
+$router->get('/dashboard/collection', [CollectionController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:collections.view']);
+$router->get('/dashboard/collection/export', [CollectionController::class, 'export'], ['auth', 'can:collections.view', 'can:collections.export']);
+$router->get('/api/dashboard/collection', [CollectionController::class, 'api'], ['api_auth', 'can:dashboard.view']);
 
 // -----------------------------------------------------------------------------
 // Authentication (web)

@@ -105,15 +105,7 @@ ob_start();
     <h2 id="sec-a" class="section-title">Performance</h2>
     <div class="kpi-grid">
         <?php require __DIR__ . '/_sales_card.php'; ?>
-        <article class="card kpi-card" data-kpi="collection">
-            <header class="kpi-card-head"><h3>Payment Collection</h3><span class="badge badge-muted">Phase 7</span></header>
-            <dl class="kpi-lines">
-                <div><dt>Previous period</dt><dd><?= e($label($mtdPrev)) ?></dd></div>
-                <div><dt><?= $ctx->isLive ? "Today's collection" : 'Collection on ' . e($asOn) ?></dt><dd><?= e($windows['today']->label()) ?></dd></div>
-                <div><dt>Total</dt><dd>Previous + today</dd></div>
-            </dl>
-            <p class="kpi-pending">Figures appear here in Phase 7.</p>
-        </article>
+        <?php require __DIR__ . '/_collection_card.php'; ?>
         <article class="card kpi-card" data-kpi="pending">
             <header class="kpi-card-head"><h3>Branch Pending Order</h3><span class="badge badge-muted">Phase 8</span></header>
             <dl class="kpi-lines">
