@@ -16,6 +16,7 @@ use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
+use App\Modules\Dashboard\PendingOrderController;
 use App\Modules\Dashboard\SalesController;
 
 /** @var Router $router */
@@ -48,6 +49,11 @@ $router->get('/api/dashboard/sales', [SalesController::class, 'api'], ['api_auth
 $router->get('/dashboard/collection', [CollectionController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:collections.view']);
 $router->get('/dashboard/collection/export', [CollectionController::class, 'export'], ['auth', 'can:collections.view', 'can:collections.export']);
 $router->get('/api/dashboard/collection', [CollectionController::class, 'api'], ['api_auth', 'can:dashboard.view']);
+
+// Step A3 - Branch Pending Order
+$router->get('/dashboard/pending', [PendingOrderController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:pending_orders.view']);
+$router->get('/dashboard/pending/export', [PendingOrderController::class, 'export'], ['auth', 'can:pending_orders.view', 'can:pending_orders.export']);
+$router->get('/api/dashboard/pending', [PendingOrderController::class, 'api'], ['api_auth', 'can:dashboard.view']);
 
 // -----------------------------------------------------------------------------
 // Authentication (web)

@@ -53,6 +53,22 @@ lacks "JANA sees no other rep" "$TMP/body" "MUKESH - "
 s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TJ" "$BASE/api/dashboard/collection"); expect "collection API" "$s" 200
 contains "API has overdue" "$TMP/body" '"overdue":"'
 
+echo "== A3 Branch Pending Order"
+r=$(req A GET /); contains "pending card live" "$TMP/body" 'data-kpi="pending"'
+contains "aging rows on card" "$TMP/body" "150+ days"
+page_ok A "/dashboard/pending" "pending detail"
+contains "oldest order shown" "$TMP/body" "SO/25-26/0412"
+for b in 0-30 31-60 61-90 91-150 150%2B; do page_ok A "/dashboard/pending?bucket=$b" "pending bucket $b"; done
+page_ok A "/dashboard/pending?month=2026-08" "pending as on 31-08"
+r=$(req A GET "/dashboard/pending/export?bucket=150%2B"); expect "pending CSV" "${r%% *}" 200
+contains "CSV has pending columns" "$TMP/body" "Pending value"
+lacks "closed order not exported" "$TMP/body" "SO/26-27/0030"
+r=$(req C GET "/dashboard/pending/export"); expect "coordinator cannot export pending (403)" "${r%% *}" 403
+r=$(req J GET "/dashboard/pending"); expect "JANA pending page" "${r%% *}" 200
+lacks "JANA sees no MUKESH orders" "$TMP/body" "SO/26-27/0085"
+s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BASE/api/dashboard/pending"); expect "pending API" "$s" 200
+contains "API has aging" "$TMP/body" '"aging":\['
+
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

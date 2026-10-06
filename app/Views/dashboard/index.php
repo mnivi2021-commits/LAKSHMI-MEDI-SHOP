@@ -106,14 +106,7 @@ ob_start();
     <div class="kpi-grid">
         <?php require __DIR__ . '/_sales_card.php'; ?>
         <?php require __DIR__ . '/_collection_card.php'; ?>
-        <article class="card kpi-card" data-kpi="pending">
-            <header class="kpi-card-head"><h3>Branch Pending Order</h3><span class="badge badge-muted">Phase 8</span></header>
-            <dl class="kpi-lines">
-                <div><dt>Open orders as on</dt><dd><?= e($asOn) ?></dd></div>
-                <div><dt>Aging</dt><dd>0-30 · 31-60 · 61-90 · 91-150 · 150+</dd></div>
-            </dl>
-            <p class="kpi-pending">Figures appear here in Phase 8.</p>
-        </article>
+        <?php require __DIR__ . '/_pending_card.php'; ?>
     </div>
 </section>
 
