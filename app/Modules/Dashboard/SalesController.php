@@ -19,6 +19,7 @@ final class SalesController
         'fy'    => ['FY to date', 'fy_to_date'],
         'prev'  => ['FY to previous day', 'fy_to_previous_day'],
         'month' => ['Month to previous day', 'month_to_previous_day'],
+        'mtd'   => ['Month to date', 'month_to_date'],
         'today' => ['As-on day', 'today'],
     ];
     private const PER_PAGE = 50;

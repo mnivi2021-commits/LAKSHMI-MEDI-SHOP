@@ -20,6 +20,7 @@ use App\Modules\Hrm\EmployeeController;
 use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Products\ProductController;
+use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\OutstandingController;
@@ -161,6 +162,15 @@ $router->post('/leads/{id}/followups', [LeadController::class, 'addFollowup'], [
 $router->post('/leads/{id}/followups/{fid}/complete', [LeadController::class, 'completeFollowup'], ['auth', 'can:leads.edit', 'csrf']);
 $router->post('/leads/{id}/convert', [LeadController::class, 'convert'], ['auth', 'can:leads.edit', 'csrf']);
 $router->post('/leads/{id}/delete', [LeadController::class, 'destroy'], ['auth', 'can:leads.delete', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Sales Details (combined grid by employee / branch / month)
+// -----------------------------------------------------------------------------
+$salesAny = 'can_any:sales.view,targets.view,collections.view,pending_orders.view,samples.view,dc.view,outstanding.view';
+$router->get('/sales', [SalesDetailsController::class, 'index'], ['auth', $salesAny]);
+$router->get('/sales/export', [SalesDetailsController::class, 'export'], ['auth', 'can:sales.export']);
+$router->get('/sales/documents/{kind}', [SalesDetailsController::class, 'documents'], ['auth']);
+$router->get('/api/sales/grid', [SalesDetailsController::class, 'api'], ['api_auth', $salesAny]);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations

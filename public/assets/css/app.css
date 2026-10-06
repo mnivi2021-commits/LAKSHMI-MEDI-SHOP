@@ -522,3 +522,14 @@ tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent);
 /* ---- Phase 17: HRM ------------------------------------------------------- */
 .inline-rename { display: flex; gap: .5rem; align-items: center; }
 .inline-rename input { flex: 1; min-width: 10rem; max-width: 22rem; }
+
+/* ---- Phase 13: Sales Details -------------------------------------------- */
+.filters-5 { grid-template-columns: repeat(4, 1fr) auto; }
+@media (max-width: 800px) { .filters-5 { grid-template-columns: 1fr 1fr; } }
+.table tfoot th { border-top: 2px solid var(--border); background: var(--bg); }
+.total-row th { font-weight: 700; }
+.grid-table td.num a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.grid-table td.num a:hover { color: var(--primary); }
+.table.grid-table th, .table.grid-table td { padding: 8px 10px; }
+.grid-table th:first-child, .grid-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.grid-table tfoot th:first-child { background: var(--bg); }

@@ -41,6 +41,15 @@ $router->middleware('csrf', static fn (): bool => Csrf::enforce());
 // Permission check, e.g. 'can:users.view'. Use after 'auth' or 'api_auth'.
 $router->middleware('can', static fn (?string $permission): bool => $permission !== null && Gate::authorize($permission));
 
+// "can_any:a.view,b.view" - at least one of the listed permissions.
+$router->middleware('can_any', static function (?string $list): bool {
+    $slugs = array_filter(explode(',', (string) $list));
+    if ($slugs !== [] && Gate::allowsAny($slugs)) {
+        return true;
+    }
+    return Gate::authorize($slugs[0] ?? 'none');
+});
+
 // Bearer-token API requests (mobile app). No cookies, so no CSRF needed.
 $router->middleware('api_auth', static function (): bool {
     $token = Request::bearerToken();

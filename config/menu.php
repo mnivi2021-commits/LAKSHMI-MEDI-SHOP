@@ -11,7 +11,7 @@ declare(strict_types=1);
 return [
     ['key' => 'dashboard', 'label' => 'Dashboard',      'path' => '/',             'any' => ['dashboard.view'], 'ready' => true],
     ['key' => 'branches',  'label' => 'Branch Details', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => true],
-    ['key' => 'sales',     'label' => 'Sales Details',  'path' => '/sales',        'any' => ['sales.view', 'targets.view', 'collections.view', 'pending_orders.view', 'samples.view', 'dc.view'], 'ready' => false],
+    ['key' => 'sales',     'label' => 'Sales Details',  'path' => '/sales',        'any' => ['sales.view', 'targets.view', 'collections.view', 'pending_orders.view', 'samples.view', 'dc.view', 'outstanding.view'], 'ready' => true],
     ['key' => 'hrm',       'label' => 'HRM',            'path' => '/hrm',          'any' => ['hrm.view'],       'ready' => true],
     ['key' => 'reports',   'label' => 'Reports',        'path' => '/reports',      'any' => ['reports.view'],   'ready' => false],
     ['key' => 'sms',       'label' => 'SMS',            'path' => '/sms',          'any' => ['sms.view'],       'ready' => false],

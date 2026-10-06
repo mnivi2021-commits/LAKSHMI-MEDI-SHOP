@@ -17,7 +17,7 @@ use App\Modules\Dashboard\SalesController;
 
 $back = url('/') . '?' . $ctx->query();
 $self = static fn (array $o): string => url('dashboard/sales') . '?' . $ctx->query($o);
-$windowTotals = ['fy' => $s['sales_total'], 'prev' => $s['sales_fy_to_previous_day'], 'month' => $s['sales_month_to_previous_day'], 'today' => $s['sales_today']];
+$windowTotals = ['fy' => $s['sales_total'], 'prev' => $s['sales_fy_to_previous_day'], 'month' => $s['sales_month_to_previous_day'], 'today' => $s['sales_today'], 'mtd' => $s['sales_month_to_previous_day'] + $s['sales_today']];
 $filterChips = array_filter([
     'Month'    => $ctx->filters['month'] ? date('M Y', strtotime($ctx->filters['month'] . '-01')) : null,
     'Branch'   => $ctx->filters['branch_id'] ? ($ctx->branchOptions()[$ctx->filters['branch_id']] ?? null) : null,
