@@ -15,7 +15,7 @@ return [
     ['key' => 'imports',   'label' => 'Excel Upload',   'path' => '/imports',      'any' => ['pending_orders.import', 'samples.import', 'dc.import', 'collections.import', 'sales.import', 'outstanding.import', 'customers.import', 'leads.import'], 'ready' => true],
     ['key' => 'hrm',       'label' => 'HRM',            'path' => '/hrm',          'any' => ['hrm.view'],       'ready' => true],
     ['key' => 'reports',   'label' => 'Reports',        'path' => '/reports',      'any' => ['reports.view'],   'ready' => false],
-    ['key' => 'sms',       'label' => 'SMS',            'path' => '/sms',          'any' => ['sms.view'],       'ready' => false],
+    ['key' => 'sms',       'label' => 'SMS',            'path' => '/sms',          'any' => ['sms.view'],       'ready' => true],
     ['key' => 'mail',      'label' => 'Mail',           'path' => '/mail',         'any' => ['mail.view'],      'ready' => true],
     ['key' => 'access',    'label' => 'Access',         'path' => '/access/users', 'any' => ['users.view', 'access.manage'], 'ready' => true],
     ['key' => 'customers', 'label' => 'Customers',      'path' => '/customers',    'any' => ['customers.view'], 'ready' => true],

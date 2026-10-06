@@ -597,3 +597,12 @@ tr.unread td { font-weight: 600; }
 }
 .stack-form > select, .stack-form > input[type="text"] { width: 100%; }
 .table td > select { min-width: 200px; }
+
+/* ---- Phase 19: SMS ------------------------------------------------------ */
+.sms-bubble { background: var(--bg); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; padding: 12px 14px; max-width: 560px; line-height: 1.5; margin: 0 0 12px; }
+.sms-preview { border-top: 1px dashed var(--border); padding-top: 8px; }
+.template-picks { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.field textarea { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }

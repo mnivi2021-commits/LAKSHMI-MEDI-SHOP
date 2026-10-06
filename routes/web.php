@@ -22,6 +22,7 @@ use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Mail\MailController;
 use App\Modules\Products\ProductController;
+use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
@@ -206,6 +207,22 @@ $router->post('/mail/{id}/status', [MailController::class, 'status'], ['auth', '
 $router->post('/mail/{id}/customer', [MailController::class, 'linkCustomer'], ['auth', 'can:mail.edit', 'csrf']);
 $router->post('/mail/{id}/lead', [MailController::class, 'createLead'], ['auth', 'can:mail.edit', 'csrf']);
 $router->get('/api/mail/summary', [MailController::class, 'api'], ['api_auth', 'can:mail.view']);
+
+// -----------------------------------------------------------------------------
+// SMS (literal segments before {id})
+// -----------------------------------------------------------------------------
+$router->get('/sms', [SmsController::class, 'index'], ['auth', 'can:sms.view']);
+$router->get('/sms/send', [SmsController::class, 'compose'], ['auth', 'can:sms.send']);
+$router->post('/sms/send', [SmsController::class, 'send'], ['auth', 'can:sms.send', 'csrf']);
+$router->get('/sms/messages/{id}', [SmsController::class, 'message'], ['auth', 'can:sms.view']);
+$router->get('/sms/campaigns', [SmsController::class, 'campaigns'], ['auth', 'can:sms.bulk']);
+$router->get('/sms/campaigns/new', [SmsController::class, 'newCampaign'], ['auth', 'can:sms.bulk']);
+$router->post('/sms/campaigns', [SmsController::class, 'createCampaign'], ['auth', 'can:sms.bulk', 'csrf']);
+$router->get('/sms/campaigns/{id}', [SmsController::class, 'campaign'], ['auth', 'can:sms.bulk']);
+$router->post('/sms/campaigns/{id}/start', [SmsController::class, 'startCampaign'], ['auth', 'can:sms.bulk', 'csrf']);
+$router->post('/sms/campaigns/{id}/cancel', [SmsController::class, 'cancelCampaign'], ['auth', 'can:sms.bulk', 'csrf']);
+$router->get('/sms/templates', [SmsController::class, 'templatesPage'], ['auth', 'can:sms.manage']);
+$router->post('/sms/templates', [SmsController::class, 'saveTemplate'], ['auth', 'can:sms.manage', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations
