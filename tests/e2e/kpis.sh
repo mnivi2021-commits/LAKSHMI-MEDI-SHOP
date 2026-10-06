@@ -69,6 +69,33 @@ lacks "JANA sees no MUKESH orders" "$TMP/body" "SO/26-27/0085"
 s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BASE/api/dashboard/pending"); expect "pending API" "$s" 200
 contains "API has aging" "$TMP/body" '"aging":\['
 
+echo "== Step B: Sales Representative panel"
+r=$(req A GET "/?employee=2"); expect "admin selects JANA" "${r%% *}" 200
+contains "panel shows JANA's short name" "$TMP/body" 'rep-name">JANA<'
+contains "panel has sales box" "$TMP/body" "rep-box"
+contains "panel has overdue grid" "$TMP/body" "overdue-grid"
+contains "JANA chip marked selected" "$TMP/body" 'aria-current="true"'
+r=$(req A GET "/?employee=999"); contains "unknown employee filter explained" "$TMP/body" "do not have access to the selected employee"
+r=$(req J GET "/"); contains "JANA auto-selected on her own dashboard" "$TMP/body" 'rep-name">JANA<'
+contains "JANA has no Clear-selection link (only option)" "$TMP/body" "rep-panel"
+lacks "JANA cannot select another rep via URL" "$TMP/body" "MUKESH R"
+r=$(req J GET "/?employee=3"); lacks "JANA cannot view MUKESH's panel" "$TMP/body" "MUKESH R"
+
+echo "== 90 / 150 Day Outstanding"
+r=$(req A GET /dashboard/collection); contains "collection links to outstanding" "$TMP/body" "dashboard/outstanding"
+page_ok A "/dashboard/outstanding" "outstanding detail (all)"
+contains "90 DAYS category shown" "$TMP/body" "90 days (91-150)"
+contains "150 DAYS category shown" "$TMP/body" "150 days (over 150)"
+for c in upto90 d90 d150; do page_ok A "/dashboard/outstanding?cat=$c" "outstanding category $c"; done
+page_ok A "/dashboard/outstanding?month=2026-08" "outstanding as on 31-08"
+r=$(req A GET "/dashboard/outstanding/export?cat=d150"); expect "outstanding CSV" "${r%% *}" 200
+contains "CSV has outstanding columns" "$TMP/body" "Balance"
+r=$(req C GET "/dashboard/outstanding"); expect "coordinator can view outstanding" "${r%% *}" 200
+r=$(req C GET "/dashboard/outstanding/export"); expect "coordinator cannot export outstanding (403)" "${r%% *}" 403
+r=$(req J GET "/dashboard/outstanding"); expect "JANA outstanding page" "${r%% *}" 200
+s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BASE/api/dashboard/outstanding"); expect "outstanding API" "$s" 200
+contains "API has d90 category" "$TMP/body" '"d90"'
+
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

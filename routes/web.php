@@ -16,6 +16,7 @@ use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
+use App\Modules\Dashboard\OutstandingController;
 use App\Modules\Dashboard\PendingOrderController;
 use App\Modules\Dashboard\SalesController;
 
@@ -54,6 +55,11 @@ $router->get('/api/dashboard/collection', [CollectionController::class, 'api'], 
 $router->get('/dashboard/pending', [PendingOrderController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:pending_orders.view']);
 $router->get('/dashboard/pending/export', [PendingOrderController::class, 'export'], ['auth', 'can:pending_orders.view', 'can:pending_orders.export']);
 $router->get('/api/dashboard/pending', [PendingOrderController::class, 'api'], ['api_auth', 'can:dashboard.view']);
+
+// 90 / 150 Day Outstanding
+$router->get('/dashboard/outstanding', [OutstandingController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:outstanding.view']);
+$router->get('/dashboard/outstanding/export', [OutstandingController::class, 'export'], ['auth', 'can:outstanding.view', 'can:outstanding.export']);
+$router->get('/api/dashboard/outstanding', [OutstandingController::class, 'api'], ['api_auth', 'can:dashboard.view']);
 
 // -----------------------------------------------------------------------------
 // Authentication (web)

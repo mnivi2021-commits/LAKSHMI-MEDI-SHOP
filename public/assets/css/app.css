@@ -447,3 +447,45 @@ p.padded { padding: 10px 20px; margin: 0; }
 .aging-value small { margin-left: 6px; color: var(--muted); font-weight: 400; font-size: .75rem; }
 .aging-value small::after { content: " ord."; }
 tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent); }
+
+/* ---- Phase 9: sales representative panel ---- */
+.rep-chip { text-decoration: none; color: var(--text); cursor: pointer; transition: border-color .12s, background .12s; }
+.rep-chip:hover { border-color: var(--primary); }
+.rep-chip.selected, .rep-chip[aria-current="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+
+.rep-panel { margin-top: 12px; }
+.rep-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.rep-name { margin: 2px 0 2px; font-size: 1.3rem; letter-spacing: .02em; }
+
+.rep-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+@media (max-width: 1100px) { .rep-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .rep-grid { grid-template-columns: 1fr; } }
+.rep-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.rep-box h4 { margin: 0 0 10px; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+.rep-box h4 a { color: inherit; text-decoration: none; }
+.rep-box h4 a:hover { color: var(--primary); }
+.rep-box dl { margin: 0; display: grid; gap: 6px; }
+.rep-box dl div { display: flex; justify-content: space-between; gap: 10px; font-size: .86rem; }
+.rep-box dt { color: var(--muted); }
+.rep-box dt.sub { padding-left: 10px; font-size: .8rem; }
+.rep-box dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.rep-box dd.bad { color: var(--danger); }
+
+.rep-overdue h4 { margin: 0 0 8px; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+.overdue-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 700px) { .overdue-grid { grid-template-columns: 1fr; } }
+.overdue-box {
+    display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    text-decoration: none; color: var(--text); background: var(--surface); transition: border-color .12s;
+}
+.overdue-box:hover { border-color: var(--primary); }
+.overdue-box strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.overdue-box .small { color: var(--muted); font-size: .78rem; }
+.overdue-label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.overdue-box.overdue-d90 strong, .overdue-box.overdue-d150 strong { color: var(--danger); }
+.overdue-box.overdue-d90 { border-left: 3px solid var(--warn-fg); }
+.overdue-box.overdue-d150 { border-left: 3px solid var(--danger); }
+
+.rep-leads { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.rep-leads strong { font-variant-numeric: tabular-nums; }
+.rep-leads strong.bad { color: var(--danger); }

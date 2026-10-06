@@ -110,19 +110,7 @@ ob_start();
     </div>
 </section>
 
-<section aria-labelledby="sec-b">
-    <h2 id="sec-b" class="section-title">Sales representative performance</h2>
-    <div class="card rep-strip">
-        <?php if ($employees === []): ?>
-            <p class="muted">No sales representatives in your view.</p>
-        <?php else: ?>
-            <?php foreach ($employees as $id => $lbl): ?>
-                <span class="rep-chip"><?= e(strtok($lbl, ' ')) ?></span>
-            <?php endforeach; ?>
-            <p class="muted small rep-note">Select a representative to see their full performance: Phase 9.</p>
-        <?php endif; ?>
-    </div>
-</section>
+<?php require __DIR__ . '/_rep_section.php'; ?>
 
 <section class="card freshness" aria-label="Data freshness">
     <h2 class="section-title">Latest entries in your view</h2>

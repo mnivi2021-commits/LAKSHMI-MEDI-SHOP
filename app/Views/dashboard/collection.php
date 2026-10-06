@@ -75,10 +75,13 @@ ob_start();
 </div>
 
 <section class="card table-card" id="overdue">
-    <h2>Overdue bills (oldest first)</h2>
+    <div class="matrix-head">
+        <h2>Overdue bills (oldest first)</h2>
+        <a class="btn btn-sm" href="<?= e(url('dashboard/outstanding') . '?' . $ctx->query()) ?>">Full aging breakdown (90 / 150 days) →</a>
+    </div>
     <p class="padded small"><?= e($overdue['count']) ?> bill(s) past due date · total <strong><?= e(rupees($overdue['total'], 2)) ?></strong>
         <?php if ($overdue['total'] === $c['overdue']): ?><span class="badge badge-ok">matches dashboard</span><?php else: ?><span class="badge badge-fail">does not match dashboard</span><?php endif; ?>
-        <?= $overdue['count'] > 20 ? ' · showing the 20 oldest; full list in 90 / 150 Days (Phase 10) and Reports' : '' ?></p>
+        <?= $overdue['count'] > 20 ? ' · showing the 20 oldest; see the full aging breakdown above for every bill' : '' ?></p>
     <?php if ($overdue['rows']): ?>
     <div class="table-scroll"><table class="table compact">
         <thead><tr><th>Invoice</th><th>Invoice date</th><th>Due date</th><th class="right">Days overdue</th><th>Customer</th><th>Branch</th><th>Employee</th><th class="right">Balance</th></tr></thead>
