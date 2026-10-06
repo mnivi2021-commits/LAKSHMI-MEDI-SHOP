@@ -10,7 +10,7 @@ declare(strict_types=1);
  */
 return [
     ['key' => 'dashboard', 'label' => 'Dashboard',      'path' => '/',             'any' => ['dashboard.view'], 'ready' => true],
-    ['key' => 'branches',  'label' => 'Branch Details', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => false],
+    ['key' => 'branches',  'label' => 'Branch Details', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => true],
     ['key' => 'sales',     'label' => 'Sales Details',  'path' => '/sales',        'any' => ['sales.view', 'targets.view', 'collections.view', 'pending_orders.view', 'samples.view', 'dc.view'], 'ready' => false],
     ['key' => 'hrm',       'label' => 'HRM',            'path' => '/hrm',          'any' => ['hrm.view'],       'ready' => false],
     ['key' => 'reports',   'label' => 'Reports',        'path' => '/reports',      'any' => ['reports.view'],   'ready' => false],

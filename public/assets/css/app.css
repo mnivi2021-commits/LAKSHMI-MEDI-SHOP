@@ -489,3 +489,6 @@ tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent);
 .rep-leads { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--border); }
 .rep-leads strong { font-variant-numeric: tabular-nums; }
 .rep-leads strong.bad { color: var(--danger); }
+
+/* ---- Phase 12: branch details ---- */
+.field input.uppercase { text-transform: uppercase; }

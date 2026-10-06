@@ -14,6 +14,7 @@ use App\Modules\Auth\ApiAuthController;
 use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
+use App\Modules\Branches\BranchController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\OutstandingController;
@@ -101,6 +102,18 @@ $router->post('/access/roles', [RoleController::class, 'store'], ['auth', 'can:a
 $router->get('/access/roles/{id}', [RoleController::class, 'edit'], ['auth', 'can:access.manage']);
 $router->post('/access/roles/{id}', [RoleController::class, 'update'], ['auth', 'can:access.manage', 'csrf']);
 $router->post('/access/roles/{id}/delete', [RoleController::class, 'destroy'], ['auth', 'can:access.manage', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Branch Details
+// -----------------------------------------------------------------------------
+$router->get('/branches', [BranchController::class, 'index'], ['auth', 'can:branches.view']);
+$router->get('/branches/new', [BranchController::class, 'create'], ['auth', 'can:branches.add']);
+$router->post('/branches', [BranchController::class, 'store'], ['auth', 'can:branches.add', 'csrf']);
+$router->get('/branches/{id}/edit', [BranchController::class, 'edit'], ['auth', 'can:branches.view']);
+$router->post('/branches/{id}', [BranchController::class, 'update'], ['auth', 'can:branches.edit', 'csrf']);
+$router->post('/branches/{id}/status', [BranchController::class, 'toggleStatus'], ['auth', 'can:branches.edit', 'csrf']);
+$router->post('/branches/{id}/delete', [BranchController::class, 'destroy'], ['auth', 'can:branches.delete', 'csrf']);
+$router->get('/branches/export', [BranchController::class, 'export'], ['auth', 'can:branches.view', 'can:branches.export']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)
