@@ -2,7 +2,7 @@
 
 Sales performance, payment collection, pending order, sample / DC, mail and SMS management for a multi-branch sales team.
 
-> **Status:** Phase 2 – MySQL schema (KPI views, migrations, integrity checker, data dictionary).
+> **Status:** Phase 3 – Authentication (web sign-in, lockout, forced password change, API tokens, audit) + public intro page + Wi-Fi access.
 > Built one module at a time; each phase is reviewed and approved before the next starts.
 
 ---
@@ -137,13 +137,34 @@ C:\xampp\htdocs\marketing_crm  →  D:\AI PROJECT\SMS SYSTEM\public
 ### 5. Verify from the terminal
 
 ```powershell
-C:\xampp\php\php.exe tests\run.php     # financial-year + currency tests
+C:\xampp\php\php.exe tests\run.php     # financial-year, currency, password policy, redirect tests
 C:\xampp\php\php.exe cli\health.php    # same checks as /health
 C:\xampp\php\php.exe cli\verify-data.php   # cross-table data integrity rules
 C:\xampp\php\php.exe cli\migrate.php --status
+bash tests/e2e/auth.sh                 # web + API sign-in flow (needs a FRESHLY seeded local DB)
 ```
 
-### Demo logins (seed data, must change on first login, used from Phase 3)
+### 6. Open it from phones and laptops on the same Wi-Fi
+
+1. Run once in PowerShell **as Administrator**:
+   `powershell -ExecutionPolicy Bypass -File "D:\AI PROJECT\SMS SYSTEM\tools\allow-wifi-access.ps1"`
+   This allows port 80 only on **Private** networks and only from the **local subnet**.
+2. On the other device, open `http://<this PC's IP>/marketing_crm/`. The script prints the address, e.g. `http://192.168.29.12/marketing_crm/`.
+3. Reserve the PC's IP in the Wi-Fi router (DHCP reservation) so the address stays the same.
+
+Plain HTTP on the office Wi-Fi is fine for development. Production must use HTTPS (Phase 25).
+
+### Three ways to use the CRM
+
+| Way | Address | Status |
+|---|---|---|
+| Office PC browser | `http://localhost/marketing_crm/` | ✅ |
+| Any device on office Wi-Fi | `http://<PC-IP>/marketing_crm/` | ✅ after step 6 |
+| Mobile app (Expo, React Native) | API `http://<PC-IP>/marketing_crm/api/` | API sign-in ready; app in Phase 21 |
+
+The public page at `/` introduces the system and links to **Sign in**.
+
+### Demo logins (seed data, must change on first login)
 
 | Username | Password | Role |
 |---|---|---|
@@ -154,6 +175,33 @@ C:\xampp\php\php.exe cli\migrate.php --status
 **Never load `seed.sql` into production.** The installer blocks `--seed` when `APP_ENV=production`.
 
 ---
+
+## Authentication
+
+| Rule | Detail |
+|---|---|
+| Sign in | Username **or** email + password, CSRF-protected form; new session id on login |
+| Wrong credentials | Always "Incorrect username or password." (does not reveal whether the user exists) |
+| Brute force | 5 failures in 15 min locks that username; 20 failures locks the IP (`LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`) |
+| First login | Seeded / admin-reset accounts must set their own password before anything else |
+| Password policy | 10+ characters, letters and numbers, not username/email, not a common or demo password |
+| Session | HttpOnly, SameSite=Lax cookie; 120 min idle timeout; 12 h absolute limit |
+| Password change | Signs out all other browsers and revokes all mobile tokens |
+| Disabled user | Signed out on their next click |
+| Sign out | POST + CSRF (a link cannot sign you out) |
+| Forgot password | Admin Head resets it in User Management (Phase 4). Email reset comes once mail is connected |
+| Audit | `login`, `login.failed`, `login.throttled`, `login.blocked`, `account.locked`, `logout`, `password.changed` |
+
+### API (mobile app)
+
+```
+POST /api/auth/login    {"username":"jana","password":"…","device_name":"Jana's phone"}
+                        → {"data":{"token":"…","token_type":"Bearer","expires_at":"…","user":{…}}}
+GET  /api/auth/me       Authorization: Bearer <token>
+POST /api/auth/logout   Authorization: Bearer <token>   (revokes the token)
+```
+
+Tokens are random 256-bit values. Only their SHA-256 is stored, and they expire after `API_TOKEN_TTL_DAYS` (30). The API sets no cookies. Error codes: 401 invalid credentials or token, 403 `password_change_required` / `account_disabled`, 429 too many attempts (with `Retry-After`). CORS is allowed only for `API_ALLOWED_ORIGINS`.
 
 ## Key business rules built into the foundation
 

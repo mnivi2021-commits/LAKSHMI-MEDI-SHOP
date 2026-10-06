@@ -50,4 +50,72 @@ final class Request
     {
         return in_array(self::ip(), ['127.0.0.1', '::1'], true);
     }
+
+    public static function userAgent(): string
+    {
+        return mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255);
+    }
+
+    /** Trimmed string from POST form data ('' when missing or not a string). */
+    public static function input(string $key, int $maxLength = 1000): string
+    {
+        $v = $_POST[$key] ?? '';
+        return is_string($v) ? mb_substr(trim($v), 0, $maxLength) : '';
+    }
+
+    /** Raw (untrimmed) POST value - for passwords, where spaces are significant. */
+    public static function raw(string $key, int $maxLength = 1000): string
+    {
+        $v = $_POST[$key] ?? '';
+        return is_string($v) ? mb_substr($v, 0, $maxLength) : '';
+    }
+
+    /** @var array<string, mixed>|null */
+    private static ?array $jsonBody = null;
+
+    /**
+     * Decoded JSON request body (API). Bodies over 64 KB or invalid JSON give [].
+     *
+     * @return array<string, mixed>
+     */
+    public static function json(): array
+    {
+        if (self::$jsonBody === null) {
+            $raw = file_get_contents('php://input', false, null, 0, 65536) ?: '';
+            $data = json_decode($raw, true);
+            self::$jsonBody = is_array($data) ? $data : [];
+        }
+        return self::$jsonBody;
+    }
+
+    public static function jsonString(string $key, int $maxLength = 1000): string
+    {
+        $v = self::json()[$key] ?? '';
+        return is_string($v) ? mb_substr($v, 0, $maxLength) : '';
+    }
+
+    /** Bearer token from the Authorization header (Apache may expose it under several names). */
+    public static function bearerToken(): ?string
+    {
+        $header = $_SERVER['HTTP_AUTHORIZATION']
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? (function_exists('apache_request_headers') ? (apache_request_headers()['Authorization'] ?? '') : '');
+
+        return preg_match('/^Bearer\s+([A-Za-z0-9_\-]{20,200})$/', trim((string) $header), $m) ? $m[1] : null;
+    }
+
+    /**
+     * Only same-app relative paths are allowed as post-login redirects
+     * (blocks open redirects such as //evil.com or https://evil.com).
+     */
+    public static function safeRedirectPath(?string $path, string $default = '/'): string
+    {
+        if (!is_string($path) || $path === '' || strlen($path) > 500) {
+            return $default;
+        }
+        if ($path[0] !== '/' || str_starts_with($path, '//') || str_contains($path, '\\') || preg_match('/[\x00-\x1F]/', $path)) {
+            return $default;
+        }
+        return $path;
+    }
 }

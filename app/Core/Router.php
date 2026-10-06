@@ -4,33 +4,57 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use InvalidArgumentException;
+
 /**
- * Small method + path router. Patterns support {param} segments:
- *   $router->get('/api/customers/{id}', fn(array $p) => ...);
+ * Small method + path router with named middleware.
+ *
+ *   $router->middleware('auth', fn(): bool => ...);   // return false = stop (middleware already responded)
+ *   $router->get('/api/customers/{id}', fn(array $p) => ..., ['api_auth']);
  */
 final class Router
 {
-    /** @var array<string, list<array{regex: string, handler: callable}>> */
+    /** @var array<string, list<array{regex: string, handler: callable, middleware: list<string>}>> */
     private array $routes = [];
 
-    public function get(string $path, callable $handler): void    { $this->add('GET', $path, $handler); }
-    public function post(string $path, callable $handler): void   { $this->add('POST', $path, $handler); }
-    public function put(string $path, callable $handler): void    { $this->add('PUT', $path, $handler); }
-    public function delete(string $path, callable $handler): void { $this->add('DELETE', $path, $handler); }
+    /** @var array<string, callable(): bool> */
+    private array $middleware = [];
 
-    public function add(string $method, string $path, callable $handler): void
+    public function middleware(string $name, callable $fn): void
+    {
+        $this->middleware[$name] = $fn;
+    }
+
+    /** @param list<string> $middleware */
+    public function get(string $path, callable $handler, array $middleware = []): void    { $this->add('GET', $path, $handler, $middleware); }
+    /** @param list<string> $middleware */
+    public function post(string $path, callable $handler, array $middleware = []): void   { $this->add('POST', $path, $handler, $middleware); }
+    /** @param list<string> $middleware */
+    public function put(string $path, callable $handler, array $middleware = []): void    { $this->add('PUT', $path, $handler, $middleware); }
+    /** @param list<string> $middleware */
+    public function delete(string $path, callable $handler, array $middleware = []): void { $this->add('DELETE', $path, $handler, $middleware); }
+
+    /** @param list<string> $middleware */
+    public function add(string $method, string $path, callable $handler, array $middleware = []): void
     {
         $regex = '#^' . preg_replace('#\{([a-z_]+)\}#', '(?P<$1>[A-Za-z0-9_-]+)', rtrim($path, '/') ?: '/') . '$#';
-        $this->routes[$method][] = ['regex' => $regex, 'handler' => $handler];
+        $this->routes[$method][] = ['regex' => $regex, 'handler' => $handler, 'middleware' => $middleware];
     }
 
     public function dispatch(string $method, string $path): void
     {
         foreach ($this->routes[$method] ?? [] as $route) {
-            if (preg_match($route['regex'], $path, $m)) {
-                ($route['handler'])(array_filter($m, 'is_string', ARRAY_FILTER_USE_KEY));
-                return;
+            if (!preg_match($route['regex'], $path, $m)) {
+                continue;
             }
+            foreach ($route['middleware'] as $name) {
+                $fn = $this->middleware[$name] ?? throw new InvalidArgumentException("Unknown middleware: {$name}");
+                if ($fn() === false) {
+                    return;
+                }
+            }
+            ($route['handler'])(array_filter($m, 'is_string', ARRAY_FILTER_USE_KEY));
+            return;
         }
 
         foreach ($this->routes as $otherMethod => $routes) {

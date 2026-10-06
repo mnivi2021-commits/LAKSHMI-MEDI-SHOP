@@ -39,8 +39,11 @@ final class Session
         // Idle timeout
         $now = time();
         if (isset($_SESSION['_last_activity']) && $now - $_SESSION['_last_activity'] > $cfg['lifetime_min'] * 60) {
-            self::destroy();
-            session_start();
+            $wasSignedIn = isset($_SESSION['auth']);
+            self::restart();
+            if ($wasSignedIn) {
+                self::flash('info', 'You were signed out after a period of inactivity.');
+            }
         }
         $_SESSION['_last_activity'] = $now;
     }
@@ -48,6 +51,29 @@ final class Session
     public static function regenerate(): void
     {
         session_regenerate_id(true);
+    }
+
+    /** Destroy the current session and start a fresh, empty one with a new id. */
+    public static function restart(): void
+    {
+        self::destroy();
+        session_start();
+        session_regenerate_id(true);
+        $_SESSION['_last_activity'] = time();
+    }
+
+    /** One-time message shown on the next page: type = success | error | info */
+    public static function flash(string $type, string $message): void
+    {
+        $_SESSION['_flash'][] = ['type' => $type, 'message' => $message];
+    }
+
+    /** @return list<array{type: string, message: string}> */
+    public static function takeFlash(): array
+    {
+        $messages = $_SESSION['_flash'] ?? [];
+        unset($_SESSION['_flash']);
+        return $messages;
     }
 
     public static function destroy(): void

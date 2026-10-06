@@ -6,6 +6,10 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Pass the Authorization header (Bearer tokens) through to PHP
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
     # Block dotfiles (.env, .git, .htaccess) if any ever end up here
     RewriteRule (^|/)\. - [F,L]
 

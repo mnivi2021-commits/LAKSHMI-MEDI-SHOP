@@ -19,6 +19,13 @@ final class Response
         header_remove('X-Powered-By');
     }
 
+    /** Redirect to an app-relative path, e.g. redirect('/login'). */
+    public static function redirect(string $path, int $status = 303): void
+    {
+        http_response_code($status);
+        header('Location: ' . url($path));
+    }
+
     /** @param array<string, mixed> $data */
     public static function view(string $view, array $data = [], int $status = 200): void
     {
@@ -54,7 +61,12 @@ final class Response
             return;
         }
 
-        $view = in_array($status, [403, 404, 500], true) ? 'errors/' . $status : 'errors/500';
-        self::view($view, ['message' => $message, 'ref' => $ref, 'detail' => $detail], $status);
+        $data = ['message' => $message, 'ref' => $ref, 'detail' => $detail];
+        if (in_array($status, [403, 404, 500], true)) {
+            self::view('errors/' . $status, $data, $status);
+            return;
+        }
+        $headings = [400 => 'Bad request', 401 => 'Sign-in required', 405 => 'Method not allowed', 429 => 'Too many requests'];
+        self::view('errors/_error', $data + ['code' => $status, 'heading' => $headings[$status] ?? 'Error'], $status);
     }
 }

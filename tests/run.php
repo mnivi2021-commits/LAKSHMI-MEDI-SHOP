@@ -92,5 +92,27 @@ check('no decimals', '₹10,00,000', inr('999999.5', 0));
 check('large DECIMAL(15,2) exact', '₹99,99,99,99,99,999.99', inr('9999999999999.99'));
 check('negative rounding to zero', '₹0.00', inr('-0.001'));
 
+// --- Password policy ----------------------------------------------------------------
+use App\Core\PasswordPolicy;
+use App\Core\Request;
+
+check('strong password accepted', [], PasswordPolicy::validate('Mango-River-42', 'jana', 'jana@example.com'));
+check('too short rejected', true, in_array('Use at least 10 characters.', PasswordPolicy::validate('Ab1-short', 'x'), true));
+check('letters only rejected', true, PasswordPolicy::validate('onlyletterspassword') !== []);
+check('seeded demo password rejected', true, PasswordPolicy::validate('Admin@2026') !== []);
+check('common password rejected', true, PasswordPolicy::validate('Password@123') !== []);
+check('contains username rejected', true, PasswordPolicy::validate('jana-2026-secure', 'jana') !== []);
+check('contains email name rejected', true, PasswordPolicy::validate('xLakshmi99xx', 'coord', 'lakshmi@example.com') !== []);
+check('repetitive rejected', true, PasswordPolicy::validate('1111111111a') !== []);
+check('unicode letters count', [], PasswordPolicy::validate('மாம்பழம்2026x', 'jana'));
+
+// --- Open-redirect protection -----------------------------------------------------
+check('relative path allowed', '/reports?x=1', Request::safeRedirectPath('/reports?x=1'));
+check('protocol-relative blocked', '/', Request::safeRedirectPath('//evil.example.com'));
+check('absolute URL blocked', '/', Request::safeRedirectPath('https://evil.example.com'));
+check('backslash trick blocked', '/', Request::safeRedirectPath('/\\evil.example.com'));
+check('header injection blocked', '/', Request::safeRedirectPath("/a\r\nSet-Cookie: x=1"));
+check('empty uses default', '/', Request::safeRedirectPath(''));
+
 echo PHP_EOL . "{$passed} passed, {$failed} failed" . PHP_EOL;
 exit($failed > 0 ? 1 : 0);
