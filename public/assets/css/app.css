@@ -606,3 +606,8 @@ tr.unread td { font-weight: 600; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; }
 .field textarea { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+
+/* ---- Phase 20: Reports -------------------------------------------------- */
+.report-card { display: block; text-decoration: none; color: var(--text); border-top: 3px solid var(--primary); }
+.report-card:hover { box-shadow: var(--shadow); background: var(--bg); }
+.report-card h2 { color: var(--primary); }

@@ -11,14 +11,17 @@ namespace App\Core\Spreadsheet;
  */
 final class XlsxWriter
 {
-    /** @var list<array{name: string, rows: list<list<string>>}> */
+    /** @var list<array{name: string, rows: list<list<string>>, formats: array<int, string>}> */
     private array $sheets = [];
 
-    /** @param list<list<string|int|float|null>> $rows first row = header */
-    public function addSheet(string $name, array $rows): self
+    /**
+     * @param list<list<string|int|float|null>> $rows first row = header
+     * @param array<int, string> $formats column index => 'money' (#,##0.00) | 'number'; those cells are written as numbers
+     */
+    public function addSheet(string $name, array $rows, array $formats = []): self
     {
         $name = mb_substr(preg_replace('/[\\\\\/?*\[\]:]/', ' ', $name), 0, 31);
-        $this->sheets[] = ['name' => $name, 'rows' => array_map(static fn (array $r) => array_map(static fn ($v) => (string) ($v ?? ''), $r), $rows)];
+        $this->sheets[] = ['name' => $name, 'rows' => array_map(static fn (array $r) => array_map(static fn ($v) => (string) ($v ?? ''), $r), $rows), 'formats' => $formats];
         return $this;
     }
 
@@ -35,7 +38,7 @@ final class XlsxWriter
             'xl/styles.xml'              => $this->styles(),
         ];
         foreach ($this->sheets as $i => $sheet) {
-            $files['xl/worksheets/sheet' . ($i + 1) . '.xml'] = $this->sheetXml($sheet['rows']);
+            $files['xl/worksheets/sheet' . ($i + 1) . '.xml'] = $this->sheetXml($sheet['rows'], $sheet['formats']);
         }
         return Zip::build($files);
     }
@@ -88,15 +91,17 @@ final class XlsxWriter
             . '<fill><patternFill patternType="solid"><fgColor rgb="FFE8EEF7"/><bgColor indexed="64"/></patternFill></fill></fills>'
             . '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
             . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-            . '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+            . '<cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
             . '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
-            . '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>'
+            . '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+            . '<xf numFmtId="4" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+            . '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>'
             . '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
             . '</styleSheet>';
     }
 
-    /** @param list<list<string>> $rows */
-    private function sheetXml(array $rows): string
+    /** @param list<list<string>> $rows @param array<int, string> $formats */
+    private function sheetXml(array $rows, array $formats = []): string
     {
         $widths = [];
         foreach ($rows as $row) {
@@ -118,6 +123,10 @@ final class XlsxWriter
         foreach ($rows as $r => $row) {
             $x .= '<row r="' . ($r + 1) . '">';
             foreach ($row as $c => $v) {
+                if ($r > 0 && isset($formats[$c]) && preg_match('/^-?\d+(\.\d+)?$/', $v)) {
+                    $x .= '<c r="' . self::colName($c) . ($r + 1) . '" s="' . ($formats[$c] === 'money' ? 3 : 4) . '"><v>' . $v . '</v></c>';
+                    continue;
+                }
                 $x .= '<c r="' . self::colName($c) . ($r + 1) . '" t="inlineStr"' . ($r === 0 ? ' s="1"' : ' s="2"') . '><is><t xml:space="preserve">' . self::esc($v) . '</t></is></c>';
             }
             $x .= '</row>';

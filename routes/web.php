@@ -22,6 +22,7 @@ use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Mail\MailController;
 use App\Modules\Products\ProductController;
+use App\Modules\Reports\ReportController;
 use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
@@ -223,6 +224,13 @@ $router->post('/sms/campaigns/{id}/start', [SmsController::class, 'startCampaign
 $router->post('/sms/campaigns/{id}/cancel', [SmsController::class, 'cancelCampaign'], ['auth', 'can:sms.bulk', 'csrf']);
 $router->get('/sms/templates', [SmsController::class, 'templatesPage'], ['auth', 'can:sms.manage']);
 $router->post('/sms/templates', [SmsController::class, 'saveTemplate'], ['auth', 'can:sms.manage', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Reports (each report also checks its own module permission)
+// -----------------------------------------------------------------------------
+$router->get('/reports', [ReportController::class, 'index'], ['auth', 'can:reports.view']);
+$router->get('/reports/{key}', [ReportController::class, 'show'], ['auth', 'can:reports.view']);
+$router->get('/reports/{key}/export/{format}', [ReportController::class, 'export'], ['auth', 'can:reports.view', 'can:reports.export']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations
