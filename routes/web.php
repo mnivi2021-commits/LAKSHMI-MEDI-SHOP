@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
 use App\Core\Session;
+use App\Modules\Api\MobileController;
 use App\Modules\Auth\ApiAuthController;
 use App\Modules\Access\RoleController;
 use App\Modules\Access\UserController;
@@ -262,6 +263,13 @@ $router->post('/hrm/{id}/delete', [EmployeeController::class, 'destroy'], ['auth
 // Authentication (API / mobile)
 // -----------------------------------------------------------------------------
 $router->post('/api/auth/login', [ApiAuthController::class, 'login']);
+
+// Mobile app (Bearer token). Each endpoint re-checks permissions and data scope.
+$router->get('/api/dashboard/summary', [MobileController::class, 'summary'], ['api_auth', 'can:dashboard.view']);
+$router->get('/api/customers', [MobileController::class, 'customers'], ['api_auth', 'can:customers.view']);
+$router->get('/api/customers/{id}', [MobileController::class, 'customer'], ['api_auth', 'can:customers.view']);
+$router->get('/api/leads', [MobileController::class, 'leads'], ['api_auth', 'can:leads.view']);
+$router->get('/api/followups/due', [MobileController::class, 'followups'], ['api_auth', 'can:leads.view']);
 $router->get('/api/auth/me', [ApiAuthController::class, 'me'], ['api_auth']);
 $router->post('/api/auth/logout', [ApiAuthController::class, 'logout'], ['api_auth']);
 
