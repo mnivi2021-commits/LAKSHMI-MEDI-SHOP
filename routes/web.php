@@ -16,6 +16,8 @@ use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Branches\BranchController;
 use App\Modules\Customers\CustomerController;
+use App\Modules\Hrm\EmployeeController;
+use App\Modules\Hrm\MasterController;
 use App\Modules\Leads\LeadController;
 use App\Modules\Products\ProductController;
 use App\Modules\Dashboard\CollectionController;
@@ -159,6 +161,20 @@ $router->post('/leads/{id}/followups', [LeadController::class, 'addFollowup'], [
 $router->post('/leads/{id}/followups/{fid}/complete', [LeadController::class, 'completeFollowup'], ['auth', 'can:leads.edit', 'csrf']);
 $router->post('/leads/{id}/convert', [LeadController::class, 'convert'], ['auth', 'can:leads.edit', 'csrf']);
 $router->post('/leads/{id}/delete', [LeadController::class, 'destroy'], ['auth', 'can:leads.delete', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// HRM: employees, departments, designations
+// -----------------------------------------------------------------------------
+$router->get('/hrm', [EmployeeController::class, 'index'], ['auth', 'can:hrm.view']);
+$router->get('/hrm/new', [EmployeeController::class, 'create'], ['auth', 'can:hrm.add']);
+$router->post('/hrm', [EmployeeController::class, 'store'], ['auth', 'can:hrm.add', 'csrf']);
+$router->get('/hrm/export', [EmployeeController::class, 'export'], ['auth', 'can:hrm.view', 'can:hrm.export']);
+$router->get('/hrm/lists/{type}', [MasterController::class, 'index'], ['auth', 'can:hrm.view']);
+$router->post('/hrm/lists/{type}', [MasterController::class, 'store'], ['auth', 'can:hrm.edit', 'csrf']);
+$router->post('/hrm/lists/{type}/{id}', [MasterController::class, 'update'], ['auth', 'can:hrm.edit', 'csrf']);
+$router->get('/hrm/{id}/edit', [EmployeeController::class, 'edit'], ['auth', 'can:hrm.edit']);
+$router->post('/hrm/{id}', [EmployeeController::class, 'update'], ['auth', 'can:hrm.edit', 'csrf']);
+$router->post('/hrm/{id}/delete', [EmployeeController::class, 'destroy'], ['auth', 'can:hrm.delete', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)

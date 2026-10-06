@@ -518,3 +518,7 @@ tr.selected td { background: color-mix(in srgb, var(--primary) 7%, transparent);
 .fu-panel .form { gap: 6px; margin: 0; padding: 4px; }
 .fu-panel input[type="text"] { width: 100%; min-height: 36px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; background: var(--surface); color: var(--text); }
 .badge-stack { display: grid; gap: 4px; justify-items: start; }
+
+/* ---- Phase 17: HRM ------------------------------------------------------- */
+.inline-rename { display: flex; gap: .5rem; align-items: center; }
+.inline-rename input { flex: 1; min-width: 10rem; max-width: 22rem; }
