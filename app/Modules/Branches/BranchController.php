@@ -268,11 +268,11 @@ final class BranchController
         }
 
         $excludeId = $existing['id'] ?? 0;
-        if ($data['branch_code'] !== '' && Database::value('SELECT 1 FROM branches WHERE branch_code = ? AND id <> ? AND deleted_at IS NULL', [$data['branch_code'], $excludeId])) {
-            $v->add('branch_code', 'This branch code is already used.');
+        if ($data['branch_code'] !== '' && Database::value('SELECT 1 FROM branches WHERE branch_code = ? AND id <> ?', [$data['branch_code'], $excludeId])) {
+            $v->add('branch_code', 'This branch code is already used (possibly by a deleted branch).');
         }
-        if ($data['name'] !== '' && Database::value('SELECT 1 FROM branches WHERE name = ? AND id <> ? AND deleted_at IS NULL', [$data['name'], $excludeId])) {
-            $v->add('name', 'A branch with this name already exists.');
+        if ($data['name'] !== '' && Database::value('SELECT 1 FROM branches WHERE name = ? AND id <> ?', [$data['name'], $excludeId])) {
+            $v->add('name', 'A branch with this name already exists (possibly deleted).');
         }
         if ($data['manager_employee_id'] !== null && $existing !== null) {
             $valid = Database::value('SELECT 1 FROM employees WHERE id = ? AND branch_id = ? AND deleted_at IS NULL', [$data['manager_employee_id'], $existing['id']]);

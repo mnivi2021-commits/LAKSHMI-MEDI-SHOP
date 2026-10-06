@@ -16,6 +16,7 @@ use App\Modules\Access\UserController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Branches\BranchController;
 use App\Modules\Customers\CustomerController;
+use App\Modules\Products\ProductController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\OutstandingController;
@@ -129,6 +130,18 @@ $router->get('/customers/{id}/edit', [CustomerController::class, 'edit'], ['auth
 $router->post('/customers/{id}', [CustomerController::class, 'update'], ['auth', 'can:customers.edit', 'csrf']);
 $router->post('/customers/{id}/status', [CustomerController::class, 'setStatus'], ['auth', 'can:customers.edit', 'csrf']);
 $router->post('/customers/{id}/delete', [CustomerController::class, 'destroy'], ['auth', 'can:customers.delete', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Products
+// -----------------------------------------------------------------------------
+$router->get('/products', [ProductController::class, 'index'], ['auth', 'can:products.view']);
+$router->get('/products/new', [ProductController::class, 'create'], ['auth', 'can:products.add']);
+$router->post('/products', [ProductController::class, 'store'], ['auth', 'can:products.add', 'csrf']);
+$router->get('/products/export', [ProductController::class, 'export'], ['auth', 'can:products.view', 'can:products.export']);
+$router->get('/products/{id}/edit', [ProductController::class, 'edit'], ['auth', 'can:products.edit']);
+$router->post('/products/{id}', [ProductController::class, 'update'], ['auth', 'can:products.edit', 'csrf']);
+$router->post('/products/{id}/status', [ProductController::class, 'toggleStatus'], ['auth', 'can:products.edit', 'csrf']);
+$router->post('/products/{id}/delete', [ProductController::class, 'destroy'], ['auth', 'can:products.delete', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Authentication (API / mobile)

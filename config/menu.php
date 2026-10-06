@@ -19,6 +19,6 @@ return [
     ['key' => 'access',    'label' => 'Access',         'path' => '/access/users', 'any' => ['users.view', 'access.manage'], 'ready' => true],
     ['key' => 'customers', 'label' => 'Customers',      'path' => '/customers',    'any' => ['customers.view'], 'ready' => true],
     ['key' => 'leads',     'label' => 'Leads',          'path' => '/leads',        'any' => ['leads.view'],     'ready' => false],
-    ['key' => 'products',  'label' => 'Products',       'path' => '/products',     'any' => ['products.view'],  'ready' => false],
+    ['key' => 'products',  'label' => 'Products',       'path' => '/products',     'any' => ['products.view'],  'ready' => true],
     ['key' => 'settings',  'label' => 'Settings',       'path' => '/settings',     'any' => ['settings.manage', 'audit.view'], 'ready' => false],
 ];
