@@ -5,8 +5,10 @@ declare(strict_types=1);
 /*
  * Database installer.
  *
- *   php cli/install.php            create database (if allowed) + schema
- *   php cli/install.php --seed     ... and load development seed data
+ *   php cli/install.php            create database (if allowed) + schema + base data
+ *                                  (roles, permissions, settings ...); then create the
+ *                                  first Admin Head with  php cli/create-admin.php
+ *   php cli/install.php --seed     ... and load development / demo data
  *   php cli/install.php --fresh --seed
  *                                  DROP every table first (APP_ENV=local only)
  *
@@ -94,8 +96,21 @@ if ($objects && $fresh) {
 try {
     out('Applied schema: ' . SqlScript::runFile($pdo, BASE_PATH . '/database/schema.sql') . ' statements');
     (new Migrator($pdo, BASE_PATH . '/database/migrations'))->recordBaseline(BASE_PATH . '/database/schema.sql');
+    out('Applied base data: ' . SqlScript::runFile($pdo, BASE_PATH . '/database/base.sql') . ' statements');
     if ($seed) {
         out('Applied seed: ' . SqlScript::runFile($pdo, BASE_PATH . '/database/seed.sql') . ' statements');
+    } else {
+        // A clean install needs the financial year it is used in (and the next one).
+        $startMonth = 4;
+        $today = new DateTimeImmutable('today');
+        $year = (int) $today->format('Y') - ((int) $today->format('n') < $startMonth ? 1 : 0);
+        foreach ([$year, $year + 1] as $y) {
+            $start = sprintf('%04d-%02d-01', $y, $startMonth);
+            $end = (new DateTimeImmutable($start))->modify('+1 year -1 day')->format('Y-m-d');
+            $pdo->prepare('INSERT INTO financial_years (label, start_date, end_date, is_current) VALUES (?, ?, ?, ?)')
+                ->execute([sprintf('FY %d-%02d', $y, ($y + 1) % 100), $start, $end, $y === $year ? 1 : 0]);
+        }
+        out("Created financial years FY {$year}-" . sprintf('%02d', ($year + 1) % 100) . ' and the next one.');
     }
 } catch (RuntimeException $e) {
     fail($e->getMessage());
@@ -106,6 +121,8 @@ $views = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE
 out("Done. {$count} tables and {$views} views installed" . ($seed ? ' with seed data.' : '.'));
 if ($seed) {
     out('Demo logins (must change on first login): admin / Admin@2026, coordinator / Coord@2026, jana / Sales@2026');
+} else {
+    out('Next: create the first Admin Head:  php cli/create-admin.php');
 }
 out('Next: php cli/verify-data.php, then open ' . Config::get('app.url') . '/health');
 

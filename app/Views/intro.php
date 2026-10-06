@@ -53,7 +53,8 @@ ob_start();
         </div>
         <div class="way">
             <span class="way-num">3</span>
-            <div><h3>Mobile app</h3><p class="muted small">Sales representatives see their own performance on their phone. Coming soon.</p></div>
+            <div><h3>Mobile app</h3><p class="muted small">Sales representatives see their own performance, customers and follow-ups on their phone:
+                the Marketing CRM app, or <a href="<?= e(url('app/')) ?>">open it in the phone's browser</a>.</p></div>
         </div>
     </div>
 </section>

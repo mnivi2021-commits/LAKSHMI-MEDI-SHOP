@@ -13,7 +13,8 @@ ob_start();
             · Signed in at <?= e(date('d-m-Y H:i', strtotime((string) $user['last_login_at']))) ?>
         <?php endif; ?>
     </p>
-    <p class="muted">The management dashboard (Sales Performance, Payment Collection, Branch Pending Order) arrives in Phase 5-8.</p>
+    <p class="muted">Your role does not include the management dashboard. Use the menu to open the modules you have access to,
+        or ask the Admin Head if you need more.</p>
 </section>
 <?php
 $content = ob_get_clean();
