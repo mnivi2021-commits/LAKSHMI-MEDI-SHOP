@@ -1,0 +1,44 @@
+MARKETING CRM - PORTFOLIO SLIDESHOW
+===================================
+
+What this folder is
+-------------------
+A ready-made slideshow of the CRM screens for your portfolio website.
+It only SHOWS pictures (demo data). It does not connect to the real CRM.
+
+  index.html    the slideshow page (works on its own, no internet libraries)
+  slides/       12 screenshots (PNG) + logo
+  slides.json   titles and captions, if your website builder wants data
+  EMBED.txt     this file
+
+How to add it to your website
+-----------------------------
+1. Copy the whole folder "crm-showcase" into your website's files,
+   for example:  your-website/projects/crm-showcase/
+
+2. On your portfolio page, paste this where the slideshow should appear:
+
+   <iframe src="projects/crm-showcase/index.html"
+           title="Marketing CRM - project showcase"
+           style="width:100%; height:880px; border:0;"
+           loading="lazy"></iframe>
+
+   (Change "projects/crm-showcase/" if you put the folder somewhere else.
+    On phones you can use height:760px.)
+
+3. Or simply link to it:
+
+   <a href="projects/crm-showcase/index.html">View the Marketing CRM project</a>
+
+Website builders
+----------------
+- WordPress: Media > upload the folder with a file manager / FTP, then add a
+  "Custom HTML" block with the <iframe> above.
+- Wix / Squarespace: use "Embed code / HTML" and paste the <iframe>; the folder
+  must be hosted somewhere (your own hosting, GitHub Pages or Netlify).
+- GitHub Pages / Netlify: upload the folder as it is; it works straight away.
+
+Using your own pictures later
+-----------------------------
+Replace the PNG files in slides/ with the same names, or edit the list at the
+bottom of index.html (file name, title, caption).

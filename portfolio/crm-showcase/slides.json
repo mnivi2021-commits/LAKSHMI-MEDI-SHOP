@@ -1,0 +1,20 @@
+{
+  "title": "Marketing CRM",
+  "client": "LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED",
+  "summary": "A web and mobile CRM for a safety-equipment distributor: annual and monthly targets by branch, area, division and sales person, daily sales entry, requests (lead, enquiry offer, order, DC, sample), follow-ups, payment collection, SMS and reports.",
+  "stack": ["PHP 8.2", "MySQL 8", "Apache (XAMPP)", "JavaScript", "Expo / React Native (mobile)", "Role-based access", "Excel import"],
+  "slides": [
+    { "image": "slides/01_dashboard.png", "title": "Dashboard - targets", "caption": "Branch annual target with this month's share, area-wise targets for Madurai, Trichy, TTN and TVL by division, sales employee targets and the support team." },
+    { "image": "slides/02_month_start.png", "title": "Month start sheet", "caption": "Type each sales person's target and opening outstanding; 80% commitment and 60% collection target are worked out live, with branch and grand totals." },
+    { "image": "slides/03_daily_entry.png", "title": "Daily entry - one sales person", "caption": "Choose date, area and sales person: sales and collection (value, bills, customers), pending orders, enquiries, leads, samples / DC and outstanding." },
+    { "image": "slides/04_order_form.png", "title": "Order in billing format", "caption": "Customer on the left, order number, date and reference on the right, product lines with live amounts and total." },
+    { "image": "slides/05_offer.png", "title": "Enquiry offer", "caption": "Printable offer with expiry date, generated from the enquiry; one click to send the enquiry SMS." },
+    { "image": "slides/06_customer_support_pending.png", "title": "Customer support pending", "caption": "One sales person at a glance: sales, pending orders customer-wise with a reason, payment and open DC." },
+    { "image": "slides/07_payment_followup.png", "title": "Payment follow-up", "caption": "Customer statement with invoice, PO reference, balance and due date; mail, SMS or record a direct follow-up." },
+    { "image": "slides/08_report_target_commitment.png", "title": "Reports", "caption": "Rep-wise reports with Excel / CSV export, such as monthly target commitment (open or closed)." },
+    { "image": "slides/09_sms_payment_due.png", "title": "SMS from a record", "caption": "Payment-due SMS filled from the customer's open bills; templates for enquiry, order and payment." },
+    { "image": "slides/10_hrm_sales_team.png", "title": "HRM - sales team", "caption": "Manager, sales executives, support admin and sales coordinators per branch with area, age and target links." },
+    { "image": "slides/11_customer_master.png", "title": "Customer master", "caption": "Add customers one by one or upload the existing customer list from Excel." },
+    { "image": "slides/12_mobile_dashboard.png", "title": "Works on mobile", "caption": "The same CRM on a phone browser; a mobile app (Expo) uses the secure API.", "mobile": true }
+  ]
+}

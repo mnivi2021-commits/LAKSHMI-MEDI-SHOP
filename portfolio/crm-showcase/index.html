@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketing CRM - Project Showcase</title>
+<style>
+  /* Self-contained slideshow: no external libraries, works offline and inside an <iframe>. */
+  :root { --bg: #e4e7ec; --card: #ffffff; --navy: #0b2a5b; --gold: #b8860b; --text: #14161a; --muted: #5d6470; --line: #d8dce3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 16px 40px; display: grid; gap: 18px; }
+  .head { display: flex; gap: 16px; align-items: center; background: var(--navy); color: #fff; border-radius: 18px; padding: 18px 20px; }
+  .head img { width: 56px; height: 56px; background: #fff; border-radius: 12px; padding: 4px; flex: none; }
+  .head h1 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.9rem); line-height: 1.15; color: #f2c14e; }
+  .head p { margin: 4px 0 0; color: #c9d4ea; font-size: .95rem; }
+  .summary { margin: 0; color: var(--muted); }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .stack li { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: .85rem; font-weight: 600; }
+
+  .show { background: var(--card); border-radius: 18px; padding: 14px; box-shadow: 0 2px 10px rgba(11, 42, 91, .08); }
+  .frame { position: relative; border-radius: 12px; overflow: hidden; background: #0d1117; border: 1px solid var(--line); }
+  .bar { display: flex; gap: 6px; align-items: center; padding: 8px 12px; background: #20242c; }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: block; }
+  .bar i:nth-child(2) { background: #febc2e; } .bar i:nth-child(3) { background: #28c840; }
+  .bar span { margin-left: 10px; color: #9aa3b2; font-size: .78rem; font-family: Consolas, monospace; }
+  .viewport { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #e4e7ec; }
+  .slide { position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; }
+  .slide.active { opacity: 1; }
+  .slide img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .slide.mobile { background: #14161a; }
+  .slide.mobile img { object-fit: contain; object-position: top center; }
+  .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
+         background: rgba(11, 42, 91, .85); color: #fff; font-size: 1.4rem; line-height: 1; display: grid; place-items: center; z-index: 2; }
+  .nav:hover, .nav:focus-visible { background: var(--gold); outline: none; }
+  .prev { left: 10px; } .next { right: 10px; }
+  .caption { display: grid; gap: 4px; padding: 14px 4px 4px; min-height: 92px; }
+  .caption h2 { margin: 0; font-size: 1.15rem; color: var(--navy); }
+  .caption p { margin: 0; color: var(--muted); }
+  .count { font-size: .8rem; font-weight: 700; color: var(--gold); letter-spacing: .06em; }
+  .dots { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding-top: 8px; }
+  .dots button { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 0; background: #c3c9d3; cursor: pointer; }
+  .dots button.active { background: var(--navy); width: 26px; border-radius: 999px; }
+  .note { font-size: .8rem; color: var(--muted); text-align: center; margin: 0; }
+  @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+  @media (max-width: 600px) { .viewport { aspect-ratio: 4 / 5; } .nav { width: 36px; height: 36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <img src="slides/logo.svg" alt="">
+    <div>
+      <h1>Marketing CRM</h1>
+      <p>Built for LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED</p>
+    </div>
+  </header>
+  <p class="summary">A web and mobile CRM for a safety-equipment distributor: annual and monthly targets by branch, area, division and sales person, daily sales entry, requests (lead, enquiry offer, order, DC, sample), follow-ups, payment collection, SMS and reports.</p>
+  <ul class="stack"><li>PHP 8.2</li><li>MySQL 8</li><li>Apache (XAMPP)</li><li>JavaScript</li><li>Expo / React Native</li><li>Role-based access</li><li>Excel import</li></ul>
+
+  <section class="show" aria-roledescription="carousel" aria-label="CRM screens">
+    <div class="frame">
+      <div class="bar"><i></i><i></i><i></i><span>marketing_crm</span></div>
+      <div class="viewport" id="viewport"></div>
+      <button class="nav prev" id="prev" aria-label="Previous screen">&#8249;</button>
+      <button class="nav next" id="next" aria-label="Next screen">&#8250;</button>
+    </div>
+    <div class="caption" aria-live="polite"><span class="count" id="count"></span><h2 id="title"></h2><p id="text"></p></div>
+    <div class="dots" id="dots" role="tablist" aria-label="Choose a screen"></div>
+  </section>
+  <p class="note">Screens show demo data. Use the arrows, the dots, your keyboard (&larr; &rarr;) or swipe on a phone.</p>
+</div>
+
+<script>
+// Slides (same content as slides.json, kept here so the page also works when opened from disk).
+var SLIDES = [
+  ["slides/01_dashboard.png", "Dashboard - targets", "Branch annual target with this month's share, area-wise targets for Madurai, Trichy, TTN and TVL by division, sales employee targets and the support team."],
+  ["slides/02_month_start.png", "Month start sheet", "Type each sales person's target and opening outstanding; 80% commitment and 60% collection target are worked out live, with branch and grand totals."],
+  ["slides/03_daily_entry.png", "Daily entry - one sales person", "Choose date, area and sales person: sales and collection (value, bills, customers), pending orders, enquiries, leads, samples / DC and outstanding."],
+  ["slides/04_order_form.png", "Order in billing format", "Customer on the left, order number, date and reference on the right, product lines with live amounts and total."],
+  ["slides/05_offer.png", "Enquiry offer", "Printable offer with expiry date, generated from the enquiry; one click to send the enquiry SMS."],
+  ["slides/06_customer_support_pending.png", "Customer support pending", "One sales person at a glance: sales, pending orders customer-wise with a reason, payment and open DC."],
+  ["slides/07_payment_followup.png", "Payment follow-up", "Customer statement with invoice, PO reference, balance and due date; mail, SMS or record a direct follow-up."],
+  ["slides/08_report_target_commitment.png", "Reports", "Rep-wise reports with Excel / CSV export, such as monthly target commitment (open or closed)."],
+  ["slides/09_sms_payment_due.png", "SMS from a record", "Payment-due SMS filled from the customer's open bills; templates for enquiry, order and payment."],
+  ["slides/10_hrm_sales_team.png", "HRM - sales team", "Manager, sales executives, support admin and sales coordinators per branch with area, age and target links."],
+  ["slides/11_customer_master.png", "Customer master", "Add customers one by one or upload the existing customer list from Excel."],
+  ["slides/12_mobile_dashboard.png", "Works on mobile", "The same CRM on a phone browser; a mobile app (Expo) uses the secure API.", true]
+];
+(function () {
+  var vp = document.getElementById('viewport'), dots = document.getElementById('dots');
+  var title = document.getElementById('title'), text = document.getElementById('text'), count = document.getElementById('count');
+  var i = 0, timer = null, slides = [];
+  SLIDES.forEach(function (s, n) {
+    var d = document.createElement('div'); d.className = 'slide' + (s[3] ? ' mobile' : '');
+    var img = document.createElement('img'); img.src = s[0]; img.alt = s[1]; img.loading = n < 2 ? 'eager' : 'lazy';
+    d.appendChild(img); vp.appendChild(d); slides.push(d);
+    var b = document.createElement('button'); b.setAttribute('role', 'tab'); b.setAttribute('aria-label', s[1]);
+    b.addEventListener('click', function () { go(n); restart(); }); dots.appendChild(b);
+  });
+  function go(n) {
+    i = (n + SLIDES.length) % SLIDES.length;
+    slides.forEach(function (el, k) { el.classList.toggle('active', k === i); });
+    Array.prototype.forEach.call(dots.children, function (b, k) { b.classList.toggle('active', k === i); b.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
+    title.textContent = SLIDES[i][1]; text.textContent = SLIDES[i][2]; count.textContent = (i + 1) + ' / ' + SLIDES.length;
+  }
+  function restart() {
+    clearInterval(timer);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) { timer = setInterval(function () { go(i + 1); }, 5000); }
+  }
+  document.getElementById('prev').addEventListener('click', function () { go(i - 1); restart(); });
+  document.getElementById('next').addEventListener('click', function () { go(i + 1); restart(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') { go(i - 1); restart(); } if (e.key === 'ArrowRight') { go(i + 1); restart(); } });
+  var sx = null;
+  vp.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+  vp.addEventListener('touchend', function (e) { if (sx === null) { return; } var dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) { go(i + (dx < 0 ? 1 : -1)); restart(); } sx = null; });
+  vp.addEventListener('mouseenter', function () { clearInterval(timer); });
+  vp.addEventListener('mouseleave', restart);
+  go(0); restart();
+})();
+</script>
+</body>
+</html>
