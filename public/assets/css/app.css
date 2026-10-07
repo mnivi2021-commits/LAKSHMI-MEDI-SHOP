@@ -1013,3 +1013,4 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .tg-branch-head .field > span { color: #c9cdd2; }
 .company-title { color: #0d0d10; }
 @media (prefers-color-scheme: dark) { .tg-area:nth-child(n) { background: var(--surface); } .tg-area .table td { background: var(--surface-2); } .tg-area .table th { color: var(--muted); } }
+.tg-area .table .total-row > th, .tg-area .table .total-row > td { color: #fff; font-weight: 800; }
