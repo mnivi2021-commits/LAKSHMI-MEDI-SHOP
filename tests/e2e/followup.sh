@@ -55,7 +55,7 @@ for h in "S.No" "Invoice no" "Bill date" "P.O reference" "Invoice value" "Due ba
 contains "total row" "$TMP/body" 'total-row'
 contains "PO reference shown" "$TMP/body" "PO/001/"
 contains "mail option" "$TMP/body" "mailto:"
-contains "SMS option" "$TMP/body" "for=payment&amp;customer=1"
+contains "SMS option" "$TMP/body" "for=payment&amp;id=1"
 contains "direct option" "$TMP/body" 'value="visit"'
 r=$(req A GET "/followup?employee=2&list=payment&customer=3"); lacks "other rep's customer ignored" "$TMP/body" "Payment due statement"
 

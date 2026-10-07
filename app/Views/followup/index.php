@@ -140,7 +140,7 @@ ob_start();
                     <span class="muted small">No email in the customer master.</span>
                 <?php endif; ?>
                 <?php if ($canSms && !empty($customer['mobile'])): ?>
-                    <a class="btn" href="<?= e(url('sms/send') . '?' . http_build_query(['for' => 'payment', 'customer' => $customer['id']])) ?>">Send payment due SMS</a>
+                    <a class="btn" href="<?= e(url('sms/send') . '?' . http_build_query(['for' => 'payment', 'id' => $customer['id']])) ?>">Send payment due SMS</a>
                 <?php endif; ?>
                 <button type="button" class="btn" data-print>Print statement</button>
             </div>

@@ -17,6 +17,8 @@ final class SmsText
         'name' => 'Recipient name', 'customer_name' => 'Customer name', 'company' => 'Your company name',
         'employee_name' => 'Sales employee', 'mobile' => 'Recipient mobile', 'date' => 'Today (DD-MM-YYYY)',
         'amount' => 'Amount', 'invoice_no' => 'Invoice no', 'order_no' => 'Order no', 'delivery_date' => 'Delivery date',
+        'enquiry_no' => 'Enquiry no', 'products' => 'Products (enquiry)', 'po_ref' => 'Customer PO reference',
+        'due_date' => 'Oldest due date', 'bill_count' => 'Number of bills due',
     ];
     public const MAX_SEGMENTS = 6;
 

@@ -159,6 +159,16 @@ The yellow **TEST MODE** bar means no real SMS is sent (until an SMS provider is
 * **History:** every message with its status. Open one to see the gateway log (numbers are masked).
 * **Templates** (Admin Head): placeholders `{name} {customer_name} {company} {employee_name} {mobile} {date} {amount} {invoice_no} {order_no} {delivery_date}`.
 
+### SMS from a record (76-79)
+
+Three templates were added to the template list: **Enquiry Offer**, **Purchase Order Received** and **Payment Due**.
+
+- From an enquiry's offer page, **Send enquiry SMS** opens Send SMS with the Enquiry Offer template. It fills in the enquiry no, products, offer value and sales employee.
+- From an order's page, **Send order SMS** uses Purchase Order Received. It fills in the customer's PO reference, order no and value.
+- From Follow up → Payment follow up, **Send payment due SMS** uses Payment Due. It fills in the total due, number of bills and oldest due date.
+
+You can still pick any other template; the record's values stay available. New placeholders: {enquiry_no} {products} {po_ref} {due_date} {bill_count}.
+
 ## Reports (43-48)
 
 Twelve reports grouped by Sales, Collection, Orders & supply, Leads and Communication. Choose the period or

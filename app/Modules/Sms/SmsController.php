@@ -106,7 +106,17 @@ final class SmsController
     public static function compose(): void
     {
         $values = Session::pull('_old', []);
+        // Opened from an enquiry, an order or a payment statement (Screen 4)
+        $for = (string) ($_GET['for'] ?? ($values['for'] ?? ''));
+        $ctx = $for !== '' ? SmsContext::load($for, (int) ($_GET['id'] ?? ($values['ref_id'] ?? 0)), Auth::user()) : null;
+        if ($ctx !== null) {
+            $values += ['for' => $ctx['for'], 'ref_id' => $ctx['id'], 'customer_code' => $ctx['customer_code'] ?? '',
+                        'mobile' => $ctx['customer_code'] ? '' : ($ctx['mobile'] ?? ''), 'name' => $ctx['name'] ?? ''];
+        }
         $tid = (int) ($_GET['template'] ?? ($values['template_id'] ?? 0));
+        if ($tid === 0 && $ctx !== null) {
+            $tid = (int) Database::value("SELECT id FROM sms_templates WHERE name = ? AND status = 'active' AND deleted_at IS NULL", [$ctx['template']]);
+        }
         $template = $tid ? Database::fetch("SELECT * FROM sms_templates WHERE id = ? AND status = 'active' AND deleted_at IS NULL", [$tid]) : null;
         if ($template && !isset($values['message'])) {
             $values['message'] = $template['body'];
@@ -125,6 +135,7 @@ final class SmsController
             'preview'   => Session::pull('_preview'),
             'templates' => self::templates(),
             'testMode'  => self::testMode(),
+            'context'   => $ctx,
         ]);
     }
 
@@ -140,6 +151,13 @@ final class SmsController
         ];
         $errors = [];
         $customer = null;
+        $ctx = null;
+        if (($_POST['for'] ?? '') !== '') {
+            $ctx = SmsContext::load((string) $_POST['for'], (int) ($_POST['ref_id'] ?? 0), $user);
+            if ($ctx === null) {
+                $errors['message'] = 'The record this SMS was opened from was not found.';
+            }
+        }
         if ($in['customer_code'] !== '') {
             $customer = Database::fetch(
                 "SELECT c.*, e.name AS employee_name FROM customers c LEFT JOIN employees e ON e.id = c.employee_id
@@ -170,13 +188,13 @@ final class SmsController
             $outstanding = $customer ? Database::fetch(
                 "SELECT SUM(balance) AS amount, SUBSTRING_INDEX(GROUP_CONCAT(invoice_no ORDER BY invoice_date, invoice_id), ',', 1) AS first_invoice
                  FROM v_invoice_balances WHERE customer_id = ? AND balance > 0 AND due_date < CURDATE()", [$customer['id']]) : null;
-            [$text, $missing] = SmsText::render($in['message'], [
+            [$text, $missing] = SmsText::render($in['message'], array_merge([
                 'name' => $in['name'] ?: ($customer['name'] ?? null), 'customer_name' => $customer['name'] ?? ($in['name'] ?: null),
                 'employee_name' => $customer['employee_name'] ?? null, 'company' => SmsService::company(), 'mobile' => $mobile,
                 'date' => date('d-m-Y'),
                 'amount' => isset($outstanding['amount']) && $outstanding['amount'] !== null ? SmsService::amount(\App\Core\Money::fromDb($outstanding['amount'])) : null,
                 'invoice_no' => $outstanding['first_invoice'] ?? null,
-            ]);
+            ], self::contextVars($ctx, $customer)));
             if ($missing) {
                 $errors['message'] = 'No value for {' . implode('}, {', $missing) . '} - type it into the message instead.';
             } elseif (SmsText::measure($text)['segments'] > SmsText::MAX_SEGMENTS) {
@@ -196,15 +214,15 @@ final class SmsController
         }
 
         try {
-            $ids = SmsService::queue([['mobile' => $mobile, 'name' => $in['name'] ?: ($customer['name'] ?? null), 'customer_id' => $customer['id'] ?? null,
-                'lead_id' => null, 'employee_id' => null, 'message' => $text]], $template['id'] ?? null, null, null, (int) $user['id']);
+            $ids = SmsService::queue([['mobile' => $mobile, 'name' => $in['name'] ?: ($customer['name'] ?? null), 'customer_id' => $customer['id'] ?? ($ctx['customer_id'] ?? null),
+                'lead_id' => $ctx['lead_id'] ?? null, 'employee_id' => null, 'message' => $text]], $template['id'] ?? null, null, null, (int) $user['id']);
             $r = SmsService::dispatch(1, $ids);
         } catch (RuntimeException $e) {
             Session::flash('error', $e->getMessage());
             Response::redirect('/sms/send');
             return;
         }
-        Audit::log('sms.sent', 'sms', $ids[0], null, ['to' => SmsService::mask($mobile), 'template_id' => $template['id'] ?? null, 'test' => self::testMode()]);
+        Audit::log('sms.sent', 'sms', $ids[0], null, ['to' => SmsService::mask($mobile), 'template_id' => $template['id'] ?? null, 'test' => self::testMode(), 'for' => $ctx['label'] ?? null]);
         Session::flash($r['sent'] ? 'success' : 'error', $r['sent']
             ? (self::testMode() ? 'Test message recorded (test mode - no real SMS was sent).' : 'SMS sent.')
             : 'The SMS could not be sent: ' . (Database::value('SELECT error_message FROM sms_messages WHERE id = ?', [$ids[0]]) ?: 'unknown error'));
@@ -502,6 +520,21 @@ final class SmsController
     }
 
     /** @return list<array<string, mixed>> */
+    /**
+     * Values from the record the SMS was opened from. They apply only when the message goes to
+     * that record's own customer (or, for an enquiry without a customer, with no customer code).
+     *
+     * @return array<string, string>
+     */
+    private static function contextVars(?array $ctx, ?array $customer): array
+    {
+        if ($ctx === null || ($customer !== null && (int) $customer['id'] !== $ctx['customer_id'])
+            || ($customer === null && $ctx['customer_id'] !== null)) {
+            return [];
+        }
+        return array_filter($ctx['vars'], static fn ($v) => $v !== null);
+    }
+
     private static function templates(): array
     {
         return Database::fetchAll("SELECT id, name, category, body FROM sms_templates WHERE status = 'active' AND deleted_at IS NULL ORDER BY name");

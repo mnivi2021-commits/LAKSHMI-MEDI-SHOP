@@ -17,7 +17,7 @@ BASE="${BASE:-http://localhost/marketing_crm}"
 UNIT=(run db dashboard sales_kpi collection_kpi pending_kpi outstanding_kpi rep_panel customer_product_panel
       number_sequence sales_grid imports mail sms reports branch_performance requests)
 E2E=(auth access dashboard sales kpis branches customers products leads hrm sales_details imports mail sms
-     reports settings mobile_api branch_performance requests followup)
+     reports settings mobile_api branch_performance requests followup sms_records)
 
 mode=all; only=()
 for a in "$@"; do

@@ -142,7 +142,10 @@ INSERT INTO email_categories (id, code, name, keywords, color, sort_order, is_fa
 INSERT INTO sms_templates (name, category, body) VALUES
  ('Payment Reminder', 'transactional', 'Dear {customer_name}, an amount of Rs {amount} against invoice {invoice_no} is overdue. Kindly arrange payment. - {company}'),
  ('Order Received',   'transactional', 'Dear {customer_name}, we have received your order {order_no}. Expected delivery: {delivery_date}. - {company}'),
- ('Follow-up',        'service',       'Dear {name}, {employee_name} from {company} will call you on {date}. Thank you.');
+ ('Follow-up',        'service',       'Dear {name}, {employee_name} from {company} will call you on {date}. Thank you.'),
+ ('Enquiry Offer',           'transactional', 'Dear {customer_name}, thank you for your enquiry {enquiry_no}. Our offer for {products}: Rs {amount}. {employee_name} will contact you. - {company}'),
+ ('Purchase Order Received', 'transactional', 'Dear {customer_name}, thank you for your purchase order {po_ref}. Our order ref {order_no}, value Rs {amount}. We will update you on dispatch. - {company}'),
+ ('Payment Due',             'transactional', 'Dear {customer_name}, Rs {amount} is due against {bill_count} bill(s), oldest due on {due_date}. Kindly arrange payment; ignore if already paid. - {company}');
 
 INSERT INTO settings (setting_group, setting_key, setting_value, value_type, description) VALUES
  ('company',     'name',                 'Your Company Name', 'string', 'Company name shown in header, reports and SMS'),

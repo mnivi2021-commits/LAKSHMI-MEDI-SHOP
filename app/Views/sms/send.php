@@ -4,6 +4,7 @@
 /** @var array<string, mixed>|null $preview */
 /** @var list<array<string, mixed>> $templates */
 /** @var bool $testMode */
+/** @var array<string, mixed>|null $context */
 use App\Core\Csrf;
 use App\Modules\Sms\SmsText;
 
@@ -22,16 +23,21 @@ ob_start();
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
 <?php require __DIR__ . '/_nav.php'; ?>
 
+<?php $ctxQuery = !empty($context) ? '&' . http_build_query(['for' => $context['for'], 'id' => $context['id']]) : ''; ?>
+<?php if (!empty($context)): ?>
+<div class="alert alert-info">For <strong><?= e($context['label']) ?></strong>: the {placeholders} are filled from this record when you preview or send.</div>
+<?php endif; ?>
 <?php if ($templates): ?>
 <nav class="template-picks" aria-label="Start from a template">
     <span class="muted small">Start from a template:</span>
-    <?php foreach ($templates as $t): ?><a class="btn btn-sm" href="?template=<?= e($t['id']) ?>"><?= e($t['name']) ?></a><?php endforeach; ?>
+    <?php foreach ($templates as $t): ?><a class="btn btn-sm<?= (string) ($values['template_id'] ?? '') === (string) $t['id'] ? ' btn-primary' : '' ?>" href="?template=<?= e($t['id']) ?><?= e($ctxQuery) ?>"><?= e($t['name']) ?></a><?php endforeach; ?>
 </nav>
 <?php endif; ?>
 
 <form method="post" action="<?= e(url('sms/send')) ?>" class="card form form-grid" novalidate>
     <?= Csrf::field() ?>
     <input type="hidden" name="template_id" value="<?= e($values['template_id'] ?? '') ?>">
+    <?php if (!empty($values['for'])): ?><input type="hidden" name="for" value="<?= e($values['for']) ?>"><input type="hidden" name="ref_id" value="<?= e($values['ref_id'] ?? '') ?>"><?php endif; ?>
     <label class="field<?= $cls('customer_code') ?>">
         <span>Customer code</span>
         <input type="text" name="customer_code" value="<?= e($values['customer_code'] ?? '') ?>" maxlength="30" class="uppercase" placeholder="e.g. CUS-00001 (fills mobile and details)">

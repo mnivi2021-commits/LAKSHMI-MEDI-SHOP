@@ -40,6 +40,14 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | F4 | "Mail" opens the user's own mail program with the statement (the CRM does not send mail itself); "Direct" is recorded as a completed follow-up, with an optional next date added as a pending one. |
 | F5 | The page needs *View Dashboard*; the payment list and recording need *View Outstanding*. |
 
+## SMS options (Screen 4)
+
+| # | Decision |
+|---|---|
+| S1 | The three new messages are ordinary templates (editable under SMS → Templates), all transactional, so they also reach customers who opted out of promotional SMS. |
+| S2 | Record values are filled only when the SMS goes to that record's own customer; typing a different customer code falls back to the normal values. |
+| S3 | "Payment due mail" is the Mail statement button on Follow up (opens the user's own mail program); the CRM does not send mail itself. |
+
 ## Figures and periods
 
 | # | Decision | Change it |
