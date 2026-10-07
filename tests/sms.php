@@ -70,7 +70,7 @@ try {
     $rb = SmsService::recipients('customers', ['branch_id' => 2], $admin, $today);
     check('branch filter', 4, count($rb['recipients']));
     check('leads: open leads with mobile', true, count(SmsService::recipients('leads', [], $admin, $today)['recipients']) > 0);
-    check('employees target', 9, count(SmsService::recipients('employees', [], $admin, $today)['recipients']));
+    check('employees target', 10, count(SmsService::recipients('employees', [], $admin, $today)['recipients']));
 
     // ------------------------------------------------- queue and dispatch
     $gw = new MockGateway();

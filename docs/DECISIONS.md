@@ -48,6 +48,14 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | S2 | Record values are filled only when the SMS goes to that record's own customer; typing a different customer code falls back to the normal values. |
 | S3 | "Payment due mail" is the Mail statement button on Follow up (opens the user's own mail program); the CRM does not send mail itself. |
 
+## HRM sales person details
+
+| # | Decision |
+|---|---|
+| H1 | Sales role (Manager / Sales Executive / Sales Support Admin / Sales Coordinator) is a new field on the employee, separate from Designation. Existing sales representatives start as Sales Executives. |
+| H2 | Area is free text with suggestions from areas already used. A coordinator's own Area can list several towns. Each sales executive can have one sales coordinator. |
+| H3 | Branches (e.g. Puducherry) are added under Branch Details; the demo data has Chennai, Coimbatore and Madurai only. |
+
 ## Figures and periods
 
 | # | Decision | Change it |

@@ -20,6 +20,7 @@ ob_start();
     </div>
     <div class="form-actions">
         <?php if ($canEdit): ?>
+            <a class="btn" href="<?= e(url('hrm/sales-team')) ?>">Sales person details</a>
             <a class="btn" href="<?= e(url('hrm/lists/departments')) ?>">Departments</a>
             <a class="btn" href="<?= e(url('hrm/lists/designations')) ?>">Designations</a>
         <?php endif; ?>

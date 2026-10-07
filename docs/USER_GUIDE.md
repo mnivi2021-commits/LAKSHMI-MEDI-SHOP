@@ -133,6 +133,17 @@ deleted; mark it inactive instead. The **SMS opt-out** tick stops promotional an
 * Marking someone **Resigned** disables their CRM login and mobile app at once.
 * Departments and designations: add, rename, deactivate.
 
+### Sales person details (80-82)
+
+Go to HRM, then **Sales person details**, and choose a branch (or all branches). The team is shown in four groups:
+
+- **Manager**
+- **Sales Executives**: name, age, date of birth, area and coordinator. Click a name to open that person's dashboard. **+ ADD target** opens the month target sheet for the branch.
+- **Sales Support Admin**: name, age, date of birth.
+- **Sales Coordinator**: their areas and the area sales persons they look after.
+
+Set each person's date of birth, sales role, area and sales coordinator on the employee's Edit page. Age is worked out from the date of birth. The employee export includes these columns.
+
 ## Mail (21-24)
 
 * The inbox shows emails sorted into the dashboard categories by **keyword rules**, with how sure the rules were.

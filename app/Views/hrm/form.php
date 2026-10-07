@@ -6,6 +6,9 @@
 /** @var list<array<string, mixed>> $departments */
 /** @var list<array<string, mixed>> $designations */
 /** @var list<array<string, mixed>> $managers */
+/** @var array<string, string> $roles */
+/** @var list<array<string, mixed>> $coordinators */
+/** @var list<string> $areas */
 use App\Core\Csrf;
 use App\Modules\Hrm\EmployeeController;
 
@@ -79,6 +82,14 @@ ob_start();
         <?= $err('designation_id') ?>
     </label>
 
+    <label class="field<?= $cls('date_of_birth') ?>">
+        <span>Date of birth</span>
+        <input type="date" name="date_of_birth" value="<?= e($values['date_of_birth'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>">
+        <?= $err('date_of_birth') ?>
+        <?php if (!empty($values['date_of_birth']) && strtotime((string) $values['date_of_birth'])): ?><span class="muted small">Age <?= e((new DateTimeImmutable((string) $values['date_of_birth']))->diff(new DateTimeImmutable('today'))->y) ?></span><?php endif; ?>
+    </label>
+    <div></div>
+
     <label class="field<?= $cls('joining_date') ?>">
         <span>Joining date</span>
         <input type="date" name="joining_date" value="<?= e($values['joining_date'] ?? '') ?>">
@@ -103,6 +114,32 @@ ob_start();
         <input type="checkbox" name="is_sales_rep" value="1"<?= !empty($values['is_sales_rep']) ? ' checked' : '' ?>>
         Sales representative (shown in the dashboard rep section)
     </label>
+
+
+    <fieldset class="field-wide req-step">
+        <legend>Sales person details</legend>
+        <div class="req-row">
+            <label class="field<?= $cls('sales_role') ?>">
+                <span>Sales role</span>
+                <select name="sales_role">
+                    <option value="">Not in the sales team</option>
+                    <?php foreach ($roles as $k => $l): ?><option value="<?= e($k) ?>"<?= ($values['sales_role'] ?? '') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+                </select>
+                <?= $err('sales_role') ?>
+            </label>
+            <label class="field<?= $cls('area') ?>">
+                <span>Area</span>
+                <input type="text" name="area" value="<?= e($values['area'] ?? '') ?>" maxlength="80" list="area-list" placeholder="e.g. Trichy">
+                <datalist id="area-list"><?php foreach ($areas as $a): ?><option value="<?= e($a) ?>"><?php endforeach; ?></datalist>
+                <?= $err('area') ?>
+            </label>
+            <label class="field<?= $cls('coordinator_id') ?>">
+                <span>Sales coordinator</span>
+                <?= $select('coordinator_id', $coordinators, 'None', static fn ($c) => "{$c['name']} ({$c['branch_code']})") ?>
+                <?= $err('coordinator_id') ?>
+            </label>
+        </div>
+    </fieldset>
 
     <div class="field-wide form-actions">
         <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Save changes' : 'Create employee' ?></button>

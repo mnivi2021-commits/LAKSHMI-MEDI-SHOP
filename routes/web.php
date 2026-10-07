@@ -276,6 +276,7 @@ $router->get('/hrm', [EmployeeController::class, 'index'], ['auth', 'can:hrm.vie
 $router->get('/hrm/new', [EmployeeController::class, 'create'], ['auth', 'can:hrm.add']);
 $router->post('/hrm', [EmployeeController::class, 'store'], ['auth', 'can:hrm.add', 'csrf']);
 $router->get('/hrm/export', [EmployeeController::class, 'export'], ['auth', 'can:hrm.view', 'can:hrm.export']);
+$router->get('/hrm/sales-team', [\App\Modules\Hrm\SalesTeamController::class, 'index'], ['auth', 'can:hrm.view']);
 $router->get('/hrm/lists/{type}', [MasterController::class, 'index'], ['auth', 'can:hrm.view']);
 $router->post('/hrm/lists/{type}', [MasterController::class, 'store'], ['auth', 'can:hrm.edit', 'csrf']);
 $router->post('/hrm/lists/{type}/{id}', [MasterController::class, 'update'], ['auth', 'can:hrm.edit', 'csrf']);

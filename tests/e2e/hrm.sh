@@ -29,7 +29,7 @@ first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== List"
 r=$(req A GET /hrm); expect "employee list" "${r%% *}" 200
-contains "9 seeded employees" "$TMP/body" "9 employees"
+contains "10 seeded employees" "$TMP/body" "10 employees"
 contains "login column shows username" "$TMP/body" "coordinator"
 r=$(req A GET "/hrm?reps=1"); contains "sales-rep filter" "$TMP/body" "5 employees"
 r=$(req A GET "/hrm?branch=2"); contains "branch filter" "$TMP/body" "3 employees"
@@ -46,7 +46,7 @@ contains "resigned needs relieving date" "$TMP/body" "Enter the relieving date"
 r=$(post A /hrm /hrm/new --data "name=Deepa Raman&short_name=deepa&mobile=9000000010&branch_id=3&department_id=1&designation_id=3&reporting_manager_id=9&joining_date=2026-09-01&is_sales_rep=1&status=active")
 expect "employee created" "$r" "303 $BASE/hrm"
 req A GET "/hrm?q=Deepa" >/dev/null
-contains "auto code EMP010" "$TMP/body" "EMP010"
+contains "auto code EMP011" "$TMP/body" "EMP011"
 contains "short name uppercased" "$TMP/body" "DEEPA"
 contains "reports to Karthik" "$TMP/body" "Karthik V"
 NEW=$(emp_id "Deepa Raman")

@@ -46,6 +46,20 @@ INSERT INTO employees (id, employee_code, name, short_name, mobile, email, branc
  (6, 'EMP006', 'Muthuvel P',    'MUTHUVEL', '9000000006', 'muthuvel@example.com', 3, 1, 3, 9,    '2021-09-01', 1),
  (7, 'EMP007', 'Lakshmi Priya', 'LAKSHMI',  '9000000007', 'lakshmi@example.com',  1, 3, 4, NULL, '2022-07-04', 0);
 
+-- Sales person details (HRM): date of birth, sales role, area, coordinator
+INSERT INTO employees (id, employee_code, name, short_name, mobile, email, branch_id, department_id, designation_id, reporting_manager_id, joining_date, is_sales_rep) VALUES
+ (10, 'EMP010', 'Divya R',       'DIVYA',    '9000000010', 'divya@example.com',    3, 3, 4, 9,    '2023-06-05', 0);
+UPDATE employees SET date_of_birth = '1980-04-14', sales_role = 'manager' WHERE id = 1;
+UPDATE employees SET date_of_birth = '1992-08-21', sales_role = 'sales_executive', area = 'Chennai North', coordinator_id = 7 WHERE id = 2;
+UPDATE employees SET date_of_birth = '1995-01-30', sales_role = 'sales_executive', area = 'Chennai South', coordinator_id = 7 WHERE id = 3;
+UPDATE employees SET date_of_birth = '1990-11-05', sales_role = 'sales_executive', area = 'Coimbatore' WHERE id = 4;
+UPDATE employees SET date_of_birth = '1997-03-17', sales_role = 'sales_executive', area = 'Tiruppur' WHERE id = 5;
+UPDATE employees SET date_of_birth = '1991-06-09', sales_role = 'sales_executive', area = 'Madurai', coordinator_id = 10 WHERE id = 6;
+UPDATE employees SET date_of_birth = '1994-09-12', sales_role = 'sales_support' WHERE id = 7;
+UPDATE employees SET date_of_birth = '1978-12-02', sales_role = 'manager' WHERE id = 8;
+UPDATE employees SET date_of_birth = '1983-02-25', sales_role = 'manager' WHERE id = 9;
+UPDATE employees SET date_of_birth = '1996-07-19', sales_role = 'sales_coordinator', area = 'Madurai, Trichy, Viralimalai, Tuticorin, Tirunelveli' WHERE id = 10;
+
 UPDATE branches SET manager_employee_id = 1 WHERE id = 1;
 UPDATE branches SET manager_employee_id = 8 WHERE id = 2;
 UPDATE branches SET manager_employee_id = 9 WHERE id = 3;
@@ -376,7 +390,7 @@ WHERE DAYOFWEEK(days.d) <> 1;
 -- Demo values on top of database/base.sql
 UPDATE settings SET setting_value = 'Marketing CRM Demo Pvt Ltd' WHERE setting_group = 'company' AND setting_key = 'name';
 UPDATE number_sequences SET next_number = 13 WHERE name IN ('customer', 'lead');
-UPDATE number_sequences SET next_number = 10 WHERE name = 'employee';
+UPDATE number_sequences SET next_number = 11 WHERE name = 'employee';
 UPDATE sms_templates SET created_by = 1;
 
 INSERT INTO audit_logs (user_id, user_name, role_slug, ip_address, action, module, new_data)

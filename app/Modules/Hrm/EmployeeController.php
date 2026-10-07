@@ -119,12 +119,13 @@ final class EmployeeController
         $id = Database::transaction(static function () use ($data): int {
             $code = NumberSequence::next('employee');
             Database::query(
-                'INSERT INTO employees (employee_code, name, short_name, mobile, email, branch_id, department_id, designation_id,
-                                        reporting_manager_id, joining_date, relieving_date, is_sales_rep, status, created_by, updated_by)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$code, $data['name'], $data['short_name'], $data['mobile'], $data['email'], $data['branch_id'], $data['department_id'],
+                'INSERT INTO employees (employee_code, name, short_name, mobile, email, date_of_birth, branch_id, department_id, designation_id,
+                                        reporting_manager_id, joining_date, relieving_date, is_sales_rep, sales_role, area, coordinator_id,
+                                        status, created_by, updated_by)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [$code, $data['name'], $data['short_name'], $data['mobile'], $data['email'], $data['date_of_birth'], $data['branch_id'], $data['department_id'],
                  $data['designation_id'], $data['reporting_manager_id'], $data['joining_date'], $data['relieving_date'],
-                 $data['is_sales_rep'], $data['status'], Auth::id(), Auth::id()]
+                 $data['is_sales_rep'], $data['sales_role'], $data['area'], $data['coordinator_id'], $data['status'], Auth::id(), Auth::id()]
             );
             return (int) Database::connection()->lastInsertId();
         });
@@ -148,12 +149,13 @@ final class EmployeeController
         $disabledLogin = false;
         Database::transaction(static function () use ($data, $emp, &$disabledLogin): void {
             Database::query(
-                'UPDATE employees SET name = ?, short_name = ?, mobile = ?, email = ?, branch_id = ?, department_id = ?, designation_id = ?,
-                                      reporting_manager_id = ?, joining_date = ?, relieving_date = ?, is_sales_rep = ?, status = ?, updated_by = ?
+                'UPDATE employees SET name = ?, short_name = ?, mobile = ?, email = ?, date_of_birth = ?, branch_id = ?, department_id = ?, designation_id = ?,
+                                      reporting_manager_id = ?, joining_date = ?, relieving_date = ?, is_sales_rep = ?, sales_role = ?, area = ?,
+                                      coordinator_id = ?, status = ?, updated_by = ?
                  WHERE id = ?',
-                [$data['name'], $data['short_name'], $data['mobile'], $data['email'], $data['branch_id'], $data['department_id'],
+                [$data['name'], $data['short_name'], $data['mobile'], $data['email'], $data['date_of_birth'], $data['branch_id'], $data['department_id'],
                  $data['designation_id'], $data['reporting_manager_id'], $data['joining_date'], $data['relieving_date'],
-                 $data['is_sales_rep'], $data['status'], Auth::id(), $emp['id']]
+                 $data['is_sales_rep'], $data['sales_role'], $data['area'], $data['coordinator_id'], $data['status'], Auth::id(), $emp['id']]
             );
             // A resigned employee must not keep a working CRM login (or mobile token).
             if ($data['status'] === 'resigned' && $emp['status'] !== 'resigned') {
@@ -209,17 +211,22 @@ final class EmployeeController
         [$scopeSql, $params] = DataScope::for(Auth::user())->where('e.branch_id', 'e.id');
         $rows = Database::fetchAll(
             "SELECT e.employee_code, e.name, e.short_name, e.mobile, e.email, b.branch_code, d.name AS department, g.name AS designation,
-                    m.name AS manager, e.joining_date, e.relieving_date, IF(e.is_sales_rep, 'Yes', 'No') AS sales_rep, e.status
+                    m.name AS manager, e.joining_date, e.relieving_date, IF(e.is_sales_rep, 'Yes', 'No') AS sales_rep, e.status,
+                    e.date_of_birth, TIMESTAMPDIFF(YEAR, e.date_of_birth, CURDATE()) AS age, e.sales_role, e.area, co.name AS coordinator
              FROM employees e JOIN branches b ON b.id = e.branch_id
              LEFT JOIN departments d ON d.id = e.department_id LEFT JOIN designations g ON g.id = e.designation_id
-             LEFT JOIN employees m ON m.id = e.reporting_manager_id
+             LEFT JOIN employees m ON m.id = e.reporting_manager_id LEFT JOIN employees co ON co.id = e.coordinator_id
              WHERE e.deleted_at IS NULL AND {$scopeSql} ORDER BY e.name",
             $params
         );
         Audit::log('report.exported', 'hrm', null, null, ['report' => 'employees', 'rows' => count($rows)]);
         Csv::download('employees_' . date('Y-m-d') . '.csv',
-            ['Code', 'Name', 'Short name', 'Mobile', 'Email', 'Branch', 'Department', 'Designation', 'Reporting manager', 'Joining', 'Relieving', 'Sales rep', 'Status'],
-            array_map(static fn (array $r): array => array_values($r), $rows));
+            ['Code', 'Name', 'Short name', 'Mobile', 'Email', 'Branch', 'Department', 'Designation', 'Reporting manager', 'Joining', 'Relieving', 'Sales rep', 'Status',
+             'Date of birth', 'Age', 'Sales role', 'Area', 'Sales coordinator'],
+            array_map(static function (array $r): array {
+                $r['sales_role'] = SalesTeamController::ROLES[$r['sales_role']] ?? '';
+                return array_values($r);
+            }, $rows));
     }
 
     // -------------------------------------------------------------------------
@@ -248,6 +255,13 @@ final class EmployeeController
             'branches'     => Database::fetchAll("SELECT id, name, branch_code FROM branches WHERE deleted_at IS NULL AND status = 'active' AND {$bSql} ORDER BY name", $bParams),
             'departments'  => Database::fetchAll("SELECT id, name FROM departments WHERE status = 'active' ORDER BY name"),
             'designations' => Database::fetchAll("SELECT id, name FROM designations WHERE status = 'active' ORDER BY name"),
+            'roles'        => SalesTeamController::ROLES,
+            'coordinators' => Database::fetchAll(
+                "SELECT e.id, e.name, b.branch_code FROM employees e JOIN branches b ON b.id = e.branch_id
+                 WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.sales_role = 'sales_coordinator' AND e.id <> ? ORDER BY e.name",
+                [$emp['id'] ?? 0]
+            ),
+            'areas'        => array_column(Database::fetchAll("SELECT DISTINCT area FROM employees WHERE area IS NOT NULL AND deleted_at IS NULL AND area NOT LIKE '%,%' ORDER BY area"), 'area'),
             'managers'     => Database::fetchAll(
                 "SELECT e.id, e.name, e.employee_code, b.branch_code FROM employees e JOIN branches b ON b.id = e.branch_id
                  WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.id <> ? ORDER BY e.name",
@@ -264,6 +278,7 @@ final class EmployeeController
             'short_name'           => mb_strtoupper(Request::input('short_name', 40)) ?: null,
             'mobile'               => Request::input('mobile', 20) ?: null,
             'email'                => mb_strtolower(Request::input('email', 150)) ?: null,
+            'date_of_birth'        => Request::input('date_of_birth', 10) ?: null,
             'branch_id'            => (int) Request::input('branch_id', 10) ?: null,
             'department_id'        => (int) Request::input('department_id', 10) ?: null,
             'designation_id'       => (int) Request::input('designation_id', 10) ?: null,
@@ -271,6 +286,9 @@ final class EmployeeController
             'joining_date'         => Request::input('joining_date', 10) ?: null,
             'relieving_date'       => Request::input('relieving_date', 10) ?: null,
             'is_sales_rep'         => Request::input('is_sales_rep', 1) === '1' ? 1 : 0,
+            'sales_role'           => Request::input('sales_role', 20) ?: null,
+            'area'                 => Request::input('area', 80) ?: null,
+            'coordinator_id'       => (int) Request::input('coordinator_id', 10) ?: null,
             'status'               => Request::input('status', 10) ?: 'active',
         ];
 
@@ -284,6 +302,30 @@ final class EmployeeController
         }
         if ($data['is_sales_rep'] === 1 && $data['short_name'] === null) {
             $v->add('short_name', 'Sales representatives need a short name for the dashboard (e.g. JANA).');
+        }
+        if ($data['sales_role'] !== null && !isset(SalesTeamController::ROLES[$data['sales_role']])) {
+            $v->add('sales_role', 'Choose a valid sales role.');
+        }
+        if ($data['sales_role'] === 'sales_executive' && $data['is_sales_rep'] !== 1) {
+            $v->add('sales_role', 'A Sales Executive must also be marked as a sales representative.');
+        }
+        if ($data['coordinator_id'] !== null) {
+            if ($data['coordinator_id'] === (int) ($existing['id'] ?? 0)) {
+                $v->add('coordinator_id', 'An employee cannot be their own coordinator.');
+            } elseif (!Database::value("SELECT 1 FROM employees WHERE id = ? AND deleted_at IS NULL AND sales_role = 'sales_coordinator'", [$data['coordinator_id']])) {
+                $v->add('coordinator_id', 'Choose a sales coordinator.');
+            }
+        }
+        if ($data['date_of_birth'] !== null) {
+            $dob = DateTimeImmutable::createFromFormat('!Y-m-d', $data['date_of_birth']);
+            if ($dob === false || $dob->format('Y-m-d') !== $data['date_of_birth']) {
+                $v->add('date_of_birth', 'Date of birth is not a valid date.');
+            } else {
+                $years = $dob->diff(new DateTimeImmutable('today'))->y;
+                if ($dob > new DateTimeImmutable('today') || $years < 16 || $years > 80) {
+                    $v->add('date_of_birth', 'Check the date of birth (age must be 16 to 80).');
+                }
+            }
         }
         foreach (['joining_date' => 'Joining date', 'relieving_date' => 'Relieving date'] as $field => $label) {
             if ($data[$field] !== null) {
