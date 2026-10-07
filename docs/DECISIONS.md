@@ -64,6 +64,13 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | P2 | Target commitment is monthly: Closed when that month's sales reached the target, Open otherwise (balance = target - sales). |
 | P3 | Price on samples / DC is value / quantity; on sales and orders it is the rate on the line. |
 
+## CRM access approval
+
+| # | Decision |
+|---|---|
+| A1 | Sales Manager and Branch Manager now see every list and report (all *view* rights except Users and Audit) and can export reports: "full main report and charts". |
+| A2 | Admin Head keeps full access and decides what the Admin Coordinator gets under Access -> Roles. The coordinator's access was not reduced; see the open question to the owner about "first 4 menus". |
+
 ## Figures and periods
 
 | # | Decision | Change it |
