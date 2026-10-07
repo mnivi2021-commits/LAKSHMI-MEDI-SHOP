@@ -44,6 +44,10 @@ if ([string]::IsNullOrWhiteSpace($current)) {
     Write-Host 'Using the password already in .env.'
 }
 
+# Never show technical error details to users on the office PC
+$lines = [IO.File]::ReadAllLines($envFile, $utf8) | ForEach-Object { if ($_ -match '^APP_DEBUG=') { 'APP_DEBUG=false' } else { $_ } }
+[IO.File]::WriteAllLines($envFile, $lines, $utf8)
+
 # ---------------------------------------------------------------------------
 Step 2 'Create the database and the crm_app user (enter the MySQL ROOT password when asked)'
 $sql = [IO.File]::ReadAllText((Join-Path $root 'database\setup_user.sql'), $utf8).Replace('CHANGE_ME_STRONG_PASSWORD', $current)
