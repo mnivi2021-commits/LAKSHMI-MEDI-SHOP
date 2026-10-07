@@ -56,7 +56,7 @@ ob_start();
 <form method="get" action="<?= e(url('/')) ?>" class="card dash-filters<?= $isBranch ? ' dash-filters-4' : '' ?>" aria-label="Dashboard filters">
     <label class="field">
         <span>Financial year</span>
-        <select name="fy" data-autosubmit>
+        <select name="fy" data-autosubmit data-reset="month">
             <?php foreach ($fyOptions as $id => $lbl): ?>
                 <option value="<?= e($id) ?>"<?= $id === $f['fy_id'] ? ' selected' : '' ?>><?= e($lbl) ?></option>
             <?php endforeach; ?>
@@ -64,7 +64,7 @@ ob_start();
     </label>
     <label class="field">
         <span>Month</span>
-        <select name="month">
+        <select name="month" data-autosubmit>
             <option value="">Whole year</option>
             <?php foreach ($months as $val => $lbl): ?>
                 <option value="<?= e($val) ?>"<?= $val === $f['month'] ? ' selected' : '' ?>><?= e($lbl) ?></option>
@@ -73,7 +73,7 @@ ob_start();
     </label>
     <label class="field">
         <span>Branch</span>
-        <select name="branch">
+        <select name="branch" data-autosubmit data-reset="employee">
             <?php if (count($branches) !== 1): ?><option value="">All branches</option><?php endif; ?>
             <?php foreach ($branches as $id => $lbl): ?>
                 <option value="<?= e($id) ?>"<?= $id === $f['branch_id'] ? ' selected' : '' ?>><?= e($lbl) ?></option>
@@ -82,7 +82,7 @@ ob_start();
     </label>
     <label class="field">
         <span>Sales employee</span>
-        <select name="employee">
+        <select name="employee" data-autosubmit>
             <?php if (count($employees) !== 1): ?><option value="">All employees</option><?php endif; ?>
             <?php foreach ($employees as $id => $lbl): ?>
                 <option value="<?= e($id) ?>"<?= $id === $f['employee_id'] ? ' selected' : '' ?>><?= e($lbl) ?></option>

@@ -33,14 +33,14 @@ $rowFilter = static fn (array $r): array => $sales['by'] === 'branch' ? ['branch
                     <th class="right" rowspan="2">Annual target</th>
                     <th class="right" rowspan="2">Sales as on previous day<div class="th-sub"><?= e($per['fy_prev']) ?></div></th>
                     <th class="right" rowspan="2">Month target<div class="th-sub"><?= e($per['month']) ?></div></th>
-                    <th class="center bp-group" colspan="4">This month sales<div class="th-sub"><?= e($per['month_prev']) ?></div></th>
+                    <th class="center bp-group" colspan="2">This month sales<div class="th-sub"><?= e($per['month_prev']) ?></div></th>
                     <th class="right" rowspan="2">Today sales<div class="th-sub"><?= e($per['today']) ?></div></th>
                 </tr>
-                <tr><th class="right">Value</th><th class="right" title="Number of bills">NOB</th><th class="right" title="Number of customers">NOC</th><th class="right">% of target</th></tr>
+                <tr><th class="right">Value</th><th class="right">% of target</th></tr>
             </thead>
             <tbody>
             <?php if ($sales['rows'] === []): ?>
-                <tr><td colspan="9" class="empty">No targets or daily entries for this selection yet.</td></tr>
+                <tr><td colspan="7" class="empty">No targets or daily entries for this selection yet.</td></tr>
             <?php endif; ?>
             <?php foreach ($sales['rows'] as $r): $x = $rowFilter($r); ?>
                 <tr>
@@ -49,8 +49,6 @@ $rowFilter = static fn (array $r): array => $sales['by'] === 'branch' ? ['branch
                     <td class="right num"><?= $cell('sales_fy', $r['fy_prev'], $x) ?><div class="th-sub"><?= e($pct($r['fy_pct'])) ?> of annual</div></td>
                     <td class="right num"><?= e($money($r['month_target'])) ?></td>
                     <td class="right num"><?= $cell('sales_month', $r['month_prev'], $x) ?></td>
-                    <td class="right num"><?= e($r['month_nob']) ?></td>
-                    <td class="right num"><?= e($r['month_noc']) ?></td>
                     <td class="right num<?= $tone($r['month_pct']) ?>"><strong><?= e($pct($r['month_pct'])) ?></strong></td>
                     <td class="right num"><?= $cell('sales_today', $r['today'], $x) ?></td>
                 </tr>
@@ -63,8 +61,6 @@ $rowFilter = static fn (array $r): array => $sales['by'] === 'branch' ? ['branch
                 <th class="right num"><?= $cell('sales_fy', $t['fy_prev']) ?><div class="th-sub"><?= e($pct($t['fy_pct'])) ?> of annual</div></th>
                 <th class="right num"><?= e($money($t['month_target'])) ?></th>
                 <th class="right num"><?= $cell('sales_month', $t['month_prev']) ?></th>
-                <th class="right num"><?= e($t['month_nob']) ?></th>
-                <th class="right num"><?= e($t['month_noc']) ?></th>
                 <th class="right num<?= $tone($t['month_pct']) ?>"><?= e($pct($t['month_pct'])) ?></th>
                 <th class="right num"><?= $cell('sales_today', $t['today']) ?></th>
             </tr></tfoot>

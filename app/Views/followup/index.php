@@ -40,7 +40,7 @@ ob_start();
 <form method="get" action="<?= e(url('followup')) ?>" class="card fu-filters no-print" aria-label="Follow up filters">
     <label class="field">
         <span>Sales employee</span>
-        <select name="employee" data-autosubmit>
+        <select name="employee" data-autosubmit data-reset="customer">
             <?php if (count($employees) !== 1): ?><option value="">— choose —</option><?php endif; ?>
             <?php foreach ($employees as $id => $lbl): ?>
                 <option value="<?= e($id) ?>"<?= $id === $employee ? ' selected' : '' ?>><?= e($lbl) ?></option>

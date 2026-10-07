@@ -34,7 +34,7 @@ for s in "1. Sales performance" "2. Pending order · Enquiry · Lead" "3. Paymen
 contains "email section kept at the end" "$TMP/body" 'id="sec-mail"'
 lacks "no customer filter" "$TMP/body" 'name="customer"'
 lacks "no product filter" "$TMP/body" 'name="product"'
-contains "NOB column" "$TMP/body" ">NOB<"
+lacks "no NOB column in the sales table" "$TMP/body" ">NOB<"
 contains "branch rows" "$TMP/body" "Madurai Branch"
 contains "+ ADD opens the sheet" "$TMP/body" 'href="/marketing_crm/entry"'
 r=$(req A GET "/?branch=3"); contains "Madurai: rep row" "$TMP/body" "MUTHUVEL - Muthuvel P"
@@ -63,16 +63,16 @@ post A /entry/month "/entry?type=month&month=2026-11" --data "month=2026-11&rows
 contains "bad amount refused" "$TMP/body" "need correcting"
 
 echo "== Daily sheet"
-r=$(req A GET "/entry?type=day&date=$TODAY"); expect "daily sheet" "${r%% *}" 200
+r=$(req A GET "/entry?type=day&date=$TODAY&view=sheet"); expect "daily sheet" "${r%% *}" 200
 for h in "Sales" "Collection" "Pending order" "Enquiry pending" "Lead created today" "Open DC" "Samples" "Outstanding"; do contains "heading: $h" "$TMP/body" ">$h<"; done
 contains "grey hint from last figure" "$TMP/body" 'name="rows\[2\]\[po_non_stock\]" value=""'
-post A /entry/day "/entry?type=day&date=$TODAY" --data "date=$TODAY&rows[2][sales_value]=12500&rows[2][sales_bills]=2&rows[2][sales_customers]=3" >/dev/null
-req A GET "/entry?type=day&date=$TODAY" >/dev/null
+post A /entry/day "/entry?type=day&date=$TODAY&view=sheet" --data "date=$TODAY&rows[2][sales_value]=12500&rows[2][sales_bills]=2&rows[2][sales_customers]=3" >/dev/null
+req A GET "/entry?type=day&date=$TODAY&view=sheet" >/dev/null
 contains "NOC > NOB refused" "$TMP/body" "need correcting"
-post A /entry/day "/entry?type=day&date=$TODAY" --data "date=$TODAY&rows[2][sales_value]=12500" >/dev/null; req A GET "/entry?type=day&date=$TODAY" >/dev/null
+post A /entry/day "/entry?type=day&date=$TODAY&view=sheet" --data "date=$TODAY&rows[2][sales_value]=12500" >/dev/null; req A GET "/entry?type=day&date=$TODAY&view=sheet" >/dev/null
 contains "value without bills refused" "$TMP/body" "Enter the number of bills"
-r=$(post A /entry/day "/entry?type=day&date=$TODAY" --data "date=$TODAY&rows[2][sales_bills]=2&rows[2][sales_customers]=2&rows[2][collection_value]=5000&rows[2][collection_bills]=1&rows[2][collection_customers]=1&rows[2][po_non_stock]=7000" --data-urlencode "rows[2][sales_value]=12,500")
-req A GET "/entry?type=day&date=$TODAY" >/dev/null
+r=$(post A /entry/day "/entry?type=day&date=$TODAY&view=sheet" --data "date=$TODAY&rows[2][sales_bills]=2&rows[2][sales_customers]=2&rows[2][collection_value]=5000&rows[2][collection_bills]=1&rows[2][collection_customers]=1&rows[2][po_non_stock]=7000" --data-urlencode "rows[2][sales_value]=12,500")
+req A GET "/entry?type=day&date=$TODAY&view=sheet" >/dev/null
 contains "saved message" "$TMP/body" "Saved 1 row(s) for $TODAY_DMY"
 contains "saved value stays in the sheet" "$TMP/body" 'name="rows\[2\]\[sales_value\]" value="12500"'
 r=$(post A /entry/day /entry --data "date=2099-01-01&rows[2][sales_value]=1"); req A GET /entry?type=day >/dev/null
@@ -90,11 +90,27 @@ req A GET "/dashboard/entries?metric=po_non_stock&employee=2" >/dev/null
 contains "position drill-down uses today's figure" "$TMP/body" "₹7,000"
 r=$(req A GET "/dashboard/entries?metric=bogus"); expect "unknown figure 404" "${r%% *}" 404
 
+echo "== Daily entry: one sales person"
+r=$(req A GET "/entry?type=day&date=$TODAY"); expect "person view opens" "${r%% *}" 200
+contains "asks for a sales employee" "$TMP/body" "Choose a <b>sales employee</b>"
+contains "sales area drop box" "$TMP/body" 'name="area"'
+r=$(req A GET "/entry?type=day&date=$TODAY&area=Madurai"); contains "area with one person opens them" "$TMP/body" "Muthuvel P"
+lacks "area filter hides others" "$TMP/body" "Janakiraman S <span"
+r=$(req A GET "/entry?type=day&date=$TODAY&employee=2"); contains "left: sales box" "$TMP/body" "<legend>Sales</legend>"
+for h in "Pending order" "Enquiry pending" "Lead pending" "Sample / DC" "Payment collection" "Outstanding"; do contains "box: $h" "$TMP/body" "<legend>$h"; done
+contains "90 DAYS field" "$TMP/body" "90 DAYS (₹)"
+contains "150 DAYS field" "$TMP/body" "150 DAYS (₹)"
+contains "month to date shown" "$TMP/body" "This month:"
+r=$(post A /entry/day "/entry?type=day&date=$TODAY&employee=3" --data "date=$TODAY&employee=3&rows[3][sales_value]=4000&rows[3][sales_bills]=1&rows[3][sales_customers]=1&rows[3][os_90]=11000")
+case "$r" in "303 "*"employee=3"*) ok "person save returns to the same person";; *) bad "person save returns to the same person" "$r";; esac
+req A GET "/entry?type=day&date=$TODAY&employee=3" >/dev/null; contains "saved value shown" "$TMP/body" 'value="4000"'
+contains "saved 90 days shown" "$TMP/body" 'value="11000"'
+
 echo "== Permissions and scope"
 r=$(req J GET /); contains "JANA sees her own row" "$TMP/body" "JANA - Janakiraman S"
 lacks "JANA does not see MUKESH" "$TMP/body" "MUKESH - Mukesh R"
 lacks "JANA (view only) has no + ADD" "$TMP/body" 'href="/marketing_crm/entry"'
-r=$(req J GET "/entry?type=day&date=$TODAY"); expect "JANA (view only) cannot open the + ADD sheet (403)" "${r%% *}" 403
+r=$(req J GET "/entry?type=day&date=$TODAY&view=sheet"); expect "JANA (view only) cannot open the + ADD sheet (403)" "${r%% *}" 403
 t=$(csrf J /)
 r=$(req J POST /entry/day --data-urlencode "_csrf=$t" --data "date=$TODAY&rows[3][sales_value]=999&rows[3][sales_bills]=1&rows[3][sales_customers]=1"); expect "JANA cannot save entries (403)" "${r%% *}" 403
 req A GET "/dashboard/entries?metric=sales_today&employee=3" >/dev/null

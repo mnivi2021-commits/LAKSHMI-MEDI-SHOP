@@ -5,18 +5,6 @@
     var base = document.querySelector('meta[name="app-base"]').getAttribute('content');   // e.g. /marketing_crm/
 
     // ---------------------------------------------------------------------------
-    // Filters: changing the financial year resets the month and reloads.
-    // ---------------------------------------------------------------------------
-    document.querySelectorAll('select[data-autosubmit]').forEach(function (sel) {
-        sel.addEventListener('change', function () {
-            var form = sel.form;
-            var month = form.querySelector('select[name="month"]');
-            if (month) { month.value = ''; }
-            form.submit();
-        });
-    });
-
-    // ---------------------------------------------------------------------------
     // Searchable lookup: <div class="lookup" data-lookup="customers|products">
     // ---------------------------------------------------------------------------
     function initLookup(box) {

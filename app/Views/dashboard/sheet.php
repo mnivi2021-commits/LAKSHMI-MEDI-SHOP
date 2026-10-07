@@ -18,7 +18,14 @@ use App\Core\Csrf;
 use App\Modules\Dashboard\EntryController;
 use App\Modules\Dashboard\Kpi\BranchPerformance;
 
+$dayView ??= 'sheet';
+$areas ??= [];
+$area ??= '';
+$people ??= $reps;
+$person ??= null;
+$mtd ??= null;
 $isDay = $type === 'day';
+$personView = $isDay && $dayView === 'person';
 $groups = [];
 foreach (EntryController::DAY_FIELDS as $f => [$g]) {
     $groups[$g] = ($groups[$g] ?? 0) + 1;
@@ -30,9 +37,10 @@ ob_start();
     <div>
         <p class="eyebrow"><a href="<?= e(url('/')) ?>">Branch Performance</a></p>
         <h1><?= $isDay ? 'Daily entry · ' . e($date->format('d-m-Y')) : 'Month start · ' . e($month->format('F Y')) ?></h1>
-        <p class="muted small"><?= $isDay
-            ? 'One row per sales employee. Type the day\'s totals and the position at the end of the day. Blank position cells keep the last figure (shown in grey).'
-            : 'Once a month: the targets for the month and the total outstanding on the 1st (one total per sales employee, not bill-wise).' ?></p>
+        <p class="muted small"><?= $personView
+            ? 'Daily sales person performance: choose the date, the sales area and the sales employee, then type the day\'s figures.'
+            : ($isDay ? 'One row per sales employee. Type the day\'s totals and the position at the end of the day. Blank position cells keep the last figure (shown in grey).'
+            : 'Once a month: the targets for the month and the total outstanding on the 1st (one total per sales employee, not bill-wise).') ?></p>
     </div>
 </div>
 
@@ -53,9 +61,20 @@ ob_start();
     <?php else: ?>
         <label class="field"><span>Month</span><input type="month" name="month" value="<?= e($month->format('Y-m')) ?>"></label>
     <?php endif; ?>
+    <?php if ($personView): ?>
+        <label class="field"><span>Sales area</span><select name="area" data-autosubmit data-reset="employee"><option value="">All areas</option>
+            <?php foreach ($areas as $a): ?><option value="<?= e($a) ?>"<?= $a === $area ? ' selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?></select></label>
+        <label class="field"><span>Sales employee</span><select name="employee" data-autosubmit><option value="">— choose —</option>
+            <?php foreach ($people as $p): ?><option value="<?= e($p['id']) ?>"<?= $person && (int) $person['id'] === (int) $p['id'] ? ' selected' : '' ?>><?= e(($p['short_name'] ?: $p['name']) . ' - ' . $p['name'] . ($p['area'] ? ' (' . $p['area'] . ')' : '')) ?></option><?php endforeach; ?></select></label>
+        <div class="filter-actions"><button type="submit" class="btn">Open</button>
+            <a class="btn" href="<?= e($q(['type' => 'day', 'date' => $date->format('Y-m-d'), 'view' => 'sheet'])) ?>">All in one sheet</a></div>
+    <?php else: ?>
     <label class="field"><span>Branch</span><select name="branch"><option value="">All my branches</option>
         <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"<?= (int) $b['id'] === $branch ? ' selected' : '' ?>><?= e($b['name']) ?></option><?php endforeach; ?></select></label>
-    <div class="filter-actions"><button type="submit" class="btn">Open</button></div>
+    <?php if ($isDay): ?><input type="hidden" name="view" value="sheet"><?php endif; ?>
+    <div class="filter-actions"><button type="submit" class="btn">Open</button>
+        <?php if ($isDay): ?><a class="btn" href="<?= e($q(['type' => 'day', 'date' => $date->format('Y-m-d')])) ?>">One person at a time</a><?php endif; ?></div>
+    <?php endif; ?>
 </form>
 
 <?php if ($errors): ?>
@@ -64,11 +83,14 @@ ob_start();
 
 <?php if ($reps === []): ?>
     <p class="empty card">No active sales employees in your selection. Mark employees as Sales representative in HRM.</p>
+<?php elseif ($personView): ?>
+    <?php require __DIR__ . '/_person_entry.php'; ?>
 <?php else: ?>
 <form method="post" action="<?= e(url($isDay ? 'entry/day' : 'entry/month')) ?>" class="card table-card" novalidate>
     <?= Csrf::field() ?>
     <input type="hidden" name="<?= $isDay ? 'date' : 'month' ?>" value="<?= e($isDay ? $date->format('Y-m-d') : $month->format('Y-m')) ?>">
     <?php if ($branch): ?><input type="hidden" name="branch" value="<?= e($branch) ?>"><?php endif; ?>
+    <?php if ($isDay): ?><input type="hidden" name="view" value="sheet"><?php endif; ?>
     <div class="table-scroll">
     <table class="table compact sheet-table">
         <thead>

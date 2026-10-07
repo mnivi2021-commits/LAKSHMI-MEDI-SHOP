@@ -60,6 +60,19 @@
         src.addEventListener('input', calc);
     });
 
+    // Filters that apply as soon as they change: <select data-autosubmit data-reset="month,employee">
+    // (data-reset clears dependent fields first, e.g. a new branch clears the chosen employee)
+    document.querySelectorAll('select[data-autosubmit]').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            var form = sel.form;
+            (sel.getAttribute('data-reset') || '').split(',').forEach(function (name) {
+                var f = name && form.querySelector('[name="' + name.trim() + '"]');
+                if (f) { f.value = ''; }
+            });
+            form.submit();
+        });
+    });
+
     // Print buttons: <button data-print>
     document.querySelectorAll('[data-print]').forEach(function (b) {
         b.addEventListener('click', function () { window.print(); });

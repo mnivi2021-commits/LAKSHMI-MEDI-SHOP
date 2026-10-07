@@ -18,7 +18,7 @@ ob_start();
 <form method="get" action="<?= e(url('reports')) ?>" class="card fu-filters" aria-label="Report selection">
     <label class="field">
         <span>Branch</span>
-        <select name="branch" data-autosubmit>
+        <select name="branch" data-autosubmit data-reset="employee">
             <?php if (count($branches) !== 1): ?><option value="">All branches</option><?php endif; ?>
             <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"<?= (int) $b['id'] === $branch ? ' selected' : '' ?>><?= e($b['name']) ?></option><?php endforeach; ?>
         </select>

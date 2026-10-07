@@ -104,6 +104,24 @@ final class EntryController
             $type = 'day';
         }
 
+        // Daily entry, one sales person at a time (default): choose date, sales area, sales employee.
+        $dayView = ($_GET['view'] ?? '') === 'sheet' ? 'sheet' : 'person';
+        $areas = array_values(array_unique(array_filter(array_map(static fn ($r) => trim((string) $r['area']), $reps))));
+        sort($areas);
+        $area = in_array((string) ($_GET['area'] ?? ''), $areas, true) ? (string) $_GET['area'] : '';
+        $people = $area === '' ? $reps : array_values(array_filter($reps, static fn ($r) => trim((string) $r['area']) === $area));
+        $person = null;
+        $want = (int) ($_GET['employee'] ?? 0);
+        foreach ($people as $r) {
+            if ((int) $r['id'] === $want) {
+                $person = $r;
+            }
+        }
+        if ($person === null && count($people) === 1) {
+            $person = $people[0];
+        }
+        $mtd = $type === 'day' && $dayView === 'person' && $person !== null ? self::monthToDate((int) $person['id'], $date) : null;
+
         $old = Session::pull('_sheet_old', []);
         $values = $type === 'day' ? self::dayValues($repIds, $date) : self::monthValues($repIds, $month);
         if ($old) {
@@ -125,6 +143,12 @@ final class EntryController
             'reps'      => $reps,
             'values'    => $values,
             'pcts'      => self::pcts(),
+            'dayView'   => $dayView,
+            'areas'     => $areas,
+            'area'      => $area,
+            'people'    => $people,
+            'person'    => $person,
+            'mtd'       => $mtd,
             'hints'     => $type === 'day' ? self::latestBefore($repIds, $date) : [],
             'monthDone' => $monthDone,
             'canDay'    => $canDay,
@@ -141,7 +165,12 @@ final class EntryController
         $user = Auth::user();
         $date = self::date((string) ($_POST['date'] ?? ''));
         $branch = (int) ($_POST['branch'] ?? 0) ?: null;
-        $back = '/entry?type=day&date=' . ($date?->format('Y-m-d') ?? '') . ($branch ? '&branch=' . $branch : '');
+        $back = '/entry?' . http_build_query(array_filter([
+            'type' => 'day', 'date' => $date?->format('Y-m-d') ?? '', 'branch' => $branch,
+            'view' => ($_POST['view'] ?? '') === 'sheet' ? 'sheet' : null,
+            'area' => mb_substr((string) ($_POST['area'] ?? ''), 0, 80) ?: null,
+            'employee' => (int) ($_POST['employee'] ?? 0) ?: null,
+        ], static fn ($v) => $v !== null && $v !== ''));
         $fy = $date ? self::fy($date) : null;
         if ($date === null || $date > new DateTimeImmutable('today')) {
             Session::flash('error', 'Choose a date that is not in the future.');
@@ -401,7 +430,7 @@ final class EntryController
             $p[] = $branch;
         }
         return Database::fetchAll(
-            "SELECT e.id, e.name, e.short_name, e.branch_id, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id
+            "SELECT e.id, e.name, e.short_name, e.branch_id, e.area, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id
              WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.is_sales_rep = 1 AND {$w} ORDER BY b.name, e.name", $p);
     }
 
@@ -424,6 +453,28 @@ final class EntryController
     }
 
     /** @param list<int> $ids @return array<int, array<string, mixed>> */
+    /**
+     * One person's month so far (1st .. the chosen date) for the daily entry boxes.
+     *
+     * @return array{sales: int, sales_bills: int, sales_customers: int, collection: int, collection_bills: int, collection_customers: int, sales_target: int, collection_target: int}
+     */
+    private static function monthToDate(int $employeeId, DateTimeImmutable $date): array
+    {
+        $from = $date->modify('first day of this month')->format('Y-m-d');
+        $s = Database::fetch(
+            'SELECT COALESCE(SUM(sales_value), 0) AS sales, COALESCE(SUM(sales_bills), 0) AS sb, COALESCE(SUM(sales_customers), 0) AS sc,
+                    COALESCE(SUM(collection_value), 0) AS coll, COALESCE(SUM(collection_bills), 0) AS cb, COALESCE(SUM(collection_customers), 0) AS cc
+             FROM rep_daily_totals WHERE employee_id = ? AND entry_date BETWEEN ? AND ?',
+            [$employeeId, $from, $date->format('Y-m-d')]
+        );
+        $t = Database::fetch('SELECT SUM(sales_target) AS st, SUM(collection_target) AS ct FROM sales_targets WHERE employee_id = ? AND target_month = ?', [$employeeId, $from]);
+        return [
+            'sales' => Money::fromDb($s['sales']), 'sales_bills' => (int) $s['sb'], 'sales_customers' => (int) $s['sc'],
+            'collection' => Money::fromDb($s['coll']), 'collection_bills' => (int) $s['cb'], 'collection_customers' => (int) $s['cc'],
+            'sales_target' => Money::fromDb($t['st'] ?? null), 'collection_target' => Money::fromDb($t['ct'] ?? null),
+        ];
+    }
+
     private static function monthValues(array $ids, DateTimeImmutable $month): array
     {
         $out = [];
