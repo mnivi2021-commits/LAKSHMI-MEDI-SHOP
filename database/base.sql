@@ -151,7 +151,7 @@ INSERT INTO sms_templates (name, category, body) VALUES
  ('Payment Due',             'transactional', 'Dear {customer_name}, Rs {amount} is due against {bill_count} bill(s), oldest due on {due_date}. Kindly arrange payment; ignore if already paid. - {company}');
 
 INSERT INTO settings (setting_group, setting_key, setting_value, value_type, description) VALUES
- ('company',     'name',                 'Your Company Name', 'string', 'Company name shown in header, reports and SMS'),
+ ('company',     'name',                 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED', 'string', 'Company name shown in header, reports and SMS'),
  ('company',     'currency',             'INR',          'string', 'ISO currency code'),
  ('general',     'timezone',             'Asia/Kolkata', 'string', 'Application timezone'),
  ('general',     'date_format',          'd-m-Y',        'string', 'Display date format'),

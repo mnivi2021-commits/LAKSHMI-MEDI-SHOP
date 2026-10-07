@@ -8,6 +8,7 @@ use App\Core\Gate;
 use App\Core\Request;
 
 $user = Auth::user();
+$company = (static function (): string { try { return (string) (\App\Core\Settings::get('company', 'name', null) ?: 'Marketing CRM'); } catch (\Throwable) { return 'Marketing CRM'; } })();
 $path = Request::path();
 $menu = array_filter(Config::get('menu', []), static fn (array $m): bool => Gate::allowsAny($m['any'], $user));
 // Active when the current path is in the item's first URL segment ("/access/roles/3" -> Access).
@@ -22,6 +23,7 @@ $isActive = static function (array $m) use ($path): bool {
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" href="<?= e(url('assets/images/logo.svg')) ?>" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title><?= e($title ?? 'Marketing CRM') ?></title>
@@ -32,7 +34,7 @@ $isActive = static function (array $m) use ($path): bool {
     <header class="topbar">
         <div class="topbar-left">
             <button type="button" class="btn btn-sm nav-toggle" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">Menu</button>
-            <a class="brand" href="<?= e(url('/')) ?>"><span class="brand-mark">M</span> Marketing CRM</a>
+            <a class="brand" href="<?= e(url('/')) ?>"><img class="brand-logo" src="<?= e(url('assets/images/logo.svg')) ?>" alt="" width="30" height="30"> <?= e($company) ?></a>
         </div>
         <div class="topbar-right">
             <div class="user-chip">
@@ -52,7 +54,7 @@ $isActive = static function (array $m) use ($path): bool {
 
     <div class="shell">
         <nav id="sidebar" class="sidebar" aria-label="Main">
-            <a class="sidebar-brand" href="<?= e(url('/')) ?>"><span class="brand-mark" aria-hidden="true">M</span> Marketing CRM</a>
+            <a class="sidebar-brand" href="<?= e(url('/')) ?>"><img class="brand-logo" src="<?= e(url('assets/images/logo.svg')) ?>" alt="" width="34" height="34"><span class="brand-text"><?= e($company) ?><small>Marketing CRM</small></span></a>
             <?php if (!$user['must_change_password']): ?>
                 <ul class="sidebar-menu">
                     <?php foreach ($menu as $m): ?>

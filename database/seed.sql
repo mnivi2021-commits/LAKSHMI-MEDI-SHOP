@@ -388,7 +388,7 @@ FROM days CROSS JOIN reps r JOIN employees e ON e.id = r.employee_id
 WHERE DAYOFWEEK(days.d) <> 1;
 
 -- Demo values on top of database/base.sql
-UPDATE settings SET setting_value = 'Marketing CRM Demo Pvt Ltd' WHERE setting_group = 'company' AND setting_key = 'name';
+UPDATE settings SET setting_value = 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' WHERE setting_group = 'company' AND setting_key = 'name';
 UPDATE number_sequences SET next_number = 13 WHERE name IN ('customer', 'lead');
 UPDATE number_sequences SET next_number = 11 WHERE name = 'employee';
 UPDATE sms_templates SET created_by = 1;

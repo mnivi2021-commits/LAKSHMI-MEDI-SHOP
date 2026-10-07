@@ -8,6 +8,7 @@ $signedIn = isset($_SESSION['auth']);
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="icon" href="<?= e(url('assets/images/logo.svg')) ?>" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title><?= e($title ?? 'Marketing CRM') ?></title>
@@ -15,7 +16,7 @@ $signedIn = isset($_SESSION['auth']);
 </head>
 <body class="minimal">
     <header class="topbar">
-        <a class="brand" href="<?= e(url('/')) ?>"><span class="brand-mark">M</span> Marketing CRM</a>
+        <?php $company = (static function (): string { try { return (string) (\App\Core\Settings::get('company', 'name', null) ?: 'Marketing CRM'); } catch (\Throwable) { return 'Marketing CRM'; } })(); ?><a class="brand" href="<?= e(url('/')) ?>"><img class="brand-logo" src="<?= e(url('assets/images/logo.svg')) ?>" alt="" width="30" height="30"> <?= e($company) ?></a>
         <div class="topbar-right">
             <?php if ($signedIn): ?>
                 <a class="btn btn-sm" href="<?= e(url('/')) ?>">Open CRM</a>

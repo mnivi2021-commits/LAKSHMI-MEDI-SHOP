@@ -37,11 +37,11 @@ contains "buckets shown as list" "$TMP/body" 'value="30, 60, 90, 150"'
 
 echo "== Sales basis changes the dashboard"
 BEFORE=$(salesTotal)
-r=$(settings 'Marketing CRM Demo Pvt Ltd' total computed invoice_date '30, 60, 90, 150'); req A GET /settings >/dev/null
+r=$(settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' total computed invoice_date '30, 60, 90, 150'); req A GET /settings >/dev/null
 contains "saved message" "$TMP/body" "Sales figures use"
 AFTER=$(salesTotal)
 [ -n "$BEFORE" ] && [ -n "$AFTER" ] && [ "$BEFORE" != "$AFTER" ] && ok "dashboard sales changed $BEFORE -> $AFTER (incl. GST)" || bad "dashboard sales changed" "$BEFORE / $AFTER"
-settings 'Marketing CRM Demo Pvt Ltd' taxable computed invoice_date '30, 60, 90, 150' >/dev/null
+settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' taxable computed invoice_date '30, 60, 90, 150' >/dev/null
 expect "back to taxable restores the figure" "$(salesTotal)" "$BEFORE"
 
 echo "== Validation"
@@ -54,7 +54,7 @@ settings '' taxable computed invoice_date '30, 60, 90, 150' >/dev/null; req A GE
 contains "empty company name refused" "$TMP/body" "Enter the company name"
 settings 'Lakshmi Medi Shop' taxable computed due_date '15, 45, 90, 180' >/dev/null
 r=$(req A GET /reports/outstanding-ageing); contains "new buckets used by reports" "$TMP/body" "91-180 days"
-settings 'Marketing CRM Demo Pvt Ltd' taxable computed invoice_date '30, 60, 90, 150' >/dev/null
+settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' taxable computed invoice_date '30, 60, 90, 150' >/dev/null
 
 echo "== Financial years"
 r=$(post A /settings/years /settings); req A GET /settings >/dev/null
