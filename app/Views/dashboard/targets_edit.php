@@ -19,7 +19,7 @@ ob_start();
 ?>
 <div class="page-head">
     <div>
-        <p class="eyebrow"><a href="<?= e(url('targets') . '?fy=' . $fy['id']) ?>">Targets</a></p>
+        <p class="eyebrow"><a href="<?= e(url('/') . '?fy=' . $fy['id']) ?>">Targets</a></p>
         <h1>Set annual targets · <?= e($fy['label']) ?></h1>
         <p class="muted small"><?= e(TargetController::months($fy)) ?>. Type the annual target in ₹ (commas allowed). The month target is worked out as annual ÷ 12. Leave a box blank for no target.</p>
     </div>
@@ -73,7 +73,7 @@ ob_start();
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-lg">Save annual targets</button>
-        <a class="btn" href="<?= e(url('targets') . '?fy=' . $fy['id']) ?>">Cancel</a>
+        <a class="btn" href="<?= e(url('/') . '?fy=' . $fy['id']) ?>">Cancel</a>
     </div>
 </form>
 <?php

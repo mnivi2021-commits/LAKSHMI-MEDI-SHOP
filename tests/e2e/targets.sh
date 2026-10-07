@@ -27,7 +27,10 @@ first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== Targets tab"
-r=$(req A GET /); contains "Targets tab link on dashboard" "$TMP/body" 'href="/marketing_crm/targets"'
+r=$(req A GET /); contains "dashboard is the Targets screen" "$TMP/body" "<h1>Targets</h1>"
+lacks "no Branch performance tab" "$TMP/body" ">Branch performance<"
+contains "branch total box" "$TMP/body" "Branch total target"
+contains "+ ADD on dashboard" "$TMP/body" 'href="/marketing_crm/entry"'
 r=$(req A GET /targets); expect "targets page" "${r%% *}" 200
 for h in "1. Division target" "2. Area-wise target" "3. Sales employee target" "4. Sales coordinators" "5. Admin Head · Sales Manager"; do contains "box: $h" "$TMP/body" "$h"; done
 for d in PPE MAAP TRAINING; do contains "division $d" "$TMP/body" ">$d<"; done
@@ -45,7 +48,7 @@ contains "division box" "$TMP/body" 'name="t\[d1\]"'
 contains "area x division box" "$TMP/body" 'name="t\[a2d1\]"'
 contains "employee x division box" "$TMP/body" 'name="t\[e2d1\]"'
 r=$(post A /targets /targets/edit?fy=2 --data "fy=2" --data-urlencode "t[d1]=1,20,00,000" --data "t[d2]=6000000&t[d3]=2400000&t[a1d1]=3000000&t[e2d1]=")
-case "$r" in "303 "*"/targets?fy=2"*) ok "saved";; *) bad "saved" "$r";; esac
+case "$r" in "303 "*"/?fy=2"*) ok "saved";; *) bad "saved" "$r";; esac
 req A GET /targets?fy=2 >/dev/null
 contains "new PPE annual" "$TMP/body" "₹1,20,00,000"
 contains "new PPE month (÷12)" "$TMP/body" "₹10,00,000"

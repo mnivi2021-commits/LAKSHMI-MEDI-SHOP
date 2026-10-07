@@ -51,6 +51,13 @@ $router->get('/', static function (): void {
         Response::redirect('/password/change');
         return;
     }
+    // Dashboard = Targets (owner, 07-10-2026). The earlier Branch performance / Bill-wise pages stay
+    // reachable at /?view=performance and /?view=bills but are no longer linked from the dashboard.
+    $view = (string) ($_GET['view'] ?? '');
+    if ($view === '' && \App\Core\Gate::allowsAny(['targets.view', 'targets.add'])) {
+        \App\Modules\Dashboard\TargetController::index();
+        return;
+    }
     DashboardController::index();     // dashboard, or a simple home page without dashboard.view
 });
 

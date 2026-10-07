@@ -28,7 +28,7 @@ first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== First page"
-r=$(req A GET /); expect "dashboard" "${r%% *}" 200
+r=$(req A GET "/?view=performance"); expect "dashboard" "${r%% *}" 200
 contains "Branch Performance title" "$TMP/body" "<h1>Branch Performance</h1>"
 for s in "1. Sales performance" "2. Pending order · Enquiry · Lead" "3. Payment collection" "4. Open DC · Samples"; do contains "section: $s" "$TMP/body" "$s"; done
 contains "email section kept at the end" "$TMP/body" 'id="sec-mail"'
@@ -37,7 +37,7 @@ lacks "no product filter" "$TMP/body" 'name="product"'
 lacks "no NOB column in the sales table" "$TMP/body" ">NOB<"
 contains "branch rows" "$TMP/body" "Madurai Branch"
 contains "+ ADD opens the sheet" "$TMP/body" 'href="/marketing_crm/entry"'
-r=$(req A GET "/?branch=3"); contains "Madurai: rep row" "$TMP/body" "MUTHUVEL - Muthuvel P"
+r=$(req A GET "/?view=performance&branch=3"); contains "Madurai: rep row" "$TMP/body" "MUTHUVEL - Muthuvel P"
 lacks "Madurai: no Chennai rows" "$TMP/body" "Chennai Head Office</td>"
 r=$(req A GET "/?view=bills"); expect "bill-wise view" "${r%% *}" 200
 contains "bill-wise view keeps old cards" "$TMP/body" "Sales Performance"
@@ -79,7 +79,7 @@ r=$(post A /entry/day /entry --data "date=2099-01-01&rows[2][sales_value]=1"); r
 contains "future date refused" "$TMP/body" "not in the future"
 
 echo "== Dashboard reflects the sheet"
-req A GET "/?employee=2" >/dev/null
+req A GET "/?view=performance&employee=2" >/dev/null
 TODAYSALES=$(tr -d '\n' < "$TMP/body" | grep -o 'metric=sales_today[^>]*>[^<]*' | head -1 | sed 's/.*>//')
 expect "today sales on dashboard" "$TODAYSALES" "₹12,500"
 req A GET "/dashboard/entries?metric=sales_today&employee=2" >/dev/null
@@ -107,7 +107,7 @@ req A GET "/entry?type=day&date=$TODAY&employee=3" >/dev/null; contains "saved v
 contains "saved 90 days shown" "$TMP/body" 'value="11000"'
 
 echo "== Permissions and scope"
-r=$(req J GET /); contains "JANA sees her own row" "$TMP/body" "JANA - Janakiraman S"
+r=$(req J GET "/?view=performance"); contains "JANA sees her own row" "$TMP/body" "JANA - Janakiraman S"
 lacks "JANA does not see MUKESH" "$TMP/body" "MUKESH - Mukesh R"
 lacks "JANA (view only) has no + ADD" "$TMP/body" 'href="/marketing_crm/entry"'
 r=$(req J GET "/entry?type=day&date=$TODAY&view=sheet"); expect "JANA (view only) cannot open the + ADD sheet (403)" "${r%% *}" 403

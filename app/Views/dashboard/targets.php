@@ -8,6 +8,10 @@
 /** @var list<array<string, mixed>> $coordinators */
 /** @var list<array<string, mixed>> $leaders */
 /** @var bool $canEdit */
+/** @var list<array<string, mixed>> $branchTotals */
+/** @var bool $canEntry */
+$branchTotals ??= [];
+$canEntry ??= false;
 use App\Modules\Dashboard\TargetController;
 
 $months = TargetController::months($fy);
@@ -22,18 +26,15 @@ ob_start();
         <h1>Targets</h1>
         <p class="asof">Year <strong><?= e($fy['label']) ?></strong> · <?= e($months) ?> · current month target = annual ÷ 12</p>
     </div>
-    <?php if ($canEdit): ?><a class="btn btn-primary btn-lg" href="<?= e(url('targets/edit') . '?fy=' . $fy['id']) ?>">+ Set annual targets</a><?php endif; ?>
+    <div class="form-actions">
+        <?php if ($canEntry): ?><a class="btn btn-lg" href="<?= e(url('entry')) ?>">+ ADD</a><?php endif; ?>
+        <?php if ($canEdit): ?><a class="btn btn-primary btn-lg" href="<?= e(url('targets/edit') . '?fy=' . $fy['id']) ?>">+ Set annual targets</a><?php endif; ?>
+    </div>
 </div>
-
-<nav class="tabs" aria-label="Dashboard view">
-    <a href="<?= e(url('/')) ?>">Branch performance</a>
-    <a href="<?= e(url('/') . '?view=bills') ?>">Bill-wise detail</a>
-    <a href="<?= e(url('targets')) ?>" class="active">Targets</a>
-</nav>
 
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
 
-<form method="get" action="<?= e(url('targets')) ?>" class="card fu-filters" aria-label="Year">
+<form method="get" action="<?= e(url('/')) ?>" class="card fu-filters" aria-label="Year">
     <label class="field"><span>Year</span>
         <select name="fy" data-autosubmit>
             <?php foreach ($fyList as $f): ?><option value="<?= e($f['id']) ?>"<?= (int) $f['id'] === (int) $fy['id'] ? ' selected' : '' ?>><?= e($f['label']) ?></option><?php endforeach; ?>
@@ -53,6 +54,25 @@ ob_start();
         </tbody>
         <tfoot><tr class="total-row"><th><?= e($fy['label']) ?></th><th>All divisions</th><th class="right num"><?= e($money($tot)) ?></th><th><?= e($months) ?></th><th class="right num"><?= e($month($tot)) ?></th></tr></tfoot>
     </table></div>
+</section>
+
+<!-- Branch total: sum of the sales employees' annual targets in each branch -->
+<section class="card tg-box">
+    <h2 class="card-title">Branch total target</h2>
+    <div class="table-scroll"><table class="table compact">
+        <thead><tr><th>Year</th><th>Branch</th><?php foreach ($divisions as $d): ?><th class="right"><?= e($d['name']) ?></th><?php endforeach; ?><th class="right">Annual target</th><th>Month</th><th class="right">Current month target</th></tr></thead>
+        <tbody>
+        <?php $grand = 0; $gd = []; foreach ($branchTotals as $b): $bt = 0; ?>
+            <tr><td><?= e($fy['label']) ?></td><td><b><?= e($b['name']) ?></b></td>
+                <?php foreach ($divisions as $d): $a = $b['div'][(int) $d['id']] ?? 0; $bt += $a; $gd[(int) $d['id']] = ($gd[(int) $d['id']] ?? 0) + $a; ?><td class="right num"><?= e($money($a)) ?></td><?php endforeach; ?>
+                <td class="right num"><b><?= e($money($bt)) ?></b></td><td><?= e($months) ?></td><td class="right num"><?= e($month($bt)) ?></td></tr>
+        <?php $grand += $bt; endforeach; ?>
+        </tbody>
+        <tfoot><tr class="total-row"><th><?= e($fy['label']) ?></th><th>All branches</th>
+            <?php foreach ($divisions as $d): ?><th class="right num"><?= e($money($gd[(int) $d['id']] ?? 0)) ?></th><?php endforeach; ?>
+            <th class="right num"><?= e($money($grand)) ?></th><th><?= e($months) ?></th><th class="right num"><?= e($month($grand)) ?></th></tr></tfoot>
+    </table></div>
+    <p class="muted small padded">Branch figures add up the annual targets of the sales people in each branch (3. Sales employee target).</p>
 </section>
 
 <!-- 2. Area-wise: one separate box per area -->

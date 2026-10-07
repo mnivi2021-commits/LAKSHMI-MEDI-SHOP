@@ -45,9 +45,9 @@ ob_start();
 </div>
 
 <nav class="tabs" aria-label="Dashboard view">
-    <a href="<?= e(url('/') . '?' . $ctx->query(['customer' => null, 'product' => null])) ?>" class="<?= $isBranch ? 'active' : '' ?>">Branch performance</a>
+    <a href="<?= e(url('/') . '?' . $ctx->query(['customer' => null, 'product' => null, 'view' => 'performance'])) ?>" class="<?= $isBranch ? 'active' : '' ?>">Branch performance</a>
     <a href="<?= e(url('/') . '?' . $ctx->query(['view' => 'bills'])) ?>" class="<?= $isBranch ? '' : 'active' ?>">Bill-wise detail</a>
-    <?php if (\App\Core\Gate::allowsAny(['targets.view', 'targets.add'])): ?><a href="<?= e(url('targets')) ?>">Targets</a><?php endif; ?>
+    <?php if (\App\Core\Gate::allowsAny(['targets.view', 'targets.add'])): ?><a href="<?= e(url('/')) ?>">Targets (dashboard)</a><?php endif; ?>
 </nav>
 
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>

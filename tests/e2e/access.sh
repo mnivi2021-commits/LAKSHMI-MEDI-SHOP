@@ -103,7 +103,7 @@ req C GET /access/users >/dev/null; JANA_TMP=$(temp_password jana)
 [ -n "$JANA_TMP" ] && ok "reset shows new temporary password" || bad "reset shows new temporary password" "none"
 first_login J jana "$JANA_TMP" "$JANA_PW"
 r=$(req J GET /);                    expect "JANA signs in with reset password" "${r%% *}" 200
-contains "JANA sees Branch Performance" "$TMP/body" "<h1>Branch Performance</h1>"
+contains "JANA sees the Targets dashboard" "$TMP/body" "<h1>Targets</h1>"
 post A /access/users/3/status /access/users >/dev/null
 r=$(req J GET /); contains "disabled JANA is signed out at once" "$TMP/body" "Sign in to the CRM"
 login J jana "$JANA_PW"; req J GET /login >/dev/null; contains "disabled JANA cannot sign in" "$TMP/body" "account is disabled"

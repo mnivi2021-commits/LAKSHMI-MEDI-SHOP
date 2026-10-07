@@ -32,6 +32,8 @@ final class TargetController
             'fy'       => $fy,
             'fyList'   => Database::fetchAll('SELECT id, label FROM financial_years ORDER BY start_date DESC'),
             'canEdit'  => Gate::allows('targets.add', $user),
+            'canEntry' => Gate::allowsAny(['daily_entry.add', 'targets.add'], $user),
+            'branchTotals' => self::branchTotals((int) $fy['id'], $user),
         ] + $data);
     }
 
@@ -130,7 +132,7 @@ final class TargetController
         });
         Audit::log('annual_targets.saved', 'targets', null, null, ['fy' => $fy['label'], 'changed' => $changed]);
         Session::flash('success', $changed ? "Annual targets saved for {$fy['label']} ({$changed} change(s))." : 'Nothing changed.');
-        Response::redirect('/targets?fy=' . $fy['id']);
+        Response::redirect('/?fy=' . $fy['id']);
     }
 
     // =========================================================================
@@ -175,6 +177,25 @@ final class TargetController
              WHERE u.deleted_at IS NULL AND u.status = 'active' AND r.slug IN ('admin_head', 'sales_manager')
              ORDER BY r.id, u.name");
         return compact('divisions', 'areas', 'employees', 'map', 'coordinators', 'leaders');
+    }
+
+    /** Annual targets per branch and division (sum of that branch's sales employees). @return list<array{name: string, div: array<int, int>}> */
+    private static function branchTotals(int $fyId, array $user): array
+    {
+        [$bw, $bp] = DataScope::for($user)->branchListWhere('b.id');
+        $out = [];
+        foreach (Database::fetchAll("SELECT b.id, b.name FROM branches b WHERE b.deleted_at IS NULL AND b.status = 'active' AND {$bw} ORDER BY b.id", $bp) as $b) {
+            $out[(int) $b['id']] = ['name' => $b['name'], 'div' => []];
+        }
+        foreach (Database::fetchAll(
+            "SELECT e.branch_id, t.division_id, SUM(t.annual_target) AS total
+             FROM annual_targets t JOIN employees e ON e.id = t.employee_id
+             WHERE t.financial_year_id = ? AND t.level = 'employee' GROUP BY e.branch_id, t.division_id", [$fyId]) as $r) {
+            if (isset($out[(int) $r['branch_id']])) {
+                $out[(int) $r['branch_id']]['div'][(int) $r['division_id']] = Money::fromDb($r['total']);
+            }
+        }
+        return array_values($out);
     }
 
     /** "Apr 2026 - Mar 2027" for a financial year row. */

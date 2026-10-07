@@ -27,7 +27,7 @@ first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== Dashboard Email cards"
-r=$(req A GET /); expect "dashboard" "${r%% *}" 200
+r=$(req A GET "/?view=performance"); expect "dashboard" "${r%% *}" 200
 contains "email section" "$TMP/body" 'id="sec-mail"'
 contains "NEW ENQUIRY card" "$TMP/body" "NEW ENQUIRY"
 contains "PAYMENT ADVICE card" "$TMP/body" "PAYMENT ADVICE"
