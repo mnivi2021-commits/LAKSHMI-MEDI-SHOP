@@ -46,12 +46,19 @@ contains "bill-wise view keeps customer filter" "$TMP/body" 'name="customer"'
 echo "== Month start sheet"
 r=$(req A GET "/entry?type=month&month=2026-11"); expect "month sheet" "${r%% *}" 200
 contains "month headings" "$TMP/body" "Opening outstanding (₹)"
+contains "sheet title" "$TMP/body" "NOV 26 MONTH SALES AND COLLECTION TARGET"
+contains "80% column" "$TMP/body" "80%"
+contains "60% column" "$TMP/body" "60%"
 contains "one row per rep" "$TMP/body" 'name="rows\[6\]\[opening_outstanding\]"'
-r=$(post A /entry/month "/entry?type=month&month=2026-11" --data "month=2026-11" --data-urlencode "rows[2][sales_target]=1,00,000" --data "rows[2][collection_target]=90000&rows[2][opening_outstanding]=250000")
+r=$(post A /entry/month "/entry?type=month&month=2026-11" --data "month=2026-11" --data-urlencode "rows[2][sales_target]=1,00,000" --data "rows[2][opening_outstanding]=250000")
 case "$r" in "303 "*"type=day"*) ok "month saved -> daily sheet";; *) bad "month saved -> daily sheet" "$r";; esac
 req A GET "/entry?type=month&month=2026-11" >/dev/null
 contains "saved target shown" "$TMP/body" 'value="100000"'
 contains "saved opening shown" "$TMP/body" 'value="250000"'
+contains "60% collection target worked out" "$TMP/body" "₹1,50,000"
+contains "80% of the target worked out" "$TMP/body" "₹80,000"
+contains "branch total row" "$TMP/body" "Chennai Head Office total"
+contains "grand total row" "$TMP/body" "Grand total"
 post A /entry/month "/entry?type=month&month=2026-11" --data "month=2026-11&rows[3][sales_target]=lots" >/dev/null; req A GET "/entry?type=month&month=2026-11" >/dev/null
 contains "bad amount refused" "$TMP/body" "need correcting"
 

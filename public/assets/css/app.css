@@ -894,3 +894,19 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 /* HRM employee form: basic details first */
 .hrm-basic { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 .age-out { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 12px; background: var(--surface); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Month start sheet: title, green sales headings, yellow collection headings */
+.table th.sheet-title { text-align: center; font-size: .95rem; letter-spacing: .06em; color: var(--text); padding: 10px 16px; }
+.table th.th-sales { background: #1a9a4b; color: #fff; }
+.table th.th-coll  { background: #f2c230; color: #2b2100; }
+.table th.th-sales .th-sub { color: #dff5e7; }
+.table th.th-coll .th-sub  { color: #5a4600; }
+.table thead th.th-sales:first-of-type, .table thead th.th-sales + .th-sales { border-radius: 0; }
+.sheet-calc { font-weight: 700; white-space: nowrap; }
+.sheet-calc-sales { color: #137a3b; }
+.sheet-calc-collection { color: #8a6500; }
+@media (prefers-color-scheme: dark) { .sheet-calc-sales { color: #7be0a4; } .sheet-calc-collection { color: #f5d26b; } }
+
+.table tr.branch-total-row > th, .table tr.branch-total-row > td { background: #e9ecea; font-weight: 800; }
+.card .table tr.branch-total-row > th, .card .table tr.branch-total-row > td { background: #e9ecea; }
+@media (prefers-color-scheme: dark) { .table tr.branch-total-row > th, .table tr.branch-total-row > td, .card .table tr.branch-total-row > td, .card .table tr.branch-total-row > th { background: #24262a; } }

@@ -48,11 +48,26 @@ final class EntryController
         'os_90'                 => ['Outstanding', '90 days', 'money'],
         'os_150'                => ['Outstanding', '150 days', 'money'],
     ];
+    /** Typed on the month start sheet. The collection target is worked out from the opening outstanding. */
     public const MONTH_FIELDS = [
         'sales_target'        => 'Sales target',
-        'collection_target'   => 'Collection target',
         'opening_outstanding' => 'Opening outstanding',
     ];
+
+    /**
+     * Month start percentages (Settings): the sales commitment shown beside each target (default 80%)
+     * and the collection target as a share of the opening outstanding (default 60%).
+     *
+     * @return array{sales: int, collection: int}
+     */
+    public static function pcts(): array
+    {
+        $p = static function (string $key, int $default): int {
+            $v = (int) \App\Core\Settings::get('targets', $key, (string) $default);
+            return $v >= 1 && $v <= 100 ? $v : $default;
+        };
+        return ['sales' => $p('sales_commit_pct', 80), 'collection' => $p('collection_pct', 60)];
+    }
 
     // =========================================================================
     // Sheet page
@@ -109,6 +124,7 @@ final class EntryController
             'branches'  => Database::fetchAll("SELECT id, name FROM branches WHERE deleted_at IS NULL AND status = 'active' AND {$bw} ORDER BY name", $bp),
             'reps'      => $reps,
             'values'    => $values,
+            'pcts'      => self::pcts(),
             'hints'     => $type === 'day' ? self::latestBefore($repIds, $date) : [],
             'monthDone' => $monthDone,
             'canDay'    => $canDay,
@@ -275,6 +291,7 @@ final class EntryController
             if ($blank) {
                 continue;
             }
+            $vals['collection_target'] = (int) round($vals['opening_outstanding'] * self::pcts()['collection'] / 100);
             if ($existing[$id]['_exists'] && !Gate::allows('targets.edit', $user)) {
                 $errors["{$id}.sales_target"] = 'Already entered for this month; you may not change it.';
             }

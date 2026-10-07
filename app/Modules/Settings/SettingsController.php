@@ -30,6 +30,8 @@ final class SettingsController
                                          'Use "imported" only after uploading a full outstanding statement (Excel Upload).'],
         'outstanding.aging_basis'    => ['Age bills from', 'choice', ['invoice_date' => 'Invoice date', 'due_date' => 'Due date'],
                                          'Decides which bills fall in the 90 DAYS and 150 DAYS boxes.'],
+        'targets.sales_commit_pct'   => ['Month start: sales commitment %', 'pct', null, 'Shown beside each sales target on the month start sheet (e.g. 80 = 80% of the target).'],
+        'targets.collection_pct'     => ['Month start: collection target %', 'pct', null, 'Collection target = this % of the opening outstanding (e.g. 60).'],
         'outstanding.aging_buckets'  => ['Ageing columns (days)', 'buckets', null, 'Four increasing limits, e.g. 30, 60, 90, 150 → 0-30, 31-60, 61-90, 91-150, 150+.'],
     ];
 
@@ -72,6 +74,11 @@ final class SettingsController
         foreach (self::FIELDS as $k => [, $type, $choices]) {
             if ($type === 'choice' && !array_key_exists($in[$k], $choices)) {
                 $errors[$k] = 'Choose one of the options.';
+            }
+        }
+        foreach (self::FIELDS as $k => [, $type]) {
+            if ($type === 'pct' && !(ctype_digit($in[$k]) && (int) $in[$k] >= 1 && (int) $in[$k] <= 100)) {
+                $errors[$k] = 'Enter a whole number from 1 to 100.';
             }
         }
         $limits = array_values(array_filter(array_map('trim', preg_split('/[,\s]+/', $in['outstanding.aging_buckets'])), 'strlen'));

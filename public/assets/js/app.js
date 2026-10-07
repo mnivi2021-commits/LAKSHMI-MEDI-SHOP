@@ -30,6 +30,36 @@
         show();
     });
 
+    // Month start sheet: live "x% of" cells and column totals (paise kept in data-value)
+    var paise = function (text) {
+        var t = String(text || '').replace(/[,\s\u20b9]/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(t)) { return 0; }
+        return Math.round(parseFloat(t) * 100);
+    };
+    var inr = function (p) { return '\u20b9' + Math.round(p / 100).toLocaleString('en-IN'); };
+    var outs = document.querySelectorAll('output[data-pct-of]');
+    var totals = function () {
+        document.querySelectorAll('[data-total-of]').forEach(function (o) {
+            var key = o.getAttribute('data-total-of'), sum = 0;
+            document.querySelectorAll('[data-total~="' + key + '"]').forEach(function (el) {
+                sum += el.tagName === 'INPUT' ? paise(el.value) : parseInt(el.getAttribute('data-value') || '0', 10);
+            });
+            o.textContent = inr(sum);
+        });
+    };
+    outs.forEach(function (o) {
+        var src = document.getElementById(o.getAttribute('data-pct-of'));
+        if (!src) { return; }
+        var pct = parseInt(o.getAttribute('data-pct'), 10) || 0;
+        var calc = function () {
+            var v = Math.round(paise(src.value) * pct / 100);
+            o.setAttribute('data-value', String(v));
+            o.textContent = v ? inr(v) : '\u2014';
+            totals();
+        };
+        src.addEventListener('input', calc);
+    });
+
     // Print buttons: <button data-print>
     document.querySelectorAll('[data-print]').forEach(function (b) {
         b.addEventListener('click', function () { window.print(); });

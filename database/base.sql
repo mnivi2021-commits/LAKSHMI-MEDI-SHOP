@@ -163,6 +163,8 @@ INSERT INTO settings (setting_group, setting_key, setting_value, value_type, des
  ('general',     'date_format',          'd-m-Y',        'string', 'Display date format'),
  ('finance',     'fy_start_month',       '4',            'int',    'Financial year start month (4 = April, Indian FY)'),
  ('finance',     'sales_amount_basis',   'taxable',      'string', 'Sales KPIs use: taxable (excl. GST) or total (incl. GST)'),
+ ('targets',     'sales_commit_pct',     '80',           'int',    'Month start sheet: sales commitment % shown beside each target'),
+ ('targets',     'collection_pct',       '60',           'int',    'Month start sheet: collection target = % of opening outstanding'),
  ('outstanding', 'source',               'computed',     'string', 'computed = invoices minus allocated receipts; imported = latest outstanding_bills snapshot'),
  ('outstanding', 'aging_basis',          'invoice_date', 'string', 'Age bills from invoice_date or due_date'),
  ('outstanding', 'aging_buckets',        '[30,60,90,150]', 'json', 'Aging bucket upper limits in days; last bucket is open-ended'),

@@ -10,6 +10,8 @@
 /** @var array<int, array<string, string>> $hints */
 /** @var array<string, string> $errors */
 /** @var bool $monthDone */
+/** @var array{sales: int, collection: int} $pcts */
+$pcts ??= ['sales' => 80, 'collection' => 60];
 /** @var bool $canDay */
 /** @var bool $canMonth */
 use App\Core\Csrf;
@@ -77,13 +79,46 @@ ob_start();
             </tr>
             <tr><?php foreach (EntryController::DAY_FIELDS as $f => [, $head, $kind]): ?><th class="right" title="<?= e($kind === 'count' ? 'Number' : 'Amount in ₹') ?>"><?= e($head) ?></th><?php endforeach; ?></tr>
         <?php else: ?>
-            <tr><th class="sheet-name">Sales employee</th><?php foreach (EntryController::MONTH_FIELDS as $f => $head): ?><th class="right"><?= e($head) ?> (₹)</th><?php endforeach; ?></tr>
+            <tr><th colspan="5" class="sheet-title"><?= e(strtoupper($month->format('M y'))) ?> MONTH SALES AND COLLECTION TARGET</th></tr>
+            <tr>
+                <th class="sheet-name">Sales team</th>
+                <th class="right th-sales">Target (₹)</th>
+                <th class="right th-sales"><?= e($pcts['sales']) ?>%<div class="th-sub">of target</div></th>
+                <th class="right th-coll">Opening outstanding (₹)</th>
+                <th class="right th-coll"><?= e($pcts['collection']) ?>%<div class="th-sub">collection target</div></th>
+            </tr>
         <?php endif; ?>
         </thead>
         <tbody>
-        <?php foreach ($reps as $r): $id = (int) $r['id']; $v = $values[$id] ?? []; ?>
+        <?php
+        // Month sheet: one total row under each branch
+        $branchSum = [];
+        $lastOfBranch = [];
+        if (!$isDay) {
+            foreach ($reps as $r) {
+                $b = (int) $r['branch_id'];
+                $branchSum[$b] ??= ['name' => $r['branch'], 'sales_target' => 0, 'opening_outstanding' => 0];
+                foreach (['sales_target', 'opening_outstanding'] as $f) {
+                    $branchSum[$b][$f] += \App\Core\Money::parse((string) ($values[(int) $r['id']][$f] ?? '')) ?? 0;
+                }
+                $lastOfBranch[$b] = (int) $r['id'];
+            }
+        }
+        ?>
+        <?php foreach ($reps as $r): $id = (int) $r['id']; $v = $values[$id] ?? []; $bk = 'b' . (int) $r['branch_id']; ?>
             <tr class="<?= !empty($v['_exists']) ? 'sheet-saved' : '' ?>">
                 <th class="sheet-name"><?= e($r['short_name'] ?: $r['name']) ?><div class="th-sub"><?= e($r['branch']) ?><?= !empty($v['_exists']) ? ' · saved' : '' ?></div></th>
+                <?php if (!$isDay):
+                    foreach (['sales_target' => 'sales', 'opening_outstanding' => 'collection'] as $f => $kind):
+                        $err = $errors["{$id}.{$f}"] ?? null;
+                        $paise = \App\Core\Money::parse((string) ($v[$f] ?? '')) ?? 0;
+                        $calc = (int) round($paise * $pcts[$kind] / 100); ?>
+                    <td class="sheet-cell<?= $err ? ' sheet-error' : '' ?>">
+                        <input type="text" name="rows[<?= e($id) ?>][<?= e($f) ?>]" id="m<?= e($id) ?>-<?= e($f) ?>" value="<?= e($v[$f] ?? '') ?>" inputmode="decimal" class="sheet-money"
+                               data-total="<?= e($f) ?> <?= e($bk) ?>:<?= e($f) ?>" aria-label="<?= e(($r['short_name'] ?: $r['name']) . ' ' . EntryController::MONTH_FIELDS[$f]) ?>"<?= $err ? ' title="' . e($err) . '"' : '' ?>>
+                    </td>
+                    <td class="right num sheet-calc sheet-calc-<?= e($kind) ?>"><output data-pct-of="m<?= e($id) ?>-<?= e($f) ?>" data-pct="<?= e($pcts[$kind]) ?>" data-total="<?= e($f) ?>_pct <?= e($bk) ?>:<?= e($f) ?>_pct" data-value="<?= e($calc) ?>"><?= $calc ? e(rupees($calc)) : '—' ?></output></td>
+                <?php endforeach; else: ?>
                 <?php foreach (($isDay ? array_keys(EntryController::DAY_FIELDS) : array_keys(EntryController::MONTH_FIELDS)) as $f):
                     $err = $errors["{$id}.{$f}"] ?? null;
                     $isPos = $isDay && in_array($f, BranchPerformance::POSITIONS, true);
@@ -96,9 +131,37 @@ ob_start();
                                <?= $err ? 'title="' . e($err) . '"' : '' ?>>
                     </td>
                 <?php endforeach; ?>
+                <?php endif; ?>
             </tr>
+            <?php if (!$isDay && ($lastOfBranch[(int) $r['branch_id']] ?? null) === $id && count($branchSum) > 1):
+                $bs = $branchSum[(int) $r['branch_id']]; ?>
+            <tr class="branch-total-row">
+                <th><?= e($bs['name']) ?> total</th>
+                <td class="right num"><output data-total-of="<?= e($bk) ?>:sales_target"><?= e(rupees($bs['sales_target'])) ?></output></td>
+                <td class="right num sheet-calc-sales"><output data-total-of="<?= e($bk) ?>:sales_target_pct"><?= e(rupees((int) round($bs['sales_target'] * $pcts['sales'] / 100))) ?></output></td>
+                <td class="right num"><output data-total-of="<?= e($bk) ?>:opening_outstanding"><?= e(rupees($bs['opening_outstanding'])) ?></output></td>
+                <td class="right num sheet-calc-collection"><output data-total-of="<?= e($bk) ?>:opening_outstanding_pct"><?= e(rupees((int) round($bs['opening_outstanding'] * $pcts['collection'] / 100))) ?></output></td>
+            </tr>
+            <?php endif; ?>
         <?php endforeach; ?>
         </tbody>
+        <?php if (!$isDay):
+            $sum = static function (string $f) use ($reps, $values): int {
+                $t = 0;
+                foreach ($reps as $r) { $t += \App\Core\Money::parse((string) ($values[(int) $r['id']][$f] ?? '')) ?? 0; }
+                return $t;
+            };
+            $ts = $sum('sales_target'); $to = $sum('opening_outstanding'); ?>
+        <tfoot>
+            <tr class="total-row">
+                <th>Grand total</th>
+                <th class="right num"><output data-total-of="sales_target"><?= e(rupees($ts)) ?></output></th>
+                <th class="right num"><output data-total-of="sales_target_pct"><?= e(rupees((int) round($ts * $pcts['sales'] / 100))) ?></output></th>
+                <th class="right num"><output data-total-of="opening_outstanding"><?= e(rupees($to)) ?></output></th>
+                <th class="right num"><output data-total-of="opening_outstanding_pct"><?= e(rupees((int) round($to * $pcts['collection'] / 100))) ?></output></th>
+            </tr>
+        </tfoot>
+        <?php endif; ?>
     </table>
     </div>
     <div class="form-actions padded">

@@ -22,7 +22,7 @@ first_login() {
   post "$1" /password/change /password/change --data-urlencode "current_password=$3" --data-urlencode "new_password=$4" --data-urlencode "confirm_password=$4" >/dev/null
 }
 salesTotal() { req A GET "/?view=bills" >/dev/null; tr -d '\n' < "$TMP/body" | grep -o 'Total sales FY [0-9-]*</span>[^₹]*₹[0-9,]*' | grep -o '₹[0-9,]*' | head -1; }
-settings() { post A /settings /settings --data-urlencode "company__name=$1" --data "finance__sales_amount_basis=$2&outstanding__source=$3&outstanding__aging_basis=$4" --data-urlencode "outstanding__aging_buckets=$5"; }
+settings() { post A /settings /settings --data-urlencode "company__name=$1" --data "finance__sales_amount_basis=$2&outstanding__source=$3&outstanding__aging_basis=$4&targets__sales_commit_pct=${6:-80}&targets__collection_pct=${7:-60}" --data-urlencode "outstanding__aging_buckets=$5"; }
 
 first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
 first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
@@ -90,6 +90,13 @@ r=$(req C GET /settings/audit); expect "coordinator has no audit (403)" "${r%% *
 t=$(csrf C /reports)
 r=$(req C POST /settings --data-urlencode "_csrf=$t" --data "company__name=Hacked"); expect "coordinator cannot save settings (403)" "${r%% *}" 403
 r=$(req J GET /settings); expect "sales exec has no settings (403)" "${r%% *}" 403
+
+r=$(settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' taxable computed invoice_date '30, 60, 90, 150' 150 60); req A GET /settings >/dev/null
+contains "percent over 100 refused" "$TMP/body" "whole number from 1 to 100"
+r=$(settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' taxable computed invoice_date '30, 60, 90, 150' 75 50); req A GET "/entry?type=month&month=2026-11" >/dev/null
+contains "sheet uses the new sales %" "$TMP/body" ">75%<"
+contains "sheet uses the new collection %" "$TMP/body" ">50%<"
+settings 'LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED' taxable computed invoice_date '30, 60, 90, 150' 80 60 >/dev/null
 
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"
