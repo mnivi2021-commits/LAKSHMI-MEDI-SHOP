@@ -27,7 +27,7 @@ $pdo->beginTransaction();
 try {
     $admin = seeded_user('admin');
     $reports = ReportController::available($admin);
-    check('admin sees all 12 reports', 12, count($reports));
+    check('admin sees all 15 reports', 15, count($reports));
     $run = static function (string $key, array $q = [], ?array $user = null) use ($reports, $today, $admin): array {
         $f = new ReportFilters($user ?? $admin, $q, $today);
         $rows = $reports[$key]->rows($f);
@@ -108,6 +108,24 @@ try {
     $f = new ReportFilters($admin, ['from' => '06-10-2026', 'to' => '01-10-2026'], $today);
     check('reversed dates swapped', ['2026-10-01', '2026-10-06'], [$f->from, $f->to]);
     check('future as-on clamped to today', '2026-10-06', (new ReportFilters($admin, ['as_on' => '2027-01-01'], $today))->asOn);
+    // ---------------------------------------------- rep-wise details (Report menu)
+    [, $t] = $run('sales-details');
+    check('sales details lines = sales by product', $run('sales-by-product')[1]['taxable'], $t['value']);
+    [$rows, $t] = $run('sales-details', ['employee' => '2']);
+    check('sales details for JANA only', ['JANA'], array_values(array_unique(array_column($rows, 'rep'))));
+    check('sales details price x qty ~ value (no discount in seed)', true, array_reduce($rows, static fn ($ok, $r) => $ok && abs((int) round($r['price'] * (float) $r['qty']) - $r['value']) <= 100 * max(1, abs((float) $r['qty'])), true));
+    [$rows, $t] = $run('target-commitment');
+    check('target commitment: targets = target report', $run('target-achievement')[1]['sales_target'], $t['target']);
+    check('target commitment: Closed exactly when achieved >= target', true, array_reduce($rows, static fn ($ok, $r) => $ok && ($r['status'] === 'Closed') === ($r['target'] > 0 && $r['achieved'] >= $r['target']), true));
+    check('target commitment: balance = target - achieved (not below 0)', true, array_reduce($rows, static fn ($ok, $r) => $ok && $r['balance'] === max(0, $r['target'] - $r['achieved']), true));
+    [$rows, $t] = $run('payment-pending');
+    check('payment pending total = ageing total', $run('outstanding-ageing')[1]['total'], $t['balance']);
+    [$rows] = $run('payment-pending', ['employee' => '2']);
+    check('payment pending for JANA only', ['JANA'], array_values(array_unique(array_column($rows, 'rep'))));
+    [$rows] = $run('pending-orders');
+    check('pending orders show rep and price', true, $rows !== [] && $rows[0]['rep'] !== '' && $rows[0]['price'] > 0);
+    [$rows] = $run('pending-samples-dc');
+    check('samples / DC show rep', true, $rows !== [] && $rows[0]['rep'] !== '');
 } finally {
     $pdo->rollBack();
 }

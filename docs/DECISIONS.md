@@ -56,6 +56,14 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | H2 | Area is free text with suggestions from areas already used. A coordinator's own Area can list several towns. Each sales executive can have one sales coordinator. |
 | H3 | Branches (e.g. Puducherry) are added under Branch Details; the demo data has Chennai, Coimbatore and Madurai only. |
 
+## Report menu (rep-wise details)
+
+| # | Decision |
+|---|---|
+| P1 | The Branch / Sales executive choice on the Reports page is carried into each report, where it can still be changed. |
+| P2 | Target commitment is monthly: Closed when that month's sales reached the target, Open otherwise (balance = target - sales). |
+| P3 | Price on samples / DC is value / quantity; on sales and orders it is the rate on the line. |
+
 ## Figures and periods
 
 | # | Decision | Change it |

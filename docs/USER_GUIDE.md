@@ -185,6 +185,18 @@ You can still pick any other template; the record's values stay available. New p
 Twelve reports grouped by Sales, Collection, Orders & supply, Leads and Communication. Choose the period or
 as-on date and filters, then **Show**. **Excel** and **CSV** downloads include a TOTAL row; Excel amounts are real numbers you can sum.
 
+### Rep-wise details (83-88)
+
+At the top of Reports, choose a **Branch** and a **Sales executive**. The choice is applied to whichever report you open.
+
+- **Sales details**: every invoice line with rep, invoice no, customer, P.O ref, product, quantity, price and value.
+- **Target commitment**: each rep's monthly target, achieved, balance and status. **Closed** means the target was reached; **Open** means sales are still short.
+- **Pending order details**: rep, order, customer, P.O ref, product, quantities, price, pending value and expected date.
+- **Sample / Open DC details**: rep, type, document, customer, product, quantity, price and value.
+- **Payment pending details**: rep, customer, invoice no, bill date, P.O ref, invoice value, due balance, due date and overdue days.
+
+Every report has totals and Excel / CSV export.
+
 ## Access (25-27)
 
 **Admin Head** only:

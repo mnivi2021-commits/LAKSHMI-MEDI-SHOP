@@ -20,9 +20,10 @@ final class ReportController
 {
     /** In menu order. */
     public const REPORTS = [
+        Reports\SalesDetails::class, Reports\TargetCommitment::class, Reports\PendingOrders::class, Reports\PendingSamplesDc::class,
+        Reports\PaymentPending::class,
         Reports\SalesRegister::class, Reports\SalesByCustomer::class, Reports\SalesByProduct::class, Reports\TargetAchievement::class,
         Reports\CollectionRegister::class, Reports\OutstandingAgeing::class,
-        Reports\PendingOrders::class, Reports\PendingSamplesDc::class,
         Reports\LeadConversion::class, Reports\FollowupsDue::class,
         Reports\SmsUsage::class, Reports\EmailSummary::class,
     ];
@@ -50,7 +51,27 @@ final class ReportController
         foreach (self::available(Auth::user()) as $r) {
             $groups[$r->group()][] = $r;
         }
-        Response::view('reports/index', ['title' => 'Reports', 'groups' => $groups, 'canExport' => Gate::allows('reports.export')]);
+        $user = Auth::user();
+        $scope = DataScope::for($user);
+        [$bw, $bp] = $scope->where('id', null);
+        [$ew, $ep] = $scope->where('branch_id', 'id');
+        $branch = (int) ($_GET['branch'] ?? 0) ?: null;
+        $branch = $branch !== null && $scope->allowsBranch($branch) ? $branch : null;
+        $employee = (int) ($_GET['employee'] ?? 0) ?: null;
+        $employee = $employee !== null && $scope->allowsEmployee($employee) ? $employee : null;
+        $employees = Database::fetchAll(
+            "SELECT id, name, short_name FROM employees WHERE deleted_at IS NULL AND status = 'active' AND is_sales_rep = 1 AND {$ew}"
+            . ($branch !== null ? ' AND branch_id = ?' : '') . ' ORDER BY COALESCE(short_name, name)',
+            $branch !== null ? array_merge($ep, [$branch]) : $ep);
+        Response::view('reports/index', [
+            'title'     => 'Reports',
+            'groups'    => $groups,
+            'canExport' => Gate::allows('reports.export'),
+            'branches'  => Database::fetchAll("SELECT id, name, branch_code FROM branches WHERE deleted_at IS NULL AND {$bw} ORDER BY name", $bp),
+            'employees' => $employees,
+            'branch'    => $branch,
+            'employee'  => $employee,
+        ]);
     }
 
     public static function show(array $p): void
