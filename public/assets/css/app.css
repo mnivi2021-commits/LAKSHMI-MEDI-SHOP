@@ -988,3 +988,6 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .tg-branch-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
 .tg-branch-head .card-title { margin: 0; letter-spacing: .02em; }
 .tg-branch-pick .field { min-width: 240px; }
+.tg-areas { align-items: stretch; }
+.tg-area { display: flex; flex-direction: column; }
+.tg-area .table { margin-top: auto; }

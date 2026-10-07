@@ -81,7 +81,7 @@ $shown = $chosen ? [$chosen] : $branches;
 <div class="tg-areas">
     <?php foreach ($areas as $ar): $at = 0; ?>
     <section class="card tg-area">
-        <header class="tg-area-head"><h3><?= e($ar['name']) ?></h3><span class="muted small"><?= e($fy['label']) ?> · <?= e($months) ?></span></header>
+        <header class="tg-area-head"><h3><?= e($ar['name']) ?></h3></header>
         <table class="table compact">
             <thead><tr><th>Division</th><th class="right">Annual</th><th class="right">Month</th></tr></thead>
             <tbody>
