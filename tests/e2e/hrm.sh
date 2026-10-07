@@ -79,7 +79,7 @@ r=$(req A GET /hrm/lists/bogus); expect "unknown list 404" "${r%% *}" 404
 
 echo "== Permissions"
 r=$(req J GET /hrm); expect "sales exec has no HRM (403)" "${r%% *}" 403
-r=$(req C GET /hrm); expect "coordinator can view HRM" "${r%% *}" 200
+r=$(req C GET /hrm); expect "coordinator: no HRM menu (403)" "${r%% *}" 403
 lacks "coordinator sees no Add button" "$TMP/body" "Add employee"
 r=$(req C GET /hrm/new); expect "coordinator cannot add (403)" "${r%% *}" 403
 t=$(csrf C /hrm)

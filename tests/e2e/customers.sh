@@ -82,9 +82,9 @@ req A GET /customers >/dev/null
 lacks "deleted customer no longer listed" "$TMP/body" "customers/$CID/edit"
 
 echo "== Permissions and scope"
-r=$(req C GET /customers); expect "coordinator can view (customers.view)" "${r%% *}" 200
-lacks "coordinator has no add button" "$TMP/body" "Add customer"
-r=$(req C GET /customers/new); expect "coordinator cannot add (403)" "${r%% *}" 403
+r=$(req C GET /customers); expect "coordinator: no Customers menu (403)" "${r%% *}" 403
+r=$(req C GET /customers/new); expect "coordinator can add a customer (input role)" "${r%% *}" 200
+r=$(req J GET /customers/new); expect "JANA (view only) cannot add (403)" "${r%% *}" 403
 r=$(req J GET /customers); expect "JANA can view her customers" "${r%% *}" 200
 contains "JANA sees her own customer" "$TMP/body" "Sri Balaji Traders"
 lacks "JANA cannot see MUKESH's customer" "$TMP/body" "Kongu Textiles"

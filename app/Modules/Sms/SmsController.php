@@ -226,7 +226,8 @@ final class SmsController
         Session::flash($r['sent'] ? 'success' : 'error', $r['sent']
             ? (self::testMode() ? 'Test message recorded (test mode - no real SMS was sent).' : 'SMS sent.')
             : 'The SMS could not be sent: ' . (Database::value('SELECT error_message FROM sms_messages WHERE id = ?', [$ids[0]]) ?: 'unknown error'));
-        Response::redirect("/sms/messages/{$ids[0]}");
+        // Users who can send but not open SMS history (e.g. the coordinator) stay on Send SMS
+        Response::redirect(Gate::allows('sms.view', $user) ? "/sms/messages/{$ids[0]}" : '/sms/send');
     }
 
     // ---- campaigns ----------------------------------------------------------------

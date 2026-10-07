@@ -86,15 +86,15 @@ r=$(req A GET "/dashboard/entries?metric=bogus"); expect "unknown figure 404" "$
 echo "== Permissions and scope"
 r=$(req J GET /); contains "JANA sees her own row" "$TMP/body" "JANA - Janakiraman S"
 lacks "JANA does not see MUKESH" "$TMP/body" "MUKESH - Mukesh R"
-r=$(req J GET "/entry?type=day&date=$TODAY"); expect "JANA can open the daily sheet" "${r%% *}" 200
-lacks "JANA's sheet has only her row" "$TMP/body" 'rows\[3\]'
-lacks "JANA has no month sheet (no targets.add)" "$TMP/body" "Month start (targets"
-post J /entry/day "/entry?type=day&date=$TODAY" --data "date=$TODAY&rows[3][sales_value]=999&rows[3][sales_bills]=1&rows[3][sales_customers]=1" >/dev/null
+lacks "JANA (view only) has no + ADD" "$TMP/body" 'href="/marketing_crm/entry"'
+r=$(req J GET "/entry?type=day&date=$TODAY"); expect "JANA (view only) cannot open the + ADD sheet (403)" "${r%% *}" 403
+t=$(csrf J /)
+r=$(req J POST /entry/day --data-urlencode "_csrf=$t" --data "date=$TODAY&rows[3][sales_value]=999&rows[3][sales_bills]=1&rows[3][sales_customers]=1"); expect "JANA cannot save entries (403)" "${r%% *}" 403
 req A GET "/dashboard/entries?metric=sales_today&employee=3" >/dev/null
 lacks "JANA cannot enter for MUKESH" "$TMP/body" "₹999"
 r=$(req C GET /entry); expect "coordinator can open the daily sheet" "${r%% *}" 200
 t=$(csrf C /entry)
-r=$(req C POST /entry/month --data-urlencode "_csrf=$t" --data "month=2026-11&rows[2][sales_target]=1"); expect "coordinator cannot save month targets (403)" "${r%% *}" 403
+r=$(req C POST /entry/month --data-urlencode "_csrf=$t" --data "month=2026-11&rows[2][sales_target]=1"); expect "coordinator (does the input) saves month targets" "${r%% *}" 303
 
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"

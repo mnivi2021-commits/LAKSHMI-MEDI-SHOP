@@ -102,8 +102,8 @@ try {
     $adminAdd = new QuickAddService($admin, $today);
     $coordAdd = new QuickAddService($coord, $today);
 
-    check('JANA may add pending orders, samples and DC', ['pending_order', 'sample', 'dc'], array_keys(QuickAddService::allowedTypes($jana)));
-    check('coordinator may add pending orders, samples and DC', ['pending_order', 'sample', 'dc'], array_keys(QuickAddService::allowedTypes($coord)));
+    check('JANA (view only) may add nothing', [], array_keys(QuickAddService::allowedTypes($jana)));
+    check('coordinator may add targets, pending orders, samples and DC', ['target', 'pending_order', 'sample', 'dc'], array_keys(QuickAddService::allowedTypes($coord)));
     check('admin may add all 6 types', 6, count(QuickAddService::allowedTypes($admin)));
     [$st] = $coordAdd->handle('sale', []);
     check('server refuses coordinator sale (403)', 403, $st);

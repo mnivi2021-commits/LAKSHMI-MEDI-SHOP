@@ -266,8 +266,8 @@ $router->post('/requests/{type}', [RequestController::class, 'store'], ['auth', 
 // -----------------------------------------------------------------------------
 // Follow up (Screen 3): per sales employee pending lists and payment follow up
 // -----------------------------------------------------------------------------
-$router->get('/followup', [FollowupController::class, 'index'], ['auth', 'can:dashboard.view']);
-$router->post('/followup/payment/{id}', [FollowupController::class, 'record'], ['auth', 'can:outstanding.view', 'csrf']);
+$router->get('/followup', [FollowupController::class, 'index'], ['auth', 'can:followup.view']);
+$router->post('/followup/payment/{id}', [FollowupController::class, 'record'], ['auth', 'can:followup.add', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations

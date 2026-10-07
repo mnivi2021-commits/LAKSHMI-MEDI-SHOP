@@ -86,10 +86,11 @@ r=$(req J GET /leads); expect "JANA leads list" "${r%% *}" 200
 contains "JANA sees her lead" "$TMP/body" "Arun Prasad"
 lacks "JANA cannot see MUKESH's lead" "$TMP/body" "Faizal M"
 r=$(req J GET /leads/3); expect "JANA cannot open MUKESH's lead (404)" "${r%% *}" 404
-r=$(post J /leads /leads/new --data "name=Jana Own Lead&mobile=9300000009&branch_id=1&employee_id=3")
+r=$(post J /leads /leads --data "name=Jana Own Lead&mobile=9300000009&branch_id=1&employee_id=2"); expect "JANA (view only) cannot add a lead (403)" "${r%% *}" 403
+r=$(post A /leads /leads/new --data "name=Jana Own Lead&mobile=9300000009&branch_id=1&employee_id=2")
 JL=$(id_from "$r"); req J GET "/leads/$JL" >/dev/null
-contains "JANA's new lead is forced to her own name" "$TMP/body" "Janakiraman S"
-r=$(req C GET /leads); expect "coordinator can view leads" "${r%% *}" 200
+contains "JANA sees the lead given to her" "$TMP/body" "Jana Own Lead"
+r=$(req C GET /leads); expect "coordinator: no Leads menu (403)" "${r%% *}" 403
 t=$(csrf C /leads)
 r=$(req C POST "/leads/$JL/delete" --data-urlencode "_csrf=$t"); expect "coordinator cannot delete (403)" "${r%% *}" 403
 r=$(req A GET /leads/export); expect "export CSV" "${r%% *}" 200

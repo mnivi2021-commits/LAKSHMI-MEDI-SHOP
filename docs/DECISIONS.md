@@ -38,7 +38,7 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | F2 | "Sales pending" = order lines not yet supplied; "Dispatch details" = invoices and DCs sent out in the chosen dates (default: this month). |
 | F3 | Payment follow up uses the same open bills as the rest of the CRM (Settings → outstanding source). The customer list is the employee's customers that have dues. |
 | F4 | "Mail" opens the user's own mail program with the statement (the CRM does not send mail itself); "Direct" is recorded as a completed follow-up, with an optional next date added as a pending one. |
-| F5 | The page needs *View Dashboard*; the payment list and recording need *View Outstanding*. |
+| F5 | The page needs *View Follow up*; recording a payment follow-up needs *Add Follow up*. |
 
 ## SMS options (Screen 4)
 
@@ -69,7 +69,9 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | # | Decision |
 |---|---|
 | A1 | Sales Manager and Branch Manager now see every list and report (all *view* rights except Users and Audit) and can export reports: "full main report and charts". |
-| A2 | Admin Head keeps full access and decides what the Admin Coordinator gets under Access -> Roles. The coordinator's access was not reduced; see the open question to the owner about "first 4 menus". |
+| A2 | Owner confirmed: the Admin Coordinator is the Sales Coordinator and does the data input. Their menu is Dashboard, Branch Details, Follow up and Requests only. They can use the + ADD sheets (targets, daily totals), all requests, add new customers, record payment follow-ups and send SMS from a record. Excel Upload, Sales Details, Reports, Mail, SMS history, Customers, Leads, Products and HRM are Admin Head's. Admin Head can change this under Access -> Roles. |
+| A3 | Owner confirmed: Sales Executives are view only (their own data). They cannot enter leads, daily totals, orders, DC or sample requests, or follow-ups. |
+| A4 | Follow up has its own rights: *View Follow up* (lists and statements) and *Add Follow up* (record a payment follow-up). |
 
 ## Figures and periods
 

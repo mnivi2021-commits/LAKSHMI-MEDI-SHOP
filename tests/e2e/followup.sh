@@ -25,6 +25,7 @@ first_login() {
 
 first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
+first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
 
 echo "== Page"
 r=$(req A GET /followup); expect "follow up page" "${r%% *}" 200
@@ -74,7 +75,11 @@ r=$(req J GET /followup); expect "rep page" "${r%% *}" 200
 contains "rep preselected" "$TMP/body" 'selected>JANA'
 lacks "rep: no other reps" "$TMP/body" "MUKESH - "
 r=$(req J GET "/followup?employee=3&list=sales"); lacks "rep cannot pick another rep" "$TMP/body" "MUKESH"
-r=$(post J /followup/payment/3 "/followup" --data "mode=call&notes=x"); expect "rep cannot record for other's customer" "${r%% *}" 404
+req J GET "/followup?list=payment&customer=1" >/dev/null; contains "rep sees own statement" "$TMP/body" "Payment due statement"
+lacks "rep (view only) has no record form" "$TMP/body" 'name="mode"'
+t=$(csrf J /followup)
+r=$(req J POST /followup/payment/1 --data-urlencode "_csrf=$t" --data "mode=call&notes=x"); expect "rep cannot record a follow-up (403)" "${r%% *}" 403
+r=$(post C /followup/payment/3 "/followup" --data "mode=call&notes=Coordinator called"); case "$r" in "303 "*) ok "coordinator records a follow-up";; *) bad "coordinator records a follow-up" "$r";; esac
 r=$(req A POST /followup/payment/1 --data "mode=call&notes=x"); expect "CSRF required" "${r%% *}" 403
 
 echo

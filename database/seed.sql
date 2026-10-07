@@ -55,7 +55,7 @@ UPDATE employees SET date_of_birth = '1995-01-30', sales_role = 'sales_executive
 UPDATE employees SET date_of_birth = '1990-11-05', sales_role = 'sales_executive', area = 'Coimbatore' WHERE id = 4;
 UPDATE employees SET date_of_birth = '1997-03-17', sales_role = 'sales_executive', area = 'Tiruppur' WHERE id = 5;
 UPDATE employees SET date_of_birth = '1991-06-09', sales_role = 'sales_executive', area = 'Madurai', coordinator_id = 10 WHERE id = 6;
-UPDATE employees SET date_of_birth = '1994-09-12', sales_role = 'sales_support' WHERE id = 7;
+UPDATE employees SET date_of_birth = '1994-09-12', sales_role = 'sales_coordinator', area = 'Chennai' WHERE id = 7;
 UPDATE employees SET date_of_birth = '1978-12-02', sales_role = 'manager' WHERE id = 8;
 UPDATE employees SET date_of_birth = '1983-02-25', sales_role = 'manager' WHERE id = 9;
 UPDATE employees SET date_of_birth = '1996-07-19', sales_role = 'sales_coordinator', area = 'Madurai, Trichy, Viralimalai, Tuticorin, Tirunelveli' WHERE id = 10;

@@ -45,9 +45,6 @@ final class FollowupController
             $emp = (int) array_key_first($employees);
         }
         $list = array_key_exists($_GET['list'] ?? '', self::LISTS) ? $_GET['list'] : 'lead';
-        if ($list === 'payment' && !Gate::allows('outstanding.view', $user)) {
-            $list = 'lead';
-        }
         $today = date('Y-m-d');
         $from = self::ymd($_GET['from'] ?? '') ?? date('Y-m-01');
         $to = self::ymd($_GET['to'] ?? '') ?? $today;
@@ -72,13 +69,13 @@ final class FollowupController
             'employees' => $employees,
             'employee'  => $emp,
             'list'      => $list,
-            'lists'     => Gate::allows('outstanding.view', $user) ? self::LISTS : array_diff_key(self::LISTS, ['payment' => 1]),
+            'lists'     => self::LISTS,
             'from'      => $from,
             'to'        => $to,
             'today'     => $today,
             'company'   => \App\Modules\Sms\SmsService::company(),
             'canSms'    => Gate::allows('sms.send', $user),
-            'canRecord' => Gate::allows('outstanding.view', $user),
+            'canRecord' => Gate::allows('followup.add', $user),
         ] + $data);
     }
 

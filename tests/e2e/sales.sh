@@ -69,9 +69,9 @@ seeded "CSV total equals card" "$TMP/body" "3823200.00"
 ROWS=$(($(wc -l < "$TMP/body") - 2))
 [ "$ROWS" -gt 100 ] && ok "CSV has all $ROWS documents (not just one page)" || bad "CSV row count" "$ROWS"
 
-echo "== Coordinator: view but no export"
+echo "== Coordinator: dashboard only, no sales drill-down"
 first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
-r=$(req C GET "/dashboard/sales"); expect "coordinator sees drill-down (sales.view)" "${r%% *}" 200
+r=$(req C GET "/dashboard/sales"); expect "coordinator: no sales drill-down (403)" "${r%% *}" 403
 lacks "no export button without sales.export" "$TMP/body" "Export CSV"
 r=$(req C GET "/dashboard/sales/export?w=fy"); expect "export refused (403)" "${r%% *}" 403
 

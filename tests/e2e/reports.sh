@@ -56,8 +56,8 @@ r=$(req A GET "/reports/bogus"); expect "unknown report 404" "${r%% *}" 404
 echo "== Permissions"
 r=$(req J GET /reports); expect "sales exec has no reports (403)" "${r%% *}" 403
 r=$(req J GET /reports/sales-register); expect "sales exec cannot open a report (403)" "${r%% *}" 403
-r=$(req C GET /reports); expect "coordinator sees reports" "${r%% *}" 200
-r=$(req C GET /reports/sales-register/export/xlsx); expect "coordinator can export" "${r%% *}" 200
+r=$(req C GET /reports); expect "coordinator: no Reports menu (403)" "${r%% *}" 403
+r=$(req C GET /reports/sales-register/export/xlsx); expect "coordinator cannot export (403)" "${r%% *}" 403
 
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"

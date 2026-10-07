@@ -40,6 +40,7 @@ UNION ALL SELECT 'branches',       'Branch Details',               2, '["view","
 UNION ALL SELECT 'sales',          'Sales',                        3, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'targets',        'Sales Targets',                4, '["view","add","edit","delete","import"]'
 UNION ALL SELECT 'daily_entry',    'Daily Entry Sheet',           21, '["view","add","edit"]'
+UNION ALL SELECT 'followup',       'Follow up',                   22, '["view","add"]'
 UNION ALL SELECT 'collections',    'Payment Collection',           5, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'outstanding',    'Outstanding',                  6, '["view","import","export"]'
 UNION ALL SELECT 'pending_orders', 'Pending Orders',               7, '["view","add","edit","delete","import","export"]'
@@ -62,16 +63,13 @@ JOIN JSON_TABLE(m.acts, '$[*]' COLUMNS (idx FOR ORDINALITY, action VARCHAR(30) P
 -- Admin Head: everything
 INSERT INTO role_permissions (role_id, permission_id) SELECT 1, id FROM permissions;
 
--- Admin Coordinator: partial access (Admin Head can change this matrix later)
+-- Admin Coordinator (= Sales Coordinator, does the data input). Menus: Dashboard, Branch Details,
+-- Follow up, Requests only. Admin Head can give more under Access -> Roles.
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 2, id FROM permissions WHERE slug IN (
- 'dashboard.view','branches.view',
- 'sales.view','targets.view','collections.view','outstanding.view',
- 'pending_orders.view','pending_orders.import','samples.view','samples.import','dc.view','dc.import',
- 'hrm.view','reports.view','reports.export',
- 'customers.view','products.view','leads.view','leads.add','leads.edit',
- 'mail.view','sms.view','sms.send','daily_entry.view','daily_entry.add','daily_entry.edit',
- 'pending_orders.add','dc.add','samples.add');
+ 'dashboard.view','branches.view','followup.view','followup.add',
+ 'daily_entry.view','daily_entry.add','daily_entry.edit','targets.add','targets.edit',
+ 'leads.add','pending_orders.add','dc.add','samples.add','customers.add','sms.send');
 
 -- Sales Manager
 INSERT INTO role_permissions (role_id, permission_id)
@@ -81,15 +79,14 @@ SELECT 3, id FROM permissions WHERE slug IN (
  'customers.view','customers.add','customers.edit','products.view',
  'leads.view','leads.add','leads.edit','leads.export','reports.view','reports.export','mail.view','sms.view','sms.send',
  'daily_entry.view','daily_entry.add','daily_entry.edit','samples.approve',
- 'pending_orders.add','dc.add','samples.add');
+ 'pending_orders.add','dc.add','samples.add','followup.view','followup.add');
 
--- Sales Executive (own data only via data_scope = own)
+-- Sales Executive: view only, own data (data_scope = own); the coordinator does the input
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 4, id FROM permissions WHERE slug IN (
  'dashboard.view','sales.view','targets.view','collections.view','outstanding.view',
  'pending_orders.view','samples.view','dc.view','customers.view','products.view',
- 'leads.view','leads.add','leads.edit','mail.view','daily_entry.view','daily_entry.add','daily_entry.edit',
- 'pending_orders.add','dc.add','samples.add');
+ 'leads.view','mail.view','daily_entry.view','followup.view');
 
 -- Branch Manager
 INSERT INTO role_permissions (role_id, permission_id)
@@ -98,7 +95,7 @@ SELECT 5, id FROM permissions WHERE slug IN (
  'pending_orders.view','samples.view','dc.view','hrm.view','customers.view','customers.add','customers.edit',
  'products.view','leads.view','leads.add','leads.edit','reports.view','reports.export','mail.view','sms.view','sms.send',
  'daily_entry.view','daily_entry.add','daily_entry.edit','samples.approve',
- 'pending_orders.add','dc.add','samples.add');
+ 'pending_orders.add','dc.add','samples.add','followup.view','followup.add');
 
 -- Managers: full main reports and charts - every *.view (except users / audit) and report export
 INSERT INTO role_permissions (role_id, permission_id)
@@ -115,13 +112,13 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT 7, id FROM permissions WHERE slug IN (
  'dashboard.view','sales.view','sales.import','sales.export','collections.view','collections.add','collections.edit',
  'collections.import','collections.export','outstanding.view','outstanding.import','outstanding.export',
- 'customers.view','reports.view','reports.export');
+ 'customers.view','reports.view','reports.export','followup.view','followup.add');
 
 -- CRM Operator
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 8, id FROM permissions WHERE slug IN (
  'dashboard.view','customers.view','customers.add','customers.edit','customers.import',
- 'leads.view','leads.add','leads.edit','leads.import','products.view','mail.view','mail.edit','sms.view','sms.send');
+ 'leads.view','leads.add','leads.edit','leads.import','products.view','mail.view','mail.edit','sms.view','sms.send','followup.view');
 
 -- Viewer: every *.view except administrative modules
 INSERT INTO role_permissions (role_id, permission_id)

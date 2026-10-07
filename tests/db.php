@@ -45,9 +45,10 @@ try {
 
     // --- Gate: role permissions --------------------------------------------------
     check('admin head holds every permission', $total, count(Gate::permissionsFor($admin)));
-    check('coordinator holds 29 permissions (incl. daily entry, requests)', 29, count(Gate::permissionsFor($coord)));
+    check('coordinator holds 15 permissions (input role, 4 menus)', 15, count(Gate::permissionsFor($coord)));
     check('coordinator can view dashboard', true, Gate::allows('dashboard.view', $coord));
-    check('coordinator can import pending orders', true, Gate::allows('pending_orders.import', $coord));
+    check('coordinator does not import (Excel Upload is not in their menus)', false, Gate::allows('pending_orders.import', $coord));
+    check('coordinator enters month targets', true, Gate::allows('targets.add', $coord));
     check('coordinator cannot manage users', false, Gate::allows('users.view', $coord));
     check('coordinator cannot change access', false, Gate::allows('access.manage', $coord));
     check('coordinator cannot delete sales', false, Gate::allows('sales.delete', $coord));
@@ -58,15 +59,15 @@ try {
     // --- Gate: per-user overrides --------------------------------------------------
     $pid = static fn (string $slug): int => (int) Database::value('SELECT id FROM permissions WHERE slug = ?', [$slug]);
     Database::query("INSERT INTO user_permissions (user_id, permission_id, effect) VALUES (?, ?, 'grant')", [$jana['id'], $pid('reports.view')]);
-    Database::query("INSERT INTO user_permissions (user_id, permission_id, effect) VALUES (?, ?, 'deny')", [$jana['id'], $pid('leads.add')]);
+    Database::query("INSERT INTO user_permissions (user_id, permission_id, effect) VALUES (?, ?, 'deny')", [$jana['id'], $pid('leads.view')]);
     Gate::forget();
     check('user grant adds permission', true, Gate::allows('reports.view', $jana));
-    check('user deny removes role permission', false, Gate::allows('leads.add', $jana));
-    check('other role permissions unaffected', true, Gate::allows('leads.edit', $jana));
+    check('user deny removes role permission', false, Gate::allows('leads.view', $jana));
+    check('other role permissions unaffected', true, Gate::allows('customers.view', $jana));
 
     // --- Escalation guard --------------------------------------------------------
     check('coordinator cannot grant users.delete', false, Gate::canGrantAll(['users.delete'], $coord));
-    check('coordinator can grant what it holds', true, Gate::canGrantAll(['dashboard.view', 'reports.view'], $coord));
+    check('coordinator can grant what it holds', true, Gate::canGrantAll(['dashboard.view', 'branches.view'], $coord));
     check('admin can grant anything', true, Gate::canGrantAll(Gate::permissionsFor($admin), $admin));
 
     // --- DataScope: all / own ------------------------------------------------------

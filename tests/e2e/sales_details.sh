@@ -78,7 +78,7 @@ r=$(req J GET /sales); expect "JANA can open sales details" "${r%% *}" 200
 contains "JANA sees herself" "$TMP/body" "JANA - Janakiraman S"
 lacks "JANA cannot see MUKESH" "$TMP/body" "MUKESH - Mukesh R"
 r=$(req J GET /sales/export); expect "JANA cannot export (403)" "${r%% *}" 403
-r=$(req C GET /sales); expect "coordinator can view" "${r%% *}" 200
+r=$(req C GET /sales); expect "coordinator: no Sales Details menu (403)" "${r%% *}" 403
 lacks "coordinator has no export button" "$TMP/body" "sales/export"
 
 rm -rf "$TMP"

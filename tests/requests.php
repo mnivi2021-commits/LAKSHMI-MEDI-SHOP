@@ -23,9 +23,11 @@ try {
     $coord = seeded_user('coordinator');
 
     // ---------------------------------------------------------- permissions
-    check('rep can raise orders', true, Gate::allows('pending_orders.add', $jana));
-    check('rep can raise DC', true, Gate::allows('dc.add', $jana));
-    check('rep can raise samples', true, Gate::allows('samples.add', $jana));
+    check('rep (view only) cannot raise orders', false, Gate::allows('pending_orders.add', $jana));
+    check('rep cannot raise DC', false, Gate::allows('dc.add', $jana));
+    check('rep cannot raise samples', false, Gate::allows('samples.add', $jana));
+    check('coordinator raises DC', true, Gate::allows('dc.add', $coord));
+    check('coordinator adds customers', true, Gate::allows('customers.add', $coord));
     check('rep cannot approve samples', false, Gate::allows('samples.approve', $jana));
     check('rep cannot add customers', false, Gate::allows('customers.add', $jana));
     check('coordinator can raise orders', true, Gate::allows('pending_orders.add', $coord));

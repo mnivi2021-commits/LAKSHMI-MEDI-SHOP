@@ -114,15 +114,16 @@ contains "M.D approval" "$TMP/body" "M.D approval mail"
 r=$(post A /requests/dc "/requests?type=dc" --data "customer_id=1&dc_date=$TODAY&approval_type=customer_mail&approval_reference=mail&order_no=ORD-00001&lines[0][product_id]=1&lines[0][qty]=1&lines[0][price]=1")
 redir "DC linked to another customer's order refused" "$r" "/requests?type=dc"
 
-echo "== Sample request and manager approval"
-r=$(req J GET /requests); expect "rep sees requests" "${r%% *}" 200
-r=$(post J /requests/sample "/requests?type=sample" --data "customer_id=1&sample_type=returnable&document_date=$TODAY&lines[0][product_id]=2&lines[0][qty]=2&lines[0][price]=900")
-redir "rep sample saved" "$r" "/requests/view/sample/"
+echo "== Sample request (by the coordinator) and manager approval"
+r=$(req C GET /requests); expect "coordinator sees requests" "${r%% *}" 200
+contains "coordinator: DC tab" "$TMP/body" "type=dc"
+r=$(post C /requests/sample "/requests?type=sample" --data "customer_id=1&sample_type=returnable&document_date=$TODAY&lines[0][product_id]=2&lines[0][qty]=2&lines[0][price]=900")
+redir "coordinator sample saved" "$r" "/requests/view/sample/"
 SMP=${r##*/}
-req J GET "/requests/view/sample/$SMP" >/dev/null
+req C GET "/requests/view/sample/$SMP" >/dev/null
 contains "waits for approval" "$TMP/body" "Waiting for a manager"
-lacks "rep has no approve button" "$TMP/body" 'value="approve"'
-r=$(post J "/requests/sample/$SMP/decide" "/requests/view/sample/$SMP" --data "decision=approve"); expect "rep cannot approve" "${r%% *}" 403
+lacks "coordinator has no approve button" "$TMP/body" 'value="approve"'
+r=$(post C "/requests/sample/$SMP/decide" "/requests/view/sample/$SMP" --data "decision=approve"); expect "coordinator cannot approve" "${r%% *}" 403
 r=$(post A "/requests/sample/$SMP/decide" "/requests/view/sample/$SMP" --data "decision=approve&note=OK"); redir "manager approves" "$r" "/requests?type=sample"
 req A GET "/requests/view/sample/$SMP" >/dev/null
 contains "approved shown" "$TMP/body" "Approved by"
@@ -133,22 +134,16 @@ SMP2=${r##*/}
 req A GET "/requests/view/sample/$SMP2" >/dev/null
 contains "manager's own sample approved" "$TMP/body" "Approved by"
 
-echo "== Scope and permissions"
-r=$(post J /requests/order "/requests?type=order" --data "informed_by=rep&customer_id=6&reference_type=phone&reference_detail=x&order_date=$TODAY&lines[0][product_id]=1&lines[0][qty]=1&lines[0][price]=1")
-redir "rep cannot use another rep's customer" "$r" "/requests?type=order"
-req J GET "/requests?type=order" >/dev/null; contains "customer scope message" "$TMP/body" "Choose one of your customers"
-r=$(post J /requests/order "/requests?type=order" --data "informed_by=rep&reference_type=phone&reference_detail=x&order_date=$TODAY&branch_id=1" \
-     --data-urlencode "new_name=Rep New Co" --data "new_mobile=9876501111&lines[0][product_id]=1&lines[0][qty]=1&lines[0][price]=1")
-redir "rep cannot add to customer master" "$r" "/requests?type=order"
-req J GET "/requests?type=order" >/dev/null; contains "ask to update customer master" "$TMP/body" "not in the customer master"
-r=$(req J GET "/requests/view/order/$ORD"); expect "rep sees own customer's order" "${r%% *}" 200
-r=$(req J GET "/requests/view/sample/$SMP2"); expect "rep cannot see another rep's sample" "${r%% *}" 404
-r=$(req C GET /requests); expect "coordinator sees requests" "${r%% *}" 200
-contains "coordinator: DC tab" "$TMP/body" "type=dc"
-r=$(post C /requests/sample "/requests?type=sample" --data "customer_id=4&sample_type=returnable&document_date=$TODAY&lines[0][product_id]=1&lines[0][qty]=1&lines[0][price]=100")
-req C GET "/requests/view/sample/${r##*/}" >/dev/null; contains "coordinator's sample waits for a manager" "$TMP/body" "Waiting for a manager"
-r=$(post C "/requests/sample/${r##*/}/decide" "/requests?type=sample" --data "decision=approve"); expect "coordinator cannot approve" "${r%% *}" 403
-r=$(post J /requests/sample/bogus "/requests?type=sample" --data "x=1"); expect "unknown request type 404" "${r%% *}" 404
+echo "== Permissions: sales reps are view only"
+r=$(req J GET /requests); expect "rep has no Requests (403)" "${r%% *}" 403
+req J GET / >/dev/null; lacks "rep menu has no Requests" "$TMP/body" 'href="/marketing_crm/requests"'
+t=$(csrf J /)
+r=$(req J POST /requests/order --data-urlencode "_csrf=$t" --data "informed_by=rep&customer_id=1"); expect "rep cannot post an order (403)" "${r%% *}" 403
+r=$(req J GET "/requests/view/order/$ORD"); expect "rep cannot open request pages (403)" "${r%% *}" 403
+r=$(post C /requests/order "/requests?type=order" --data "informed_by=rep&reference_type=phone&order_date=$TODAY&branch_id=1" \
+     --data-urlencode "reference_detail=Owner called" --data-urlencode "new_name=Coord New Co" --data "new_mobile=9876501111&lines[0][product_id]=1&lines[0][qty]=1&lines[0][price]=1")
+redir "coordinator adds a new customer with the order" "$r" "/requests/view/order/"
+r=$(post C /requests/sample/bogus "/requests?type=sample" --data "x=1"); expect "unknown request type 404" "${r%% *}" 404
 r=$(req A GET /requests/view/bogus/1); expect "unknown type 404" "${r%% *}" 404
 r=$(req A POST /requests/lead --data "informed_by=rep"); expect "CSRF required" "${r%% *}" 403
 

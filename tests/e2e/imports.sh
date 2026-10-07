@@ -85,8 +85,7 @@ contains "same-file warning" "$TMP/body" "already imported"
 
 echo "== Permissions"
 r=$(req J GET /imports); expect "sales exec has no Excel Upload (403)" "${r%% *}" 403
-r=$(req C GET /imports); expect "coordinator can open Excel Upload" "${r%% *}" 200
-contains "coordinator sees pending orders" "$TMP/body" "imports/new/pending_orders"
+r=$(req C GET /imports); expect "coordinator: no Excel Upload menu (403)" "${r%% *}" 403
 lacks "coordinator cannot import sales" "$TMP/body" "imports/new/sales"
 r=$(req C GET /imports/new/sales); expect "coordinator sales upload (403)" "${r%% *}" 403
 r=$(req C GET "/imports/$BID2"); expect "coordinator cannot open admin's batch (404)" "${r%% *}" 404

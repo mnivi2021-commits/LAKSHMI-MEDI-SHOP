@@ -46,7 +46,7 @@ r=$(req A GET "/dashboard/collection?product=2"); contains "product filter expla
 r=$(req A GET "/dashboard/collection/export?w=fy"); expect "collection CSV" "${r%% *}" 200
 contains "CSV columns" "$TMP/body" 'Date,Receipt,"Customer code"'
 lacks "bounced cheque not exported" "$TMP/body" "RCP/26-27/0904"
-r=$(req C GET "/dashboard/collection"); expect "coordinator can view collection" "${r%% *}" 200
+r=$(req C GET "/dashboard/collection"); expect "coordinator: no collection drill-down (403)" "${r%% *}" 403
 r=$(req C GET "/dashboard/collection/export?w=fy"); expect "coordinator cannot export (403)" "${r%% *}" 403
 r=$(req J GET "/dashboard/collection"); expect "JANA collection page" "${r%% *}" 200
 lacks "JANA sees no other rep" "$TMP/body" "MUKESH - "
@@ -90,7 +90,7 @@ for c in upto90 d90 d150; do page_ok A "/dashboard/outstanding?cat=$c" "outstand
 page_ok A "/dashboard/outstanding?month=2026-08" "outstanding as on 31-08"
 r=$(req A GET "/dashboard/outstanding/export?cat=d150"); expect "outstanding CSV" "${r%% *}" 200
 contains "CSV has outstanding columns" "$TMP/body" "Balance"
-r=$(req C GET "/dashboard/outstanding"); expect "coordinator can view outstanding" "${r%% *}" 200
+r=$(req C GET "/dashboard/outstanding"); expect "coordinator: no outstanding drill-down (403)" "${r%% *}" 403
 r=$(req C GET "/dashboard/outstanding/export"); expect "coordinator cannot export outstanding (403)" "${r%% *}" 403
 r=$(req J GET "/dashboard/outstanding"); expect "JANA outstanding page" "${r%% *}" 200
 s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BASE/api/dashboard/outstanding"); expect "outstanding API" "$s" 200

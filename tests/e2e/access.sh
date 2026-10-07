@@ -77,14 +77,18 @@ r=$(req C GET /access/roles);        expect "coordinator blocked from Roles (403
 t=$(csrf C /)
 r=$(req C POST /access/users/1/status --data-urlencode "_csrf=$t"); expect "direct POST also blocked (403)" "${r%% *}" 403
 
-echo "== Admin grants Coordinator users.view + users.edit via the matrix"
+echo "== Admin grants Coordinator users.view + users.edit (and JANA's view rights) via the matrix"
 req A GET /access/roles/2 >/dev/null
 CHECKED=$(tr -d '\n' < "$TMP/body" | grep -o '<input type="checkbox" name="permissions\[\]" value="[0-9]*" data-action="[a-z]*" *checked' | grep -o 'value="[0-9]*"' | grep -o '[0-9]*')
-UV=$(perm_id users.view); UE=$(perm_id users.edit)
+# A user may only manage users whose rights they also hold, so the coordinator also needs JANA's view rights.
+EXTRA=()
+for slug in users.view users.edit sales.view targets.view collections.view outstanding.view pending_orders.view samples.view dc.view customers.view products.view leads.view mail.view; do
+  EXTRA+=("$(perm_id $slug)")
+done
 ARGS=(--data "name=Admin Coordinator&description=Partial access&data_scope=all")
-for id in $CHECKED $UV $UE; do ARGS+=(--data "permissions[]=$id"); done
+for id in $CHECKED "${EXTRA[@]}"; do ARGS+=(--data "permissions[]=$id"); done
 r=$(post A /access/roles/2 /access/roles/2 "${ARGS[@]}"); expect "role saved" "$r" "303 $BASE/access/roles/2"
-req A GET /access/roles/2 >/dev/null; contains "save reports 2 added" "$TMP/body" "2 added, 0 removed"
+req A GET /access/roles/2 >/dev/null; contains "save reports ${#EXTRA[@]} added" "$TMP/body" "${#EXTRA[@]} added, 0 removed"
 r=$(req C GET /access/users);        expect "coordinator now opens Users (same session)" "${r%% *}" 200
 r=$(req C GET /access/users/1/edit); expect "coordinator cannot edit Admin Head (403)" "${r%% *}" 403
 t=$(csrf C /access/users)

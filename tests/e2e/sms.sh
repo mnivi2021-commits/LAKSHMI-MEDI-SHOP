@@ -88,7 +88,7 @@ r=$(req J GET /sms); expect "sales exec has no SMS (403)" "${r%% *}" 403
 r=$(req C GET /sms/send); expect "coordinator can send" "${r%% *}" 200
 r=$(req C GET /sms/campaigns); expect "coordinator cannot run campaigns (403)" "${r%% *}" 403
 r=$(req C GET /sms/templates); expect "coordinator cannot edit templates (403)" "${r%% *}" 403
-r=$(req C GET /sms); contains "coordinator (company-wide scope) sees the history" "$TMP/body" "Sri Balaji Traders"
+r=$(req C GET /sms); expect "coordinator: no SMS history menu (403)" "${r%% *}" 403
 
 rm -rf "$TMP"
 echo; echo "$PASS passed, $FAIL failed"
