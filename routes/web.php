@@ -27,6 +27,7 @@ use App\Modules\Settings\AuditController;
 use App\Modules\Settings\SettingsController;
 use App\Modules\Reports\ReportController;
 use App\Modules\Requests\RequestController;
+use App\Modules\Followup\FollowupController;
 use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
@@ -261,6 +262,12 @@ $router->get('/requests', [RequestController::class, 'index'], ['auth', $reqAny]
 $router->get('/requests/view/{type}/{id}', [RequestController::class, 'show'], ['auth', $reqAny]);
 $router->post('/requests/sample/{id}/decide', [RequestController::class, 'decideSample'], ['auth', 'can:samples.approve', 'csrf']);
 $router->post('/requests/{type}', [RequestController::class, 'store'], ['auth', 'csrf']);
+
+// -----------------------------------------------------------------------------
+// Follow up (Screen 3): per sales employee pending lists and payment follow up
+// -----------------------------------------------------------------------------
+$router->get('/followup', [FollowupController::class, 'index'], ['auth', 'can:dashboard.view']);
+$router->post('/followup/payment/{id}', [FollowupController::class, 'record'], ['auth', 'can:outstanding.view', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations

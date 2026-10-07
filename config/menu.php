@@ -11,6 +11,7 @@ declare(strict_types=1);
 return [
     ['key' => 'dashboard', 'label' => 'Dashboard',      'path' => '/',             'any' => ['dashboard.view'], 'ready' => true],
     ['key' => 'branches',  'label' => 'Branch Details', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => true],
+    ['key' => 'followup',  'label' => 'Follow up',      'path' => '/followup',     'any' => ['dashboard.view'], 'ready' => true],
     ['key' => 'requests',  'label' => 'Requests',       'path' => '/requests',     'any' => ['leads.add', 'pending_orders.add', 'dc.add', 'samples.add'], 'ready' => true],
     ['key' => 'sales',     'label' => 'Sales Details',  'path' => '/sales',        'any' => ['sales.view', 'targets.view', 'collections.view', 'pending_orders.view', 'samples.view', 'dc.view', 'outstanding.view'], 'ready' => true],
     ['key' => 'imports',   'label' => 'Excel Upload',   'path' => '/imports',      'any' => ['pending_orders.import', 'samples.import', 'dc.import', 'collections.import', 'sales.import', 'outstanding.import', 'customers.import', 'leads.import'], 'ready' => true],

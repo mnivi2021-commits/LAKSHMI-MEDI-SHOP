@@ -28,6 +28,7 @@ final class SalesImporter extends Importer
     {
         return [
             'invoice_no'     => ['label' => 'Invoice No', 'required' => true, 'format' => 'Text, max 40', 'aliases' => ['bill no', 'invoice number', 'voucher no', 'document no'], 'example' => ['INV-2001', 'INV-2001']],
+            'customer_po_no' => ['label' => 'Customer PO No', 'format' => 'Optional, max 60', 'aliases' => ['po no', 'po number', 'po ref', 'p.o reference', 'customer po', 'order ref'], 'example' => ['PO/7781', 'PO/7781']],
             'invoice_date'   => ['label' => 'Invoice Date', 'required' => true, 'format' => 'DD-MM-YYYY', 'aliases' => ['date', 'bill date'], 'example' => ['20-05-2026', '20-05-2026']],
             'document_type'  => ['label' => 'Type', 'format' => 'Invoice / Credit note (default Invoice)', 'aliases' => ['document type', 'voucher type'], 'example' => ['Invoice', 'Invoice']],
             'customer_code'  => ['label' => 'Customer Code', 'required' => true, 'format' => 'Existing customer code', 'aliases' => ['customer', 'party code'], 'example' => ['CUS-00003', 'CUS-00003']],
@@ -82,6 +83,7 @@ final class SalesImporter extends Importer
         $totalGiven = $this->money($in, 'total_amount', false);
         $due = $this->date($in, 'due_date', false, false);
         $remarks = $this->text($in, 'remarks', 255);
+        $poNo = $this->text($in, 'customer_po_no', 60);
 
         if (($in['product_code'] ?? '') === '' && ($in['quantity'] ?? '') !== '') {
             $this->errors[] = 'Quantity was given without a Product Code.';
@@ -136,7 +138,7 @@ final class SalesImporter extends Importer
             'fy_id' => (int) $fy['id'], 'fy_label' => $fy['label'], 'invoice_no' => $no, 'invoice_date' => $date, 'document_type' => $type,
             'customer_id' => (int) $customer['id'], 'branch_id' => (int) $customer['branch_id'], 'employee_id' => $employee,
             'product_id' => $product !== null ? (int) $product['id'] : null, 'quantity' => $qty, 'taxable' => $taxable, 'tax' => $tax,
-            'gst_rate' => $gst !== '' ? $gst : '0', 'round_off' => $roundOff, 'due_date' => $due, 'reference_invoice_id' => $refId ? (int) $refId : null, 'remarks' => $remarks,
+            'gst_rate' => $gst !== '' ? $gst : '0', 'round_off' => $roundOff, 'due_date' => $due, 'reference_invoice_id' => $refId ? (int) $refId : null, 'remarks' => $remarks, 'customer_po_no' => $poNo,
         ]);
     }
 
@@ -165,10 +167,10 @@ final class SalesImporter extends Importer
         $round = array_sum(array_column($lines, 'round_off'));
         $remarks = implode('; ', array_unique(array_filter(array_column($lines, 'remarks')))) ?: null;
         Database::query(
-            "INSERT INTO sales_invoices (financial_year_id, document_type, invoice_no, invoice_date, due_date, customer_id, branch_id, employee_id,
+            "INSERT INTO sales_invoices (financial_year_id, document_type, invoice_no, customer_po_no, invoice_date, due_date, customer_id, branch_id, employee_id,
                                          reference_invoice_id, taxable_amount, tax_amount, round_off, total_amount, source, import_batch_id, remarks, created_by, updated_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'import', ?, ?, ?, ?)",
-            [$h['fy_id'], $h['document_type'], $h['invoice_no'], $h['invoice_date'], $h['due_date'], $h['customer_id'], $h['branch_id'], $h['employee_id'],
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'import', ?, ?, ?, ?)",
+            [$h['fy_id'], $h['document_type'], $h['invoice_no'], $h['customer_po_no'] ?? null, $h['invoice_date'], $h['due_date'], $h['customer_id'], $h['branch_id'], $h['employee_id'],
              $h['reference_invoice_id'], Money::toDecimal($taxable), Money::toDecimal($tax), Money::toDecimal($round), Money::toDecimal($taxable + $tax + $round),
              $batchId, $remarks !== null ? mb_substr($remarks, 0, 500) : null, $this->uid(), $this->uid()]
         );

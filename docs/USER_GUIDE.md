@@ -60,6 +60,22 @@ Filters: Financial year · Month · Branch · Sales employee.
 The **Bill-wise detail** tab keeps the earlier dashboard, built from uploaded or added bills (invoices, receipts, orders, samples, DC).
 It has the Customer and Product filters, the drill-down pages (06-09) and the bill-by-bill **+ ADD** panel. Use it when bills are uploaded through Excel Upload.
 
+## Follow up (69-75)
+
+Choose a **sales employee** (a sales rep sees only themself), then what to follow up:
+
+- **Lead gen pending**: open leads and enquiries (not won or lost) with products, expected value and the next follow-up date.
+- **Sales pending**: order lines not yet supplied, with the pending value, delivery due date and PO reference.
+- **Sample / O.P pending**: samples and open DCs still with the customer, with days out. Samples awaiting a manager's approval are flagged.
+- **Dispatch details**: invoices and DCs sent out between two dates.
+- **Payment follow up**: pick one of that employee's customers with dues. The statement shows S.No, invoice no, bill date, P.O reference, invoice value, due balance and due date, with totals. Then:
+  - **Mail statement** opens your mail program with the statement filled in.
+  - **Send payment due SMS** opens the SMS page.
+  - **Print statement**.
+  - **Record the follow-up** (mail / phone call / direct visit / SMS) with what the customer said and an optional next date. Previous payment follow-ups are listed below.
+
+Overdue dates are shown in red. The sales Excel upload accepts an optional **Customer PO No** column for the P.O reference.
+
 ## Requests (59-68)
 
 One screen for everything the team asks the office to record. Pick a tab:

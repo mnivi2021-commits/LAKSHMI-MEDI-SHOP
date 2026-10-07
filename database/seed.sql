@@ -381,3 +381,7 @@ UPDATE sms_templates SET created_by = 1;
 
 INSERT INTO audit_logs (user_id, user_name, role_slug, ip_address, action, module, new_data)
 VALUES (NULL, 'system', NULL, '127.0.0.1', 'system.seeded', 'system', JSON_OBJECT('note', 'Development seed data loaded'));
+
+-- Customer PO references on most demo invoices (Payment follow up statement).
+UPDATE sales_invoices SET customer_po_no = CONCAT('PO/', LPAD(customer_id, 3, '0'), '/', LPAD(id, 4, '0'))
+WHERE document_type = 'invoice' AND MOD(id, 7) <> 3;

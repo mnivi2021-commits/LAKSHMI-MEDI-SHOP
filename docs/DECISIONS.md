@@ -30,6 +30,16 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | R6 | Admin Coordinator, Sales Manager, Branch Manager and Sales Executive can now add orders, DC and sample requests (*Add* on Pending Orders, DC, Samples). Approval stays with managers. |
 | R7 | The Branch Performance figures (typed totals) are kept separate from these request records; they are not added together. |
 
+## Follow up (Screen 3)
+
+| # | Decision |
+|---|---|
+| F1 | "O.P pending" is read as open (pending) DCs, shown together with samples still with the customer. |
+| F2 | "Sales pending" = order lines not yet supplied; "Dispatch details" = invoices and DCs sent out in the chosen dates (default: this month). |
+| F3 | Payment follow up uses the same open bills as the rest of the CRM (Settings → outstanding source). The customer list is the employee's customers that have dues. |
+| F4 | "Mail" opens the user's own mail program with the statement (the CRM does not send mail itself); "Direct" is recorded as a completed follow-up, with an optional next date added as a pending one. |
+| F5 | The page needs *View Dashboard*; the payment list and recording need *View Outstanding*. |
+
 ## Figures and periods
 
 | # | Decision | Change it |
