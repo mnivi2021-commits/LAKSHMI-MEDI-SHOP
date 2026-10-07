@@ -27,6 +27,7 @@ ob_start();
 ?>
 <div class="page-head">
     <div>
+        <a class="btn btn-back" href="<?= e(url('hrm')) ?>">&larr; Back</a>
         <p class="eyebrow"><a href="<?= e(url('hrm')) ?>">Employees</a></p>
         <h1><?= $isEdit ? e($emp['name']) : 'Add employee' ?></h1>
         <p class="muted small"><?= $isEdit ? e($emp['employee_code']) : 'The employee code is assigned automatically.' ?></p>

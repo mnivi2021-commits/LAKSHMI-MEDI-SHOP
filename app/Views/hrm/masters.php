@@ -8,6 +8,7 @@ ob_start();
 ?>
 <div class="page-head">
     <div>
+        <a class="btn btn-back" href="<?= e(url('hrm')) ?>">&larr; Back</a>
         <p class="eyebrow"><a href="<?= e(url('hrm')) ?>">HRM</a></p>
         <h1><?= e($def['label']) ?></h1>
     </div>

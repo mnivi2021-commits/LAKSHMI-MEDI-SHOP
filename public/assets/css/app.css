@@ -1030,3 +1030,4 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .rep-pay   { border-color: #2457d6; } .rep-pay h3 { background: #2457d6; }
 .rep-sdc   { border-color: #7a3fd1; } .rep-sdc h3 { background: #7a3fd1; }
 @media (max-width: 800px) { .rep-boxes { grid-template-columns: 1fr; } }
+.btn-back { margin-bottom: 10px; min-height: 34px; padding: 0 14px; font-size: .9rem; }
