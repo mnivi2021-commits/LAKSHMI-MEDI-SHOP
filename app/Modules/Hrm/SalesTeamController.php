@@ -29,7 +29,7 @@ final class SalesTeamController
     {
         $user = Auth::user();
         $scope = DataScope::for($user);
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         $branches = Database::fetchAll("SELECT id, name, branch_code FROM branches WHERE deleted_at IS NULL AND status = 'active' AND {$bw} ORDER BY name", $bp);
         $ids = array_map('intval', array_column($branches, 'id'));
         $branch = (int) ($_GET['branch'] ?? 0) ?: null;

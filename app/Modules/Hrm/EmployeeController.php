@@ -78,7 +78,7 @@ final class EmployeeController
             $params
         );
 
-        [$bSql, $bParams] = DataScope::for($user)->where('id', null);
+        [$bSql, $bParams] = DataScope::for($user)->branchListWhere('id');
         Response::view('hrm/index', [
             'title'       => 'Employees · HRM',
             'flash'       => Session::takeFlash(),
@@ -244,7 +244,7 @@ final class EmployeeController
     private static function form(?array $emp): void
     {
         $user = Auth::user();
-        [$bSql, $bParams] = DataScope::for($user)->where('id', null);
+        [$bSql, $bParams] = DataScope::for($user)->branchListWhere('id');
         $old = Session::pull('_old', []);
         Response::view('hrm/form', [
             'title'        => $emp ? 'Edit employee' : 'Add employee',

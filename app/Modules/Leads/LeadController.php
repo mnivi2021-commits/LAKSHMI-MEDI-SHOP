@@ -417,7 +417,7 @@ final class LeadController
             $defaults['branch_id'] = Database::value('SELECT branch_id FROM employees WHERE id = ?', [$user['employee_id']]);
         }
 
-        [$bSql, $bParams] = $scope->where('id', null);
+        [$bSql, $bParams] = $scope->branchListWhere('id');
         [$eSql, $eParams] = $scope->where('branch_id', 'id');
         Response::view('leads/form', [
             'title'     => $lead ? 'Edit lead' : 'Add lead',

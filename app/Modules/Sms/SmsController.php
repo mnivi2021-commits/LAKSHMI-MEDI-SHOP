@@ -249,7 +249,7 @@ final class SmsController
     {
         $user = Auth::user();
         $scope = DataScope::for($user);
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         [$ew, $ep] = $scope->where('branch_id', 'id');
         Response::view('sms/campaign_form', [
             'title'     => 'New SMS campaign',

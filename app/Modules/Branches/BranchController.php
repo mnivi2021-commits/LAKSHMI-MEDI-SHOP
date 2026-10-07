@@ -201,7 +201,7 @@ final class BranchController
 
     private static function findInScope(int $id): ?array
     {
-        [$scopeSql, $params] = DataScope::for(Auth::user())->where('id', null);
+        [$scopeSql, $params] = DataScope::for(Auth::user())->branchListWhere('id');
         $branch = Database::fetch("SELECT * FROM branches WHERE id = ? AND deleted_at IS NULL AND {$scopeSql}", array_merge([$id], $params));
         if ($branch === null) {
             Response::error(404, 'Branch not found.');

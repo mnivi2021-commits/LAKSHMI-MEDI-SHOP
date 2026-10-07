@@ -54,7 +54,7 @@ final class RequestController
         }
         $type = array_key_exists($_GET['type'] ?? '', $allowed) ? $_GET['type'] : array_key_first($allowed);
         $scope = DataScope::for($user);
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         [$ew, $ep] = $scope->where('branch_id', 'id');
         Response::view('requests/index', [
             'title'     => self::TYPES[$type][0] . ' · Requests',

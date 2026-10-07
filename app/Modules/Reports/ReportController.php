@@ -53,7 +53,7 @@ final class ReportController
         }
         $user = Auth::user();
         $scope = DataScope::for($user);
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         [$ew, $ep] = $scope->where('branch_id', 'id');
         $branch = (int) ($_GET['branch'] ?? 0) ?: null;
         $branch = $branch !== null && $scope->allowsBranch($branch) ? $branch : null;
@@ -85,7 +85,7 @@ final class ReportController
         $f = new ReportFilters($user, $_GET, new DateTimeImmutable('today'));
         $rows = $report->rows($f);
         $scope = DataScope::for($user);
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         [$ew, $ep] = $scope->where('branch_id', 'id');
         Response::view('reports/show', [
             'title'     => $report->title() . ' · Reports',

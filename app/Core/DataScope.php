@@ -68,6 +68,18 @@ final class DataScope
         return ['1 = 1', []];
     }
 
+    /**
+     * Condition for BRANCH LISTS (drop-downs, branch pages). Branch-scoped users see their
+     * assigned branches; team / own scoped users see every branch (the branch names are not
+     * private, and their records are still limited by employee).
+     *
+     * @return array{0: string, 1: list<int>}
+     */
+    public function branchListWhere(string $idColumn): array
+    {
+        return $this->branchIds !== null ? self::in($idColumn, $this->branchIds) : ['1 = 1', []];
+    }
+
     public function allowsBranch(int $branchId): bool
     {
         return $this->branchIds === null || in_array($branchId, $this->branchIds, true);

@@ -65,7 +65,7 @@ final class CustomerController
             $params
         );
 
-        [$bScopeSql, $bParams] = DataScope::for($user)->where('id', null);
+        [$bScopeSql, $bParams] = DataScope::for($user)->branchListWhere('id');
         Response::view('customers/index', [
             'title'     => 'Customers',
             'flash'     => Session::takeFlash(),
@@ -278,7 +278,7 @@ final class CustomerController
         $values = $old ?: ($customer ?? ['credit_days' => 30]);
         $user = Auth::user();
 
-        [$bScopeSql, $bParams] = DataScope::for($user)->where('id', null);
+        [$bScopeSql, $bParams] = DataScope::for($user)->branchListWhere('id');
         $branches = Database::fetchAll("SELECT id, name, branch_code FROM branches WHERE deleted_at IS NULL AND status = 'active' AND {$bScopeSql} ORDER BY name", $bParams);
 
         Response::view('customers/form', [

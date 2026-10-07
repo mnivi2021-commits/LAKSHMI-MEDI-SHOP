@@ -70,7 +70,7 @@ final class MailController
         }
         $user = Auth::user();
         $scope = DataScope::for($user);
-        [$bSql, $bParams] = $scope->where('id', null);
+        [$bSql, $bParams] = $scope->branchListWhere('id');
         Response::view('mail/show', [
             'title'      => ($email['subject'] ?: '(no subject)') . ' · Mail',
             'flash'      => Session::takeFlash(),

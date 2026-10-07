@@ -96,7 +96,7 @@ final class EntryController
                 $values[(int) $id] = array_map(static fn ($v) => (string) $v, (array) $row);
             }
         }
-        [$bw, $bp] = $scope->where('id', null);
+        [$bw, $bp] = $scope->branchListWhere('id');
         Response::view('dashboard/sheet', [
             'title'     => ($type === 'day' ? 'Daily entry' : 'Month start entry') . ' · Branch Performance',
             'flash'     => Session::takeFlash(),
