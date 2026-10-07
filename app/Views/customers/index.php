@@ -13,12 +13,14 @@ ob_start();
 ?>
 <div class="page-head">
     <div>
-        <p class="eyebrow">Customers</p>
-        <h1>Customers</h1>
+        <p class="eyebrow">Customer Master</p>
+        <h1>Customer Master</h1>
+        <p class="muted small">Add a new customer, or upload your existing customers from Excel.</p>
     </div>
     <div class="form-actions">
         <?php if ($canExport): ?><a class="btn" href="<?= e(url('customers/export')) ?>">Export CSV</a><?php endif; ?>
-        <?php if ($canAdd): ?><a class="btn btn-primary" href="<?= e(url('customers/new')) ?>">Add customer</a><?php endif; ?>
+        <?php if (\App\Core\Gate::allows('customers.import')): ?><a class="btn" href="<?= e(url('imports/new/customers')) ?>">Upload Excel (existing customers)</a><?php endif; ?>
+        <?php if ($canAdd): ?><a class="btn btn-primary" href="<?= e(url('customers/new')) ?>">+ New customer</a><?php endif; ?>
     </div>
 </div>
 

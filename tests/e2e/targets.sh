@@ -93,6 +93,17 @@ for h in "<h3>Sales</h3>" "<h3>Pending order</h3>" "<h3>Payment</h3>" "<h3>Sampl
 contains "annual target (15 + 6 lakh)" "$TMP/body" "₹21,00,000"
 contains "OP O/S" "$TMP/body" "₹3,75,000"
 lacks "only this rep (no team table)" "$TMP/body" "<b>JANA</b>"
+lacks "branch list cleared" "$TMP/body" 'name="q"'
+contains "manage branches button" "$TMP/body" "Manage branches"
+r=$(req A GET "/branches?rep=2"); contains "pending orders customer-wise" "$TMP/body" "Pending order details · customer-wise"
+contains "customer heading row" "$TMP/body" 'class="cust-row"'
+contains "reason drop box" "$TMP/body" 'name="reason"'
+contains "open DC customer-wise" "$TMP/body" "Open DC · customer-wise"
+OID=$(grep -o 'branches/order-reason/[0-9]*' "$TMP/body" | head -1 | grep -o '[0-9]*$')
+r=$(post A "/branches/order-reason/$OID" "/branches?rep=2" --data "reason=payment_pending")
+case "$r" in "303 "*"rep=2"*) ok "reason saved";; *) bad "reason saved" "$r";; esac
+req A GET "/branches?rep=2" >/dev/null; contains "reason shown as chosen" "$TMP/body" 'value="payment_pending" selected'
+r=$(req A GET "/branches?view=list"); contains "branch list on Manage branches" "$TMP/body" 'name="q"'
 
 echo
 echo "targets e2e: $PASS passed, $FAIL failed"

@@ -142,6 +142,7 @@ $router->post('/access/roles/{id}/delete', [RoleController::class, 'destroy'], [
 $router->get('/branches', [BranchController::class, 'index'], ['auth', 'can:branches.view']);
 $router->get('/branches/new', [BranchController::class, 'create'], ['auth', 'can:branches.add']);
 $router->post('/branches', [BranchController::class, 'store'], ['auth', 'can:branches.add', 'csrf']);
+$router->post('/branches/order-reason/{id}', [BranchController::class, 'orderReason'], ['auth', 'can:branches.view', 'can_any:pending_orders.add,pending_orders.edit', 'csrf']);
 $router->get('/branches/{id}/edit', [BranchController::class, 'edit'], ['auth', 'can:branches.view']);
 $router->post('/branches/{id}', [BranchController::class, 'update'], ['auth', 'can:branches.edit', 'csrf']);
 $router->post('/branches/{id}/status', [BranchController::class, 'toggleStatus'], ['auth', 'can:branches.edit', 'csrf']);

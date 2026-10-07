@@ -10,7 +10,8 @@ declare(strict_types=1);
  */
 return [
     ['key' => 'dashboard', 'label' => 'Dashboard',      'path' => '/',             'any' => ['dashboard.view'], 'ready' => true],
-    ['key' => 'branches',  'label' => 'Branch Details', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => true],
+    ['key' => 'customers', 'label' => 'Customer Master', 'path' => '/customers',    'any' => ['customers.view'], 'ready' => true],
+    ['key' => 'branches',  'label' => 'Customer Support Pending', 'path' => '/branches',     'any' => ['branches.view'],  'ready' => true],
     ['key' => 'followup',  'label' => 'Follow up',      'path' => '/followup',     'any' => ['followup.view'], 'ready' => true],
     ['key' => 'requests',  'label' => 'Requests',       'path' => '/requests',     'any' => ['leads.add', 'pending_orders.add', 'dc.add', 'samples.add'], 'ready' => true],
     ['key' => 'sales',     'label' => 'Sales Details',  'path' => '/sales',        'any' => ['sales.view', 'targets.view', 'collections.view', 'pending_orders.view', 'samples.view', 'dc.view', 'outstanding.view'], 'ready' => true],
@@ -20,7 +21,6 @@ return [
     ['key' => 'sms',       'label' => 'SMS',            'path' => '/sms',          'any' => ['sms.view'],       'ready' => true],
     ['key' => 'mail',      'label' => 'Mail',           'path' => '/mail',         'any' => ['mail.view'],      'ready' => true],
     ['key' => 'access',    'label' => 'Access',         'path' => '/access/users', 'any' => ['users.view', 'access.manage'], 'ready' => true],
-    ['key' => 'customers', 'label' => 'Customers',      'path' => '/customers',    'any' => ['customers.view'], 'ready' => true],
     ['key' => 'leads',     'label' => 'Leads',          'path' => '/leads',        'any' => ['leads.view'],     'ready' => true],
     ['key' => 'products',  'label' => 'Products',       'path' => '/products',     'any' => ['products.view'],  'ready' => true],
     ['key' => 'settings',  'label' => 'Settings',       'path' => '/settings',     'any' => ['settings.manage', 'audit.view'], 'ready' => true],

@@ -1031,3 +1031,30 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .rep-sdc   { border-color: #7a3fd1; } .rep-sdc h3 { background: #7a3fd1; }
 @media (max-width: 800px) { .rep-boxes { grid-template-columns: 1fr; } }
 .btn-back { margin-bottom: 10px; min-height: 34px; padding: 0 14px; font-size: .9rem; }
+
+/* Branch Details: one rep's pending orders and open DC, customer-wise */
+.rep-detail { margin-top: 18px; }
+.rep-detail-title { margin: 0 0 6px; padding: 10px 16px; border-radius: 12px; color: #fff; font-size: 1.02rem; }
+.rep-detail-title.po { background: #e07b00; }
+.rep-detail-title.dc { background: #7a3fd1; }
+.table tr.cust-row > td { background: transparent; font-weight: 800; padding-top: 14px; color: var(--text); }
+.table tr.cust-total > td { background: var(--surface); font-weight: 700; color: var(--muted); }
+.reason-form select { min-height: 34px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); font: inherit; font-size: .88rem; }
+
+/* Colours (owner, 07-10-2026): grey background, navy side menu, gold main headings */
+:root:not([data-theme="dark"]) { --bg: #e4e7ec; --surface: #ffffff; --surface-2: #f4f6f9; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0b0c0e; --surface: #17171c; --surface-2: #202027; } }
+body { background: var(--bg); }
+.topbar { background: transparent; }
+.sidebar { background: #0b2a5b; }
+.sidebar a, .sidebar .soon { background: #133a78; color: #eef3ff; }
+.sidebar a:hover { background: #1b4a94; }
+.sidebar a.active { background: #d4a017; color: #1b1300; }
+.sidebar-account a, .sidebar-logout { background: transparent; color: #b9c8e6; }
+.sidebar-account a:hover, .sidebar-logout:hover { background: #133a78; color: #fff; }
+.brand-text small { color: #b9c8e6; }
+h1, .page-head h1, .company-title { color: #a87700; }
+.card, .pe-box, .inv-box { box-shadow: 0 1px 2px rgba(16, 24, 40, .06); }
+.table-card .table td { background: #ffffff; }
+.table-card .table tbody tr:hover > td { background: #fff8e6; }
+@media (max-width: 900px) { .topbar { background: var(--bg); } }

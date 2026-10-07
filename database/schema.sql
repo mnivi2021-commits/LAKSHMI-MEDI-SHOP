@@ -746,6 +746,7 @@ CREATE TABLE pending_orders (
     informed_employee_id    INT UNSIGNED NULL,
     expected_delivery_date  DATE         NULL,
     status                  ENUM('open','partial','closed','cancelled') NOT NULL DEFAULT 'open',
+    pending_reason          ENUM('price','payment_pending','product_mismatch','discount','stock','other') NULL COMMENT 'Why the order is still pending',
     source                  ENUM('manual','import','api','email') NOT NULL DEFAULT 'manual',
     import_batch_id         INT UNSIGNED NULL,
     remarks                 VARCHAR(500) NULL,

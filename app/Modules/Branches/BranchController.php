@@ -89,16 +89,31 @@ final class BranchController
         $teamRep = (int) ($_GET['rep'] ?? 0);
         $teamRep = in_array($teamRep, array_map('intval', array_column($team, 'id')), true) ? $teamRep : 0;
         $repData = $teamRep ? self::repFigures($teamRep) : null;
+        $repOrders = $teamRep ? Database::fetchAll(
+            "SELECT v.order_id, v.order_no, v.order_date, v.customer_po_no, c.name AS customer, c.customer_code, p.name AS product, p.unit,
+                    v.pending_qty, poi.rate, v.pending_value, po.pending_reason, DATEDIFF(CURDATE(), v.order_date) AS days
+             FROM v_pending_order_lines v JOIN pending_orders po ON po.id = v.order_id
+             JOIN pending_order_items poi ON poi.id = v.item_id JOIN customers c ON c.id = v.customer_id JOIN products p ON p.id = v.product_id
+             WHERE v.employee_id = ? ORDER BY c.name, v.order_date, v.order_no", [$teamRep]) : [];
+        $repDcs = $teamRep ? Database::fetchAll(
+            "SELECT v.dc_id, v.dc_no, v.dc_date, c.name AS customer, c.customer_code, p.name AS product, p.unit, v.quantity, v.dc_value,
+                    DATEDIFF(CURDATE(), v.dc_date) AS days, d.approval_type
+             FROM v_pending_dc_lines v JOIN dc_records d ON d.id = v.dc_id JOIN customers c ON c.id = v.customer_id JOIN products p ON p.id = v.product_id
+             WHERE v.employee_id = ? ORDER BY c.name, v.dc_date, v.dc_no", [$teamRep]) : [];
 
         Response::view('branches/index', [
             'teamRep'      => $teamRep,
+            'repOrders'    => $repOrders,
+            'repDcs'       => $repDcs,
+            'showList'     => ($_GET['view'] ?? '') === 'list' || $q !== '' || $status !== '' || isset($_GET['page']),
+            'canReason'    => Gate::allowsAny(['pending_orders.add', 'pending_orders.edit'], $user),
             'repData'      => $repData,
             'teamBranches' => $teamBranches,
             'teamBranch'   => $teamBranch,
             'team'         => $team,
             'teamMonth'    => $teamMonth,
             'pcts'         => \App\Modules\Dashboard\EntryController::pcts(),
-            'title'    => 'Branch Details',
+            'title'    => 'Customer Support Pending',
             'flash'    => Session::takeFlash(),
             'branches' => $branches,
             'filters'  => ['q' => $q, 'status' => $status],
@@ -147,6 +162,30 @@ final class BranchController
         ];
     }
 
+    public const REASONS = ['price' => 'Price', 'payment_pending' => 'Payment pending', 'product_mismatch' => 'Product mismatch',
+                            'discount' => 'Discount', 'stock' => 'Stock', 'other' => 'Other'];
+
+    /** Branch Details: set why a pending order is held (drop box per order). */
+    public static function orderReason(array $p): void
+    {
+        $user = Auth::user();
+        [$w, $wp] = DataScope::for($user)->where('o.branch_id', 'o.employee_id');
+        $o = Database::fetch("SELECT o.id, o.order_no, o.employee_id, o.pending_reason FROM pending_orders o WHERE o.id = ? AND o.deleted_at IS NULL AND {$w}",
+            array_merge([(int) ($p['id'] ?? 0)], $wp));
+        if ($o === null) {
+            Response::error(404, 'Order not found.');
+            return;
+        }
+        $reason = (string) ($_POST['reason'] ?? '');
+        $reason = array_key_exists($reason, self::REASONS) ? $reason : null;
+        if ($reason !== $o['pending_reason']) {
+            Database::query('UPDATE pending_orders SET pending_reason = ?, updated_by = ? WHERE id = ?', [$reason, $user['id'], $o['id']]);
+            Audit::log('pending_order.reason', 'pending_orders', (int) $o['id'], ['reason' => $o['pending_reason']], ['reason' => $reason]);
+            Session::flash('success', "Order {$o['order_no']}: reason " . ($reason ? '"' . self::REASONS[$reason] . '"' : 'cleared') . '.');
+        }
+        Response::redirect('/branches?rep=' . (int) $o['employee_id'] . '#rep-orders');
+    }
+
     public static function create(): void
     {
         self::form(null);
@@ -178,7 +217,7 @@ final class BranchController
 
         Audit::log('branch.created', 'branches', $id, null, $data);
         Session::flash('success', "Branch {$data['name']} created.");
-        Response::redirect('/branches');
+        Response::redirect('/branches?view=list');
     }
 
     public static function update(array $p): void
@@ -207,7 +246,7 @@ final class BranchController
             Audit::log('branch.updated', 'branches', (int) $branch['id'], array_intersect_key($old, $changes), $changes);
         }
         Session::flash('success', "Branch {$data['name']} updated.");
-        Response::redirect('/branches');
+        Response::redirect('/branches?view=list');
     }
 
     public static function toggleStatus(array $p): void
@@ -219,14 +258,14 @@ final class BranchController
         $disable = $branch['status'] === 'active';
         if ($disable && self::hasActiveDependents((int) $branch['id'])) {
             Session::flash('error', "Branch {$branch['name']} has active employees or customers and cannot be disabled. Reassign them first.");
-            Response::redirect('/branches');
+            Response::redirect('/branches?view=list');
             return;
         }
 
         Database::query('UPDATE branches SET status = ?, updated_by = ? WHERE id = ?', [$disable ? 'inactive' : 'active', Auth::id(), $branch['id']]);
         Audit::log($disable ? 'branch.disabled' : 'branch.enabled', 'branches', (int) $branch['id'], ['status' => $branch['status']], ['status' => $disable ? 'inactive' : 'active']);
         Session::flash('success', "{$branch['name']} " . ($disable ? 'disabled.' : 'enabled.'));
-        Response::redirect('/branches');
+        Response::redirect('/branches?view=list');
     }
 
     public static function destroy(array $p): void
@@ -237,14 +276,14 @@ final class BranchController
         }
         if (self::hasActiveDependents((int) $branch['id'])) {
             Session::flash('error', "Branch {$branch['name']} has employees, customers or transactions and cannot be deleted. Disable it instead.");
-            Response::redirect('/branches');
+            Response::redirect('/branches?view=list');
             return;
         }
 
         Database::query('UPDATE branches SET deleted_at = NOW(), deleted_by = ?, status = ? WHERE id = ?', [Auth::id(), 'inactive', $branch['id']]);
         Audit::log('branch.deleted', 'branches', (int) $branch['id'], ['branch_code' => $branch['branch_code'], 'name' => $branch['name']]);
         Session::flash('success', "Branch {$branch['name']} deleted.");
-        Response::redirect('/branches');
+        Response::redirect('/branches?view=list');
     }
 
     public static function export(): void

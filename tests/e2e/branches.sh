@@ -27,13 +27,13 @@ first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== Admin Head: list and create"
-r=$(req A GET /branches); expect "branches list loads" "${r%% *}" 200
+r=$(req A GET "/branches?view=list"); expect "branches list loads" "${r%% *}" 200
 contains "shows seeded branches" "$TMP/body" "Chennai Head Office"
 contains "shows employee/customer counts" "$TMP/body" "CHN"
 
 r=$(post A /branches /branches/new --data "branch_code=TST&name=Test Branch&city=Testville&state=TS&pincode=600001&contact_number=9000011111&email=test@example.com")
-expect "branch created" "$r" "303 $BASE/branches"
-req A GET /branches >/dev/null
+expect "branch created" "$r" "303 $BASE/branches?view=list"
+req A GET "/branches?view=list" >/dev/null
 contains "new branch listed" "$TMP/body" "Test Branch"
 
 echo "== Validation"
@@ -49,32 +49,32 @@ req A GET /branches/new >/dev/null
 contains "duplicate name rejected" "$TMP/body" "already exists"
 
 echo "== Edit and manager assignment"
-req A GET /branches >/dev/null
+req A GET "/branches?view=list" >/dev/null
 TSTID=$(tr -d '\n' < "$TMP/body" | grep -o 'Test Branch</strong><div class="muted small">TST</div></td>.\{0,1000\}branches/[0-9]*/edit' | grep -o '[0-9]*/edit' | grep -o '[0-9]*')
 echo "  (Test Branch id = $TSTID)"
 [ -n "$TSTID" ] && ok "found Test Branch id" || bad "found Test Branch id" "empty"
 r=$(req A GET "/branches/$TSTID/edit"); expect "edit page loads" "${r%% *}" 200
 contains "no employees note shown" "$TMP/body" "No active employees"
 r=$(post A "/branches/$TSTID" "/branches/$TSTID/edit" --data "branch_code=TST&name=Test Branch Updated&city=Testville&state=TS&pincode=600001&contact_number=9000011111&email=test@example.com")
-expect "branch updated" "$r" "303 $BASE/branches"
-req A GET /branches >/dev/null
+expect "branch updated" "$r" "303 $BASE/branches?view=list"
+req A GET "/branches?view=list" >/dev/null
 contains "updated name shown" "$TMP/body" "Test Branch Updated"
 
 echo "== Disable / delete guards (dependents)"
 CHNID=1
-r=$(post A "/branches/$CHNID/status" /branches); req A GET /branches >/dev/null
+r=$(post A "/branches/$CHNID/status" /branches); req A GET "/branches?view=list" >/dev/null
 contains "cannot disable branch with employees/customers" "$TMP/body" "active employees or customers"
-r=$(post A "/branches/$CHNID/delete" /branches); req A GET /branches >/dev/null
+r=$(post A "/branches/$CHNID/delete" /branches); req A GET "/branches?view=list" >/dev/null
 contains "cannot delete branch with dependents" "$TMP/body" "cannot be deleted"
-r=$(post A "/branches/$TSTID/status" /branches); expect "empty branch can be disabled" "$r" "303 $BASE/branches"
-req A GET /branches >/dev/null
-r=$(post A "/branches/$TSTID/delete" /branches); expect "empty disabled branch can be deleted" "$r" "303 $BASE/branches"
-req A GET /branches >/dev/null   # this load shows the "... deleted." flash message, which names the branch
-req A GET /branches >/dev/null   # second load: flash consumed, so only an actual table row would match
+r=$(post A "/branches/$TSTID/status" /branches); expect "empty branch can be disabled" "$r" "303 $BASE/branches?view=list"
+req A GET "/branches?view=list" >/dev/null
+r=$(post A "/branches/$TSTID/delete" /branches); expect "empty disabled branch can be deleted" "$r" "303 $BASE/branches?view=list"
+req A GET "/branches?view=list" >/dev/null   # this load shows the "... deleted." flash message, which names the branch
+req A GET "/branches?view=list" >/dev/null   # second load: flash consumed, so only an actual table row would match
 lacks "deleted branch no longer listed" "$TMP/body" "branches/$TSTID/edit"
 
 echo "== Permissions and scope"
-r=$(req C GET /branches); expect "coordinator can view (branches.view)" "${r%% *}" 200
+r=$(req C GET "/branches?view=list"); expect "coordinator can view (branches.view)" "${r%% *}" 200
 r=$(req C GET /branches/new); expect "coordinator cannot add (403)" "${r%% *}" 403
 t=$(csrf C /branches)
 r=$(req C POST /branches --data-urlencode "_csrf=$t" --data "branch_code=X&name=Y"); expect "coordinator POST add refused (403)" "${r%% *}" 403

@@ -9,19 +9,26 @@ use App\Core\Csrf;
 $query = static fn (array $extra): string => http_build_query(array_filter(array_merge($filters, $extra), static fn ($v) => $v !== ''));
 ob_start();
 ?>
+<?php $showList ??= false; ?>
 <div class="page-head">
     <div>
-        <p class="eyebrow">Branch Details</p>
-        <h1>Branches</h1>
+        <p class="eyebrow"><?= $showList ? 'Customer Support Pending' : 'Sales person' ?></p>
+        <h1><?= $showList ? 'Manage branches' : 'Customer Support Pending' ?></h1>
     </div>
     <div class="form-actions">
-        <?php if ($canExport): ?><a class="btn" href="<?= e(url('branches/export')) ?>">Export CSV</a><?php endif; ?>
-        <?php if ($canAdd): ?><a class="btn btn-primary" href="<?= e(url('branches/new')) ?>">Add branch</a><?php endif; ?>
+        <?php if ($showList): ?>
+            <a class="btn" href="<?= e(url('branches')) ?>">&larr; Back</a>
+            <?php if ($canExport): ?><a class="btn" href="<?= e(url('branches/export')) ?>">Export CSV</a><?php endif; ?>
+            <?php if ($canAdd): ?><a class="btn btn-primary" href="<?= e(url('branches/new')) ?>">Add branch</a><?php endif; ?>
+        <?php else: ?>
+            <a class="btn" href="<?= e(url('branches') . '?view=list') ?>">Manage branches</a>
+        <?php endif; ?>
     </div>
 </div>
 
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
 
+<?php if ($showList): ?>
 <form method="get" action="<?= e(url('branches')) ?>" class="filters card">
     <label class="field">
         <span>Search</span>
@@ -94,10 +101,12 @@ ob_start();
     <?php endif; ?>
 </section>
 
+<?php endif; ?>
 <?php
-$teamBranches ??= []; $team ??= []; $teamBranch ??= 0; $teamRep ??= 0; $repData ??= null; $pcts ??= ['sales' => 80, 'collection' => 60]; $teamMonth ??= date('Y-m-01');
+$teamBranches ??= []; $team ??= []; $teamBranch ??= 0; $teamRep ??= 0; $repData ??= null; $repOrders ??= []; $repDcs ??= []; $canReason ??= false; $pcts ??= ['sales' => 80, 'collection' => 60]; $teamMonth ??= date('Y-m-01');
 $p = static fn ($v): int => \App\Core\Money::fromDb($v);
 ?>
+<?php if (!$showList): ?>
 <section class="card table-card team-card">
     <div class="team-head">
         <h2>Sales team · <?= e(date('F Y', strtotime($teamMonth))) ?></h2>
@@ -150,6 +159,68 @@ $p = static fn ($v): int => \App\Core\Money::fromDb($v);
             </dl>
         </section>
     </div>
+
+    <?php
+    $byCustomer = static function (array $rows): array { $g = []; foreach ($rows as $row) { $g[$row['customer'] . ' (' . $row['customer_code'] . ')'][] = $row; } return $g; };
+    $reasons = \App\Modules\Branches\BranchController::REASONS;
+    ?>
+    <section class="rep-detail" id="rep-orders">
+        <h3 class="rep-detail-title po">Pending order details · customer-wise</h3>
+        <?php if (!$repOrders): ?><p class="empty">No pending orders.</p><?php else: ?>
+        <div class="table-scroll"><table class="table compact">
+            <thead><tr><th>Order no</th><th>Date</th><th>P.O ref</th><th>Product</th><th class="right">Pending qty</th><th class="right">Price</th><th class="right">Pending value</th><th class="right">Days</th><th>Reason</th></tr></thead>
+            <tbody>
+            <?php $tot = 0; $seen = []; foreach ($byCustomer($repOrders) as $cust => $rows): $ct = 0; ?>
+                <tr class="cust-row"><td colspan="9"><?= e($cust) ?></td></tr>
+                <?php foreach ($rows as $o): $v = \App\Core\Money::fromDb($o['pending_value']); $ct += $v; $tot += $v; $first = !isset($seen[$o['order_id']]); $seen[$o['order_id']] = 1; ?>
+                <tr>
+                    <td><?= e($o['order_no']) ?></td><td><?= e(date('d-m-Y', strtotime($o['order_date']))) ?></td><td><?= e($o['customer_po_no'] ?: '—') ?></td>
+                    <td><?= e($o['product']) ?></td>
+                    <td class="right num"><?= e(rtrim(rtrim((string) $o['pending_qty'], '0'), '.')) ?> <?= e($o['unit'] ?? '') ?></td>
+                    <td class="right num"><?= e(rupees(\App\Core\Money::fromDb($o['rate']), 2)) ?></td>
+                    <td class="right num"><?= e(rupees($v)) ?></td>
+                    <td class="right num<?= (int) $o['days'] > 30 ? ' text-bad' : '' ?>"><?= e($o['days']) ?></td>
+                    <td><?php if ($first && $canReason): ?>
+                        <form method="post" action="<?= e(url("branches/order-reason/{$o['order_id']}")) ?>" class="reason-form">
+                            <?= \App\Core\Csrf::field() ?>
+                            <select name="reason" data-autosubmit aria-label="Reason for order <?= e($o['order_no']) ?>">
+                                <option value="">— choose —</option>
+                                <?php foreach ($reasons as $rk => $rl): ?><option value="<?= e($rk) ?>"<?= $o['pending_reason'] === $rk ? ' selected' : '' ?>><?= e($rl) ?></option><?php endforeach; ?>
+                            </select>
+                        </form>
+                        <?php elseif ($first): ?><?= e($reasons[$o['pending_reason']] ?? '—') ?><?php endif; ?></td>
+                </tr>
+                <?php endforeach; ?>
+                <tr class="cust-total"><td colspan="6">Customer total</td><td class="right num"><?= e(rupees($ct)) ?></td><td colspan="2"></td></tr>
+            <?php endforeach; ?>
+            </tbody>
+            <tfoot><tr class="total-row"><th colspan="6">Total pending orders</th><th class="right num"><?= e(rupees($tot)) ?></th><th colspan="2"></th></tr></tfoot>
+        </table></div>
+        <?php endif; ?>
+    </section>
+
+    <section class="rep-detail" id="rep-dc">
+        <h3 class="rep-detail-title dc">Open DC · customer-wise</h3>
+        <?php if (!$repDcs): ?><p class="empty">No open DC.</p><?php else: ?>
+        <div class="table-scroll"><table class="table compact">
+            <thead><tr><th>DC no</th><th>Date</th><th>Product</th><th class="right">Qty</th><th class="right">Value</th><th class="right">Days open</th><th>Approval</th></tr></thead>
+            <tbody>
+            <?php $tot = 0; foreach ($byCustomer($repDcs) as $cust => $rows): $ct = 0; ?>
+                <tr class="cust-row"><td colspan="7"><?= e($cust) ?></td></tr>
+                <?php foreach ($rows as $d): $v = \App\Core\Money::fromDb($d['dc_value']); $ct += $v; $tot += $v; ?>
+                <tr><td><?= e($d['dc_no']) ?></td><td><?= e(date('d-m-Y', strtotime($d['dc_date']))) ?></td><td><?= e($d['product']) ?></td>
+                    <td class="right num"><?= e(rtrim(rtrim((string) $d['quantity'], '0'), '.')) ?> <?= e($d['unit'] ?? '') ?></td>
+                    <td class="right num"><?= e(rupees($v)) ?></td>
+                    <td class="right num<?= (int) $d['days'] > 30 ? ' text-bad' : '' ?>"><?= e($d['days']) ?></td>
+                    <td><?= e(['customer_mail' => 'Customer mail', 'md_approval' => 'M.D approval'][$d['approval_type'] ?? ''] ?? '—') ?></td></tr>
+                <?php endforeach; ?>
+                <tr class="cust-total"><td colspan="4">Customer total</td><td class="right num"><?= e(rupees($ct)) ?></td><td colspan="2"></td></tr>
+            <?php endforeach; ?>
+            </tbody>
+            <tfoot><tr class="total-row"><th colspan="4">Total open DC</th><th class="right num"><?= e(rupees($tot)) ?></th><th colspan="2"></th></tr></tfoot>
+        </table></div>
+        <?php endif; ?>
+    </section>
     <?php elseif (!$team): ?><p class="empty">No sales people.</p><?php else: ?>
     <div class="table-scroll"><table class="table compact">
         <thead><tr>
@@ -176,6 +247,7 @@ $p = static fn ($v): int => \App\Core\Money::fromDb($v);
     </table></div>
     <?php endif; ?>
 </section>
+<?php endif; ?>
 <?php
 $content = ob_get_clean();
 require dirname(__DIR__) . '/layouts/app.php';
