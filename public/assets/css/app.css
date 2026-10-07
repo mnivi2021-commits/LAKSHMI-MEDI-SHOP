@@ -935,3 +935,27 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .pe-field.has-error input { border-color: var(--fail-fg); }
 .pe-mtd { margin: 10px 0 0; font-size: .85rem; color: var(--muted); }
 @media (max-width: 900px) { .pe-grid { grid-template-columns: 1fr; } }
+
+/* Requests: customer name (left) beside the customer search (right) */
+#cust-name[readonly] { background: var(--surface); font-weight: 700; color: var(--text); }
+
+/* Requests: invoice-style header - customer on the left, document details on the right */
+.inv-head { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.inv-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px 16px; min-width: 0; }
+.inv-title { margin: 0 0 10px; font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.inv-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 14px; }
+.inv-doc .inv-fields { grid-template-columns: 1fr 1fr; }
+.inv-meta { margin: 0 0 12px; display: grid; gap: 6px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+.inv-meta > div { display: flex; justify-content: space-between; gap: 10px; }
+.inv-meta dt { color: var(--muted); font-weight: 600; }
+.inv-meta dd { margin: 0; font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.inv-doc { box-shadow: inset 4px 0 0 var(--btn-dark); }
+@media (max-width: 900px) { .inv-head { grid-template-columns: 1fr; } .inv-doc .inv-fields { grid-template-columns: 1fr; } }
+/* Billing-style light colours */
+:root { --inv-cust-bg: #f1f9f4; --inv-cust-line: #cfe8d8; --inv-doc-bg: #fdf8ec; --inv-doc-line: #f0e1b8; --inv-lines-bg: #f6f8fc; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --inv-cust-bg: #142219; --inv-cust-line: #23402d; --inv-doc-bg: #262014; --inv-doc-line: #4a3d1c; --inv-lines-bg: #171a21; } }
+.inv-customer { background: var(--inv-cust-bg); border-color: var(--inv-cust-line); }
+.inv-customer .inv-title { color: #137a3b; }
+.inv-doc { background: var(--inv-doc-bg); border-color: var(--inv-doc-line); box-shadow: none; }
+.inv-doc .inv-meta { border-bottom-color: var(--inv-doc-line); }
+.req-form > fieldset.req-step { background: var(--inv-lines-bg); }

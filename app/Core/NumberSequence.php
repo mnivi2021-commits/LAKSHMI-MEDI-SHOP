@@ -14,6 +14,13 @@ use RuntimeException;
 final class NumberSequence
 {
     /** Must be called inside Database::transaction() so the row lock is held until commit. */
+    /** The number the next save will get (not reserved - another save may take it first). */
+    public static function peek(string $name): ?string
+    {
+        $row = Database::fetch('SELECT prefix, next_number, padding FROM number_sequences WHERE name = ?', [$name]);
+        return $row ? $row['prefix'] . str_pad((string) $row['next_number'], (int) $row['padding'], '0', STR_PAD_LEFT) : null;
+    }
+
     public static function next(string $name): string
     {
         $pdo = Database::connection();

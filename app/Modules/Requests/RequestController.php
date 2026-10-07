@@ -68,6 +68,7 @@ final class RequestController
             'recent'    => self::recent($type, $user),
             'canApprove'=> Gate::allows('samples.approve', $user),
             'canNewCustomer' => Gate::allows('customers.add', $user),
+            'nextNo'    => NumberSequence::peek($type === 'enquiry' ? 'enquiry' : $type),
             'scripts'   => ['dashboard.js'],
         ]);
     }

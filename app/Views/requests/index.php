@@ -8,6 +8,8 @@
 /** @var list<array<string, mixed>> $recent */
 /** @var bool $canApprove */
 /** @var bool $canNewCustomer */
+/** @var string|null $nextNo */
+$nextNo ??= null;
 use App\Core\Csrf;
 use App\Core\Money;
 use App\Modules\Requests\RequestController as R;
@@ -57,106 +59,89 @@ ob_start();
 <form method="post" action="<?= e(url('requests/' . $type)) ?>" class="card form req-form" novalidate>
     <?= Csrf::field() ?>
 
-    <?php if (in_array($type, ['lead', 'enquiry', 'order'], true)): ?>
-    <fieldset class="req-step">
-        <legend>1. Who informed</legend>
-        <div class="req-row">
-            <div class="field<?= $cls('informed_by') ?>"><span>Informed by *</span>
-                <div class="choice-row">
-                    <?php foreach (['manager' => 'Manager', 'rep' => 'Rep'] as $k => $l): ?>
-                        <label class="choice"><input type="radio" name="informed_by" value="<?= e($k) ?>"<?= $v('informed_by') === $k ? ' checked' : '' ?>> <?= e($l) ?></label>
-                    <?php endforeach; ?>
-                </div><?= $err('informed_by') ?></div>
-            <label class="field<?= $cls('informed_employee_id') ?>"><span>Name</span>
-                <select name="informed_employee_id"><option value="">—</option>
-                    <?php foreach ($employees as $em): ?><option value="<?= e($em['id']) ?>"<?= $v('informed_employee_id') === (string) $em['id'] ? ' selected' : '' ?>><?= e(($em['short_name'] ?: $em['name']) . ' - ' . $em['name']) ?></option><?php endforeach; ?>
-                </select><?= $err('informed_employee_id') ?></label>
-            <?php if ($type === 'enquiry'): ?>
-                <div class="field<?= $cls('enquiry_source') ?>"><span>Enquiry came by *</span>
-                    <div class="choice-row">
-                        <?php foreach (R::SOURCES as $k => $l): ?><label class="choice"><input type="radio" name="enquiry_source" value="<?= e($k) ?>"<?= $v('enquiry_source') === $k ? ' checked' : '' ?>> <?= e($l) ?></label><?php endforeach; ?>
-                    </div><?= $err('enquiry_source') ?></div>
-                <div class="field<?= $cls('lead_type') ?>"><span>Enquiry for *</span>
-                    <div class="choice-row">
-                        <?php foreach (['new_customer' => 'New customer', 'new_product' => 'New product'] as $k => $l): ?><label class="choice"><input type="radio" name="lead_type" value="<?= e($k) ?>"<?= $v('lead_type') === $k ? ' checked' : '' ?>> <?= e($l) ?></label><?php endforeach; ?>
-                    </div><?= $err('lead_type') ?></div>
-            <?php endif; ?>
-            <?php if ($type === 'order'): ?>
-                <div class="field field-wide<?= $cls('reference_type') ?>"><span>Order came by *</span>
-                    <div class="choice-row">
-                        <?php foreach (R::ORDER_REFS as $k => $l): ?><label class="choice"><input type="radio" name="reference_type" value="<?= e($k) ?>"<?= $v('reference_type') === $k ? ' checked' : '' ?>> <?= e($l) ?></label><?php endforeach; ?>
-                    </div><?= $err('reference_type') ?></div>
-                <label class="field<?= $cls('reference_detail') ?>"><span>Reference (PO no. / mail date / caller)</span>
-                    <input type="text" name="reference_detail" value="<?= e($v('reference_detail')) ?>" maxlength="255"><?= $err('reference_detail') ?></label>
-                <label class="field<?= $cls('advance_amount') ?>"><span>Advance amount (₹)</span>
-                    <input type="text" name="advance_amount" value="<?= e($v('advance_amount')) ?>" inputmode="decimal"><?= $err('advance_amount') ?></label>
-            <?php endif; ?>
-        </div>
-    </fieldset>
-    <?php endif; ?>
-
-    <?php if ($type === 'dc'): ?>
-    <fieldset class="req-step">
-        <legend>1. Approval for the DC</legend>
-        <div class="req-row">
-            <div class="field<?= $cls('approval_type') ?>"><span>Approved by *</span>
-                <div class="choice-row">
-                    <?php foreach (R::DC_APPROVALS as $k => $l): ?><label class="choice"><input type="radio" name="approval_type" value="<?= e($k) ?>"<?= $v('approval_type') === $k ? ' checked' : '' ?>> <?= e($l) ?></label><?php endforeach; ?>
-                </div><?= $err('approval_type') ?></div>
-            <label class="field field-wide<?= $cls('approval_reference') ?>"><span>Mail details * (date, from, subject)</span>
-                <input type="text" name="approval_reference" value="<?= e($v('approval_reference')) ?>" maxlength="255" placeholder="e.g. 06-10-2026, purchase@customer.com, 'Please send 10 rolls on DC'"><?= $err('approval_reference') ?></label>
-        </div>
-    </fieldset>
-    <?php elseif ($type === 'sample'): ?>
-    <fieldset class="req-step">
-        <legend>1. Sample type</legend>
-        <div class="req-row">
-            <div class="field<?= $cls('sample_type') ?>"><span>Sample is *</span>
-                <div class="choice-row">
-                    <?php foreach (['returnable' => 'Returnable', 'non_returnable' => 'Non-returnable'] as $k => $l): ?><label class="choice"><input type="radio" name="sample_type" value="<?= e($k) ?>"<?= $v('sample_type') === $k ? ' checked' : '' ?>> <?= e($l) ?></label><?php endforeach; ?>
-                </div><?= $err('sample_type') ?></div>
-            <p class="muted small">Note: a manager must approve the sample before it is given out<?= $canApprove ? ' (your own request is approved at once)' : '' ?>.</p>
-        </div>
-    </fieldset>
-    <?php endif; ?>
-
-    <fieldset class="req-step">
-        <legend>2. Customer</legend>
-        <div class="req-row">
-            <div class="field field-wide<?= $cls('customer_id') ?>"><span>Customer from the customer master</span>
-                <div class="lookup" data-lookup="customers">
-                    <input type="text" class="lookup-input" name="customer_label" value="<?= e($v('customer_label')) ?>" placeholder="Type name, code or mobile" autocomplete="off" aria-label="Customer">
-                    <input type="hidden" name="customer_id" value="<?= e($v('customer_id')) ?>">
-                    <ul class="lookup-list" role="listbox" hidden></ul>
-                </div><?= $err('customer_id') ?></div>
-        </div>
-        <details class="req-new"<?= $v('new_name') !== '' || isset($errors['new_mobile']) || isset($errors['branch_id']) ? ' open' : '' ?>>
-            <summary>New customer (not in the master)<?= $needsMaster ? ($canNewCustomer ? ' - will be added to the customer master' : ' - you cannot add customers; ask for it to be added') : '' ?></summary>
-            <div class="req-row">
-                <label class="field"><span>Customer name</span><input type="text" name="new_name" value="<?= e($v('new_name')) ?>" maxlength="150"></label>
-                <label class="field"><span>Company</span><input type="text" name="new_company" value="<?= e($v('new_company')) ?>" maxlength="150"></label>
+    <?php
+    $sel = static function (string $name, array $options, string $empty) use ($v): string {
+        $h = '<select name="' . e($name) . '"><option value="">' . e($empty) . '</option>';
+        foreach ($options as $k => $l) {
+            $h .= '<option value="' . e($k) . '"' . ($v($name) === (string) $k ? ' selected' : '') . '>' . e($l) . '</option>';
+        }
+        return $h . '</select>';
+    };
+    $docName = ['lead' => 'Lead', 'enquiry' => 'Enquiry', 'order' => 'Order', 'dc' => 'DC', 'sample' => 'Sample'][$type];
+    $df = ['order' => 'order_date', 'dc' => 'dc_date', 'sample' => 'document_date'][$type] ?? null;
+    ?>
+    <div class="inv-head">
+        <!-- Left: customer (like the "Bill to" block of an invoice) -->
+        <section class="inv-box inv-customer" aria-label="Customer">
+            <h3 class="inv-title">Customer</h3>
+            <div class="inv-fields">
+                <label class="field"><span>Customer name</span>
+                    <input type="text" id="cust-name" value="<?= e($v('customer_label')) ?>" readonly placeholder="Chosen customer shows here" tabindex="-1">
+                    <span class="muted small" id="cust-meta"></span>
+                </label>
+                <div class="field<?= $cls('customer_id') ?>"><span>Search customer</span>
+                    <div class="lookup" data-lookup="customers" data-name-target="cust-name" data-meta-target="cust-meta">
+                        <input type="text" class="lookup-input" name="customer_label" value="<?= e($v('customer_label')) ?>" placeholder="Type customer name, code or mobile" autocomplete="off" aria-label="Search customer">
+                        <input type="hidden" name="customer_id" value="<?= e($v('customer_id')) ?>">
+                        <ul class="lookup-list" role="listbox" hidden></ul>
+                    </div><?= $err('customer_id') ?></div>
                 <?php if ($isLead): ?><label class="field"><span>Contact person</span><input type="text" name="contact_person" value="<?= e($v('contact_person')) ?>" maxlength="150"></label><?php endif; ?>
-                <label class="field<?= $cls('new_mobile') ?>"><span>Mobile</span><input type="tel" name="new_mobile" value="<?= e($v('new_mobile')) ?>" maxlength="20"><?= $err('new_mobile') ?></label>
-                <label class="field<?= $cls('new_email') ?>"><span>Email</span><input type="email" name="new_email" value="<?= e($v('new_email')) ?>" maxlength="150"><?= $err('new_email') ?></label>
-                <label class="field"><span>City</span><input type="text" name="new_city" value="<?= e($v('new_city')) ?>" maxlength="80"></label>
-                <label class="field<?= $cls('branch_id') ?>"><span>Branch</span><select name="branch_id"><option value="">Choose</option>
-                    <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"<?= $v('branch_id') === (string) $b['id'] ? ' selected' : '' ?>><?= e($b['name']) ?></option><?php endforeach; ?></select><?= $err('branch_id') ?></label>
-                <label class="field<?= $cls('employee_id') ?>"><span>Sales employee</span><select name="employee_id"><option value="">Choose</option>
-                    <?php foreach ($employees as $em): if (!$em['is_sales_rep']) { continue; } ?><option value="<?= e($em['id']) ?>"<?= $v('employee_id') === (string) $em['id'] ? ' selected' : '' ?>><?= e(($em['short_name'] ?: $em['name']) . ' - ' . $em['name']) ?></option><?php endforeach; ?></select><?= $err('employee_id') ?></label>
             </div>
-        </details>
-    </fieldset>
+            <details class="req-new"<?= $v('new_name') !== '' || isset($errors['new_mobile']) || isset($errors['branch_id']) ? ' open' : '' ?>>
+                <summary>New customer (not in the master)<?= $needsMaster ? ($canNewCustomer ? ' - will be added to the customer master' : ' - you cannot add customers; ask for it to be added') : '' ?></summary>
+                <div class="inv-fields">
+                    <label class="field"><span>Customer name</span><input type="text" name="new_name" value="<?= e($v('new_name')) ?>" maxlength="150"></label>
+                    <label class="field"><span>Company</span><input type="text" name="new_company" value="<?= e($v('new_company')) ?>" maxlength="150"></label>
+                    <label class="field<?= $cls('new_mobile') ?>"><span>Mobile</span><input type="tel" name="new_mobile" value="<?= e($v('new_mobile')) ?>" maxlength="20"><?= $err('new_mobile') ?></label>
+                    <label class="field<?= $cls('new_email') ?>"><span>Email</span><input type="email" name="new_email" value="<?= e($v('new_email')) ?>" maxlength="150"><?= $err('new_email') ?></label>
+                    <label class="field"><span>City</span><input type="text" name="new_city" value="<?= e($v('new_city')) ?>" maxlength="80"></label>
+                    <label class="field<?= $cls('branch_id') ?>"><span>Branch</span><select name="branch_id"><option value="">Choose</option>
+                        <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"<?= $v('branch_id') === (string) $b['id'] ? ' selected' : '' ?>><?= e($b['name']) ?></option><?php endforeach; ?></select><?= $err('branch_id') ?></label>
+                    <label class="field<?= $cls('employee_id') ?>"><span>Sales employee</span><select name="employee_id"><option value="">Choose</option>
+                        <?php foreach ($employees as $em): if (!$em['is_sales_rep']) { continue; } ?><option value="<?= e($em['id']) ?>"<?= $v('employee_id') === (string) $em['id'] ? ' selected' : '' ?>><?= e(($em['short_name'] ?: $em['name']) . ' - ' . $em['name']) ?></option><?php endforeach; ?></select><?= $err('employee_id') ?></label>
+                </div>
+            </details>
+        </section>
+
+        <!-- Right: document number, date, reference and other details -->
+        <section class="inv-box inv-doc" aria-label="<?= e($docName) ?> details">
+            <dl class="inv-meta">
+                <div><dt><?= e($docName) ?> no.</dt><dd><?= e($nextNo ?? '—') ?> <span class="muted small">(given on save)</span></dd></div>
+                <?php if ($df === null): ?><div><dt>Date</dt><dd><?= e(date('d-m-Y')) ?></dd></div><?php endif; ?>
+            </dl>
+            <div class="inv-fields">
+                <?php if ($df !== null): ?>
+                    <label class="field<?= $cls($df) ?>"><span>Date *</span><input type="date" name="<?= e($df) ?>" value="<?= e($v($df) ?: date('Y-m-d')) ?>" max="<?= e(date('Y-m-d')) ?>"><?= $err($df) ?></label>
+                <?php endif; ?>
+                <?php if ($type === 'order'): ?>
+                    <label class="field<?= $cls('expected_date') ?>"><span>Expected delivery</span><input type="date" name="expected_date" value="<?= e($v('expected_date')) ?>"><?= $err('expected_date') ?></label>
+                    <label class="field<?= $cls('reference_type') ?>"><span>Ref: order came by *</span><?= $sel('reference_type', R::ORDER_REFS, 'Choose') ?><?= $err('reference_type') ?></label>
+                    <label class="field<?= $cls('reference_detail') ?>"><span>Ref no. (PO no. / mail date / caller)</span><input type="text" name="reference_detail" value="<?= e($v('reference_detail')) ?>" maxlength="255"><?= $err('reference_detail') ?></label>
+                    <label class="field<?= $cls('advance_amount') ?>"><span>Advance amount (₹)</span><input type="text" name="advance_amount" value="<?= e($v('advance_amount')) ?>" inputmode="decimal"><?= $err('advance_amount') ?></label>
+                <?php elseif ($type === 'enquiry'): ?>
+                    <label class="field<?= $cls('enquiry_source') ?>"><span>Ref: enquiry came by *</span><?= $sel('enquiry_source', R::SOURCES, 'Choose') ?><?= $err('enquiry_source') ?></label>
+                    <label class="field<?= $cls('lead_type') ?>"><span>Enquiry for *</span><?= $sel('lead_type', ['new_customer' => 'New customer', 'new_product' => 'New product'], 'Choose') ?><?= $err('lead_type') ?></label>
+                <?php elseif ($type === 'dc'): ?>
+                    <label class="field<?= $cls('approval_type') ?>"><span>Ref: approved by *</span><?= $sel('approval_type', R::DC_APPROVALS, 'Choose') ?><?= $err('approval_type') ?></label>
+                    <label class="field<?= $cls('approval_reference') ?>"><span>Mail details * (date, from, subject)</span><input type="text" name="approval_reference" value="<?= e($v('approval_reference')) ?>" maxlength="255" placeholder="e.g. 06-10-2026, purchase@customer.com"><?= $err('approval_reference') ?></label>
+                    <label class="field<?= $cls('order_no') ?>"><span>Against order no. (optional)</span><input type="text" name="order_no" value="<?= e($v('order_no')) ?>" maxlength="40"><?= $err('order_no') ?></label>
+                <?php elseif ($type === 'sample'): ?>
+                    <label class="field<?= $cls('sample_type') ?>"><span>Sample is *</span><?= $sel('sample_type', ['returnable' => 'Returnable', 'non_returnable' => 'Non-returnable'], 'Choose') ?><?= $err('sample_type') ?></label>
+                    <p class="muted small">A manager must approve the sample before it is given out<?= $canApprove ? ' (your own request is approved at once)' : '' ?>.</p>
+                <?php endif; ?>
+                <?php if (in_array($type, ['lead', 'enquiry', 'order'], true)): ?>
+                    <label class="field<?= $cls('informed_by') ?>"><span>Informed by *</span><?= $sel('informed_by', ['manager' => 'Manager', 'rep' => 'Rep'], 'Choose') ?><?= $err('informed_by') ?></label>
+                    <label class="field<?= $cls('informed_employee_id') ?>"><span>Manager / Rep name</span>
+                        <select name="informed_employee_id"><option value="">—</option>
+                            <?php foreach ($employees as $em): ?><option value="<?= e($em['id']) ?>"<?= $v('informed_employee_id') === (string) $em['id'] ? ' selected' : '' ?>><?= e(($em['short_name'] ?: $em['name']) . ' - ' . $em['name']) ?></option><?php endforeach; ?>
+                        </select><?= $err('informed_employee_id') ?></label>
+                <?php endif; ?>
+            </div>
+        </section>
+    </div>
 
     <fieldset class="req-step">
-        <legend>3. <?= $type === 'order' ? 'Order details' : ($type === 'dc' ? 'DC details' : ($type === 'sample' ? 'Sample details' : 'Products')) ?></legend>
-        <?php if (in_array($type, ['order', 'dc', 'sample'], true)): ?>
-        <div class="req-row">
-            <?php $df = ['order' => 'order_date', 'dc' => 'dc_date', 'sample' => 'document_date'][$type]; ?>
-            <label class="field<?= $cls($df) ?>"><span>Date *</span><input type="date" name="<?= e($df) ?>" value="<?= e($v($df) ?: date('Y-m-d')) ?>" max="<?= e(date('Y-m-d')) ?>"><?= $err($df) ?></label>
-            <?php if ($type === 'order'): ?><label class="field<?= $cls('expected_date') ?>"><span>Expected delivery</span><input type="date" name="expected_date" value="<?= e($v('expected_date')) ?>"><?= $err('expected_date') ?></label><?php endif; ?>
-            <?php if ($type === 'dc'): ?><label class="field<?= $cls('order_no') ?>"><span>Against order no. (optional)</span><input type="text" name="order_no" value="<?= e($v('order_no')) ?>" maxlength="40"><?= $err('order_no') ?></label><?php endif; ?>
-        </div>
-        <?php endif; ?>
+        <legend>Products</legend>
         <div class="table-scroll">
         <table class="table compact req-lines">
             <thead><tr><th>#</th><th>Product<?= $isLead ? ' (or type it if not in the list)' : '' ?></th><th class="right">Quantity</th><th class="right"><?= e($priceHead) ?></th></tr></thead>

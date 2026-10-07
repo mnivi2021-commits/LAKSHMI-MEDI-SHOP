@@ -19,6 +19,11 @@
             input.value = item.label;
             close();
             box.dispatchEvent(new CustomEvent('lookup:chosen', { detail: item, bubbles: true }));
+            // Requests: show the chosen customer's name (and code / city / rep) beside the search box
+            var nameEl = document.getElementById(box.getAttribute('data-name-target') || '');
+            var metaEl = document.getElementById(box.getAttribute('data-meta-target') || '');
+            if (nameEl) { nameEl.value = item.label; }
+            if (metaEl) { metaEl.textContent = item.meta || ''; }
         }
         function render() {
             list.innerHTML = '';
@@ -57,6 +62,8 @@
 
         input.addEventListener('input', function () {
             hidden.value = '';                          // typed text is not a selection
+            var nm = document.getElementById(box.getAttribute('data-name-target') || ''); if (nm) { nm.value = ''; }
+            var mt = document.getElementById(box.getAttribute('data-meta-target') || ''); if (mt) { mt.textContent = ''; }
             clearTimeout(timer);
             timer = setTimeout(search, 200);
         });
