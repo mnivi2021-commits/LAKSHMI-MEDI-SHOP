@@ -18,6 +18,18 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | B9 | The month sheet writes targets into the same targets table used everywhere, so targets agree across the dashboard, Sales Details and reports. |
 | B10 | New permission **Daily Entry Sheet** (view / add / edit): given to Admin Coordinator, Sales Manager, Branch Manager and Sales Executive (own row only). The month sheet needs *Add Sales Targets*. |
 
+## Requests (Screen B) - from the owner's brief on 07-10-2026
+
+| # | Decision |
+|---|---|
+| R1 | Leads and enquiries share the Leads list (an enquiry is a lead record of type "enquiry" with status Quotation); enquiries are numbered ENQ-, leads keep LD-. |
+| R2 | A new customer on an order, DC or sample is added to the customer master immediately (needs *Add Customers*); without that right the user is asked to get the master updated. A new customer on a lead or enquiry stays on the lead until it is converted. |
+| R3 | Sample approval: managers (Admin Head, Sales Manager, Branch Manager) approve; their own requests are approved at once. Unapproved or rejected samples are not counted as pending samples. Samples imported from Excel are records of samples already given, so they count as approved. The dashboard quick ADD follows the same rule. |
+| R4 | A DC request is refused without the customer's mail or the M.D's approval mail and its details. |
+| R5 | An order's PO reference also fills the customer PO number. Mail / phone orders need the mail or call details; an advance-payment order needs the amount. |
+| R6 | Admin Coordinator, Sales Manager, Branch Manager and Sales Executive can now add orders, DC and sample requests (*Add* on Pending Orders, DC, Samples). Approval stays with managers. |
+| R7 | The Branch Performance figures (typed totals) are kept separate from these request records; they are not added together. |
+
 ## Figures and periods
 
 | # | Decision | Change it |

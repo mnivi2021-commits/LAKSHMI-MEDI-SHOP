@@ -14,6 +14,11 @@
         });
     });
 
+    // Print buttons: <button data-print>
+    document.querySelectorAll('[data-print]').forEach(function (b) {
+        b.addEventListener('click', function () { window.print(); });
+    });
+
     // Confirmation for destructive / important actions: <form data-confirm="...">
     document.querySelectorAll('form[data-confirm]').forEach(function (form) {
         form.addEventListener('submit', function (e) {

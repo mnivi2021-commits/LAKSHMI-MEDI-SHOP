@@ -388,11 +388,16 @@ final class QuickAddService
             return null;
         }
 
-        $id = Database::transaction(function () use ($fy, $no, $date, $customer, $employeeId, $supply, $remarks, $product, $qty, $value): int {
+        $approved = Gate::allows('samples.approve', $this->user);
+        $id = Database::transaction(function () use ($fy, $no, $date, $customer, $employeeId, $supply, $remarks, $product, $qty, $value, $approved): int {
             Database::query(
-                "INSERT INTO samples (financial_year_id, document_no, document_date, customer_id, branch_id, employee_id, supply_status, pending_status, remarks, created_by, updated_by)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)",
-                [$fy['id'], $no, $date, $customer['id'], $customer['branch_id'], $employeeId, $supply, $remarks !== '' ? $remarks : null, $this->user['id'], $this->user['id']]
+                // Same rule as the Requests screen: only a manager's own sample is approved at once.
+                "INSERT INTO samples (financial_year_id, document_no, document_date, customer_id, branch_id, employee_id, supply_status, pending_status,
+                                      approval_status, approved_by, approved_at, remarks, created_by, updated_by)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)",
+                [$fy['id'], $no, $date, $customer['id'], $customer['branch_id'], $employeeId, $supply,
+                 $approved ? 'approved' : 'requested', $approved ? $this->user['id'] : null, $approved ? date('Y-m-d H:i:s') : null,
+                 $remarks !== '' ? $remarks : null, $this->user['id'], $this->user['id']]
             );
             $id = (int) Database::connection()->lastInsertId();
             Database::query('INSERT INTO sample_items (sample_id, product_id, quantity, sample_value) VALUES (?, ?, ?, ?)',

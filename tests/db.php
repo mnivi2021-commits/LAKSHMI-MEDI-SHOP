@@ -45,7 +45,7 @@ try {
 
     // --- Gate: role permissions --------------------------------------------------
     check('admin head holds every permission', $total, count(Gate::permissionsFor($admin)));
-    check('coordinator holds 26 permissions (incl. daily entry)', 26, count(Gate::permissionsFor($coord)));
+    check('coordinator holds 29 permissions (incl. daily entry, requests)', 29, count(Gate::permissionsFor($coord)));
     check('coordinator can view dashboard', true, Gate::allows('dashboard.view', $coord));
     check('coordinator can import pending orders', true, Gate::allows('pending_orders.import', $coord));
     check('coordinator cannot manage users', false, Gate::allows('users.view', $coord));

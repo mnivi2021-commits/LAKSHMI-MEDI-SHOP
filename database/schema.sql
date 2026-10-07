@@ -512,6 +512,7 @@ CREATE TABLE sales_invoices (
     document_type       ENUM('invoice','credit_note') NOT NULL DEFAULT 'invoice'
                         COMMENT 'Credit notes are stored positive and subtracted in reports',
     invoice_no          VARCHAR(40)  NOT NULL,
+    customer_po_no      VARCHAR(60)  NULL COMMENT 'Customer PO reference',
     invoice_date        DATE         NOT NULL,
     due_date            DATE         NULL COMMENT 'NULL = invoice_date + customer.credit_days',
     customer_id         INT UNSIGNED NOT NULL,
@@ -672,9 +673,14 @@ CREATE TABLE pending_orders (
     order_no                VARCHAR(40)  NOT NULL,
     order_date              DATE         NOT NULL,
     customer_po_no          VARCHAR(60)  NULL,
+    reference_type          ENUM('po','mail','phone','advance') NULL COMMENT 'How the order came',
+    reference_detail        VARCHAR(255) NULL,
+    advance_amount          DECIMAL(15,2) NULL,
     customer_id             INT UNSIGNED NOT NULL,
     branch_id               INT UNSIGNED NOT NULL,
     employee_id             INT UNSIGNED NULL,
+    informed_by             ENUM('manager','rep') NULL,
+    informed_employee_id    INT UNSIGNED NULL,
     expected_delivery_date  DATE         NULL,
     status                  ENUM('open','partial','closed','cancelled') NOT NULL DEFAULT 'open',
     source                  ENUM('manual','import','api','email') NOT NULL DEFAULT 'manual',
@@ -686,6 +692,7 @@ CREATE TABLE pending_orders (
     updated_at              DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at              DATETIME     NULL,
     deleted_by              INT UNSIGNED NULL,
+    CONSTRAINT fk_po_informed FOREIGN KEY (informed_employee_id) REFERENCES employees(id) ON DELETE SET NULL,
     UNIQUE KEY uq_po_fy_order (financial_year_id, order_no),
     KEY idx_po_order_no (order_no),
     KEY idx_po_status_date (status, order_date),
@@ -738,6 +745,11 @@ CREATE TABLE samples (
     branch_id           INT UNSIGNED NOT NULL,
     employee_id         INT UNSIGNED NULL,
     supply_status       ENUM('not_supplied','partially_supplied','supplied') NOT NULL DEFAULT 'not_supplied',
+    sample_type         ENUM('returnable','non_returnable') NULL,
+    approval_status     ENUM('requested','approved','rejected') NOT NULL DEFAULT 'approved' COMMENT 'Manager approval; only approved samples count',
+    approved_by         INT UNSIGNED NULL,
+    approved_at         DATETIME     NULL,
+    approval_note       VARCHAR(255) NULL,
     pending_status      ENUM('pending','approved','rejected','converted','returned','closed') NOT NULL DEFAULT 'pending'
                         COMMENT 'pending = awaiting customer outcome',
     import_batch_id     INT UNSIGNED NULL,
@@ -748,6 +760,7 @@ CREATE TABLE samples (
     updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at          DATETIME     NULL,
     deleted_by          INT UNSIGNED NULL,
+    CONSTRAINT fk_samples_approved_by FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE KEY uq_samples_fy_doc (financial_year_id, document_no),
     KEY idx_samples_status (pending_status, document_date),
     KEY idx_samples_employee (employee_id, pending_status),
@@ -784,12 +797,15 @@ CREATE TABLE dc_records (
     dc_no               VARCHAR(40)  NOT NULL,
     dc_date             DATE         NOT NULL,
     sample_id           INT UNSIGNED NULL COMMENT 'Sample this DC supplied, if any',
+    order_id            INT UNSIGNED NULL,
     customer_id         INT UNSIGNED NOT NULL,
     branch_id           INT UNSIGNED NOT NULL,
     employee_id         INT UNSIGNED NULL,
     supply_status       ENUM('not_supplied','partially_supplied','supplied') NOT NULL DEFAULT 'supplied',
     pending_status      ENUM('pending','invoiced','returned','closed') NOT NULL DEFAULT 'pending'
                         COMMENT 'pending = goods out on DC, not yet invoiced or returned',
+    approval_type       ENUM('customer_mail','md_approval') NULL COMMENT 'Customer mail or M.D approval mail',
+    approval_reference  VARCHAR(255) NULL,
     invoice_id          INT UNSIGNED NULL COMMENT 'Invoice that cleared this DC',
     import_batch_id     INT UNSIGNED NULL,
     remarks             VARCHAR(500) NULL,
@@ -799,6 +815,7 @@ CREATE TABLE dc_records (
     updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at          DATETIME     NULL,
     deleted_by          INT UNSIGNED NULL,
+    CONSTRAINT fk_dc_order FOREIGN KEY (order_id) REFERENCES pending_orders(id) ON DELETE SET NULL,
     UNIQUE KEY uq_dc_fy_no (financial_year_id, dc_no),
     KEY idx_dc_status (pending_status, dc_date),
     KEY idx_dc_employee (employee_id, pending_status),
@@ -848,14 +865,20 @@ CREATE TABLE lead_sources (
 CREATE TABLE leads (
     id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     lead_number         VARCHAR(20)  NOT NULL,
+    record_type         ENUM('lead','enquiry') NOT NULL DEFAULT 'lead',
+    lead_type           ENUM('new_customer','new_product') NOT NULL DEFAULT 'new_customer',
     name                VARCHAR(150) NOT NULL,
     company_name        VARCHAR(150) NULL,
+    contact_person      VARCHAR(150) NULL,
     mobile              VARCHAR(20)  NULL,
     email               VARCHAR(150) NULL,
     source_id           INT UNSIGNED NULL,
+    enquiry_source      ENUM('mail','office_visit','phone','other') NULL,
     product_id          INT UNSIGNED NULL,
     branch_id           INT UNSIGNED NOT NULL,
     employee_id         INT UNSIGNED NULL,
+    informed_by         ENUM('manager','rep') NULL,
+    informed_employee_id INT UNSIGNED NULL,
     status              ENUM('new','contacted','interested','follow_up','quotation','negotiation','won','lost') NOT NULL DEFAULT 'new',
     priority            ENUM('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
     expected_value      DECIMAL(15,2) NULL,
@@ -871,6 +894,8 @@ CREATE TABLE leads (
     updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at          DATETIME     NULL,
     deleted_by          INT UNSIGNED NULL,
+    KEY idx_leads_type (record_type, status),
+    CONSTRAINT fk_leads_informed FOREIGN KEY (informed_employee_id) REFERENCES employees(id) ON DELETE SET NULL,
     UNIQUE KEY uq_leads_number (lead_number),
     KEY idx_leads_name (name),
     KEY idx_leads_company (company_name),
@@ -893,6 +918,20 @@ CREATE TABLE leads (
     CONSTRAINT fk_leads_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_leads_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
     -- fk_leads_email added after email_messages table
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE lead_items (
+    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    lead_id      INT UNSIGNED NOT NULL,
+    product_id   INT UNSIGNED NULL COMMENT 'NULL = product not in the master; the form then requires a description',
+    description  VARCHAR(200) NULL,
+    quantity     DECIMAL(14,3) NOT NULL,
+    unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Approximate (lead) or offered (enquiry) price per unit',
+    amount       DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_lead_items_lead (lead_id),
+    CONSTRAINT fk_lead_items_lead    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE,
+    CONSTRAINT fk_lead_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE customers
@@ -1400,6 +1439,7 @@ SELECT smi.id                   AS item_id,
 FROM samples s
 JOIN sample_items smi ON smi.sample_id = s.id
 WHERE s.pending_status = 'pending'
+  AND s.approval_status = 'approved'
   AND s.deleted_at IS NULL;
 
 -- Goods out on DC, not yet invoiced / returned / closed.

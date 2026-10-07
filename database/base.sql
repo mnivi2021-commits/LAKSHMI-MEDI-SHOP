@@ -43,7 +43,7 @@ UNION ALL SELECT 'daily_entry',    'Daily Entry Sheet',           21, '["view","
 UNION ALL SELECT 'collections',    'Payment Collection',           5, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'outstanding',    'Outstanding',                  6, '["view","import","export"]'
 UNION ALL SELECT 'pending_orders', 'Pending Orders',               7, '["view","add","edit","delete","import","export"]'
-UNION ALL SELECT 'samples',        'Samples',                      8, '["view","add","edit","delete","import","export"]'
+UNION ALL SELECT 'samples',        'Samples',                      8, '["view","add","edit","delete","import","export","approve"]'
 UNION ALL SELECT 'dc',             'Delivery Challans',            9, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'hrm',            'HRM',                         10, '["view","add","edit","delete","export"]'
 UNION ALL SELECT 'customers',      'Customers',                   11, '["view","add","edit","delete","import","export"]'
@@ -70,7 +70,8 @@ SELECT 2, id FROM permissions WHERE slug IN (
  'pending_orders.view','pending_orders.import','samples.view','samples.import','dc.view','dc.import',
  'hrm.view','reports.view','reports.export',
  'customers.view','products.view','leads.view','leads.add','leads.edit',
- 'mail.view','sms.view','sms.send','daily_entry.view','daily_entry.add','daily_entry.edit');
+ 'mail.view','sms.view','sms.send','daily_entry.view','daily_entry.add','daily_entry.edit',
+ 'pending_orders.add','dc.add','samples.add');
 
 -- Sales Manager
 INSERT INTO role_permissions (role_id, permission_id)
@@ -79,14 +80,16 @@ SELECT 3, id FROM permissions WHERE slug IN (
  'collections.view','outstanding.view','outstanding.export','pending_orders.view','samples.view','dc.view',
  'customers.view','customers.add','customers.edit','products.view',
  'leads.view','leads.add','leads.edit','leads.export','reports.view','reports.export','mail.view','sms.view','sms.send',
- 'daily_entry.view','daily_entry.add','daily_entry.edit');
+ 'daily_entry.view','daily_entry.add','daily_entry.edit','samples.approve',
+ 'pending_orders.add','dc.add','samples.add');
 
 -- Sales Executive (own data only via data_scope = own)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 4, id FROM permissions WHERE slug IN (
  'dashboard.view','sales.view','targets.view','collections.view','outstanding.view',
  'pending_orders.view','samples.view','dc.view','customers.view','products.view',
- 'leads.view','leads.add','leads.edit','mail.view','daily_entry.view','daily_entry.add','daily_entry.edit');
+ 'leads.view','leads.add','leads.edit','mail.view','daily_entry.view','daily_entry.add','daily_entry.edit',
+ 'pending_orders.add','dc.add','samples.add');
 
 -- Branch Manager
 INSERT INTO role_permissions (role_id, permission_id)
@@ -94,7 +97,8 @@ SELECT 5, id FROM permissions WHERE slug IN (
  'dashboard.view','branches.view','sales.view','sales.export','targets.view','collections.view','outstanding.view',
  'pending_orders.view','samples.view','dc.view','hrm.view','customers.view','customers.add','customers.edit',
  'products.view','leads.view','leads.add','leads.edit','reports.view','reports.export','mail.view','sms.view','sms.send',
- 'daily_entry.view','daily_entry.add','daily_entry.edit');
+ 'daily_entry.view','daily_entry.add','daily_entry.edit','samples.approve',
+ 'pending_orders.add','dc.add','samples.add');
 
 -- HR
 INSERT INTO role_permissions (role_id, permission_id)
@@ -158,4 +162,8 @@ INSERT INTO settings (setting_group, setting_key, setting_value, value_type, des
 INSERT INTO number_sequences (name, prefix, next_number, padding) VALUES
  ('customer', 'CUS-', 1, 5),
  ('lead',     'LD-',  1, 5),
- ('employee', 'EMP',  1, 3);
+ ('employee', 'EMP',  1, 3),
+ ('enquiry',  'ENQ-', 1, 5),
+ ('order',    'ORD-', 1, 5),
+ ('dc',       'DCR-', 1, 5),
+ ('sample',   'SMR-', 1, 5);

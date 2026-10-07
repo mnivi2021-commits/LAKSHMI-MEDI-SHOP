@@ -60,6 +60,20 @@ Filters: Financial year · Month · Branch · Sales employee.
 The **Bill-wise detail** tab keeps the earlier dashboard, built from uploaded or added bills (invoices, receipts, orders, samples, DC).
 It has the Customer and Product filters, the drill-down pages (06-09) and the bill-by-bill **+ ADD** panel. Use it when bills are uploaded through Excel Upload.
 
+## Requests (59-68)
+
+One screen for everything the team asks the office to record. Pick a tab:
+
+- **New lead**: who informed (Manager / Rep), the customer, products and an approximate price. The lead sheet is internal and nothing is sent to the customer.
+- **Enquiry**: how it came (customer request mail / direct visit to office), who informed, whether it is for a new customer or a new product, then customer, contact, products, quantity and offer price. Saving prepares a printable **offer** (ENQ-number) with a "Send enquiry SMS" button.
+- **Order**: how the order came (customer PO reference / customer mail / phone call / advance payment) with the reference detail (PO number, mail details, who called, or the advance amount), who informed, products and rates (ORD-number).
+- **DC request**: needs the customer's mail or the M.D's approval mail, with the mail details. It can be linked to an order number (DCR-number).
+- **Sample request**: Returnable or Non-returnable. A manager must approve it (Approve / Reject in the list or on the request). A manager's own request is approved at once. Only approved samples count as pending samples (SMR-number).
+
+The customer is picked from the customer master (type a name, code or mobile). For a customer who is not in the master, open "New customer". Orders, DC and samples add the customer to the master at once. A user without the right to add customers is asked to get the customer master updated first. Leads and enquiries keep the new customer on the lead only.
+
+Every request has a printable view (Print button).
+
 ## Sales Details (12-14)
 
 One table **by employee**, **by branch** or **by month**: target, sales, achieved %, collection, pending orders,

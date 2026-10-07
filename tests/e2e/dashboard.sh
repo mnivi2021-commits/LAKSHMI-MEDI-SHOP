@@ -79,12 +79,13 @@ expect "missing CSRF = 403" "${r%% *}" 403
 contains "CSRF error is JSON" "$TMP/body" '"success":false'
 r=$(req A GET "/?view=bills");                     contains "freshness reflects today's entries" "$TMP/body" "$(date +%d-%m-%Y)"
 
-echo "== Coordinator (view only)"
+echo "== Coordinator (orders / samples / DC only)"
 first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
 r=$(req C GET "/?view=bills");                     expect "coordinator dashboard" "${r%% *}" 200
-lacks "no ADD button without add rights" "$TMP/body" "+ ADD"
+contains "ADD button for order/sample/DC rights" "$TMP/body" "+ ADD"
+lacks "no sale form without sales.add" "$TMP/body" 'data-quick-add="sale"'
 r=$(add C sale --data "invoice_no=C/1&invoice_date=$TODAY&customer_id=1&product_id=1&quantity=1&taxable_amount=1")
-expect "server refuses coordinator ADD (403)" "${r%% *}" 403
+expect "server refuses coordinator sale ADD (403)" "${r%% *}" 403
 
 echo "== Sales executive JANA (own data only)"
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'

@@ -26,6 +26,7 @@ use App\Modules\Products\ProductController;
 use App\Modules\Settings\AuditController;
 use App\Modules\Settings\SettingsController;
 use App\Modules\Reports\ReportController;
+use App\Modules\Requests\RequestController;
 use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
@@ -251,6 +252,15 @@ $router->post('/settings/years', [SettingsController::class, 'addYear'], ['auth'
 $router->post('/settings/years/{id}/lock', [SettingsController::class, 'toggleLock'], ['auth', 'can:settings.manage', 'csrf']);
 $router->get('/settings/audit', [AuditController::class, 'index'], ['auth', 'can:audit.view']);
 $router->get('/settings/audit/export', [AuditController::class, 'export'], ['auth', 'can:audit.view']);
+
+// -----------------------------------------------------------------------------
+// Requests (Screen B): lead / enquiry / order, sample and DC requests
+// -----------------------------------------------------------------------------
+$reqAny = 'can_any:leads.add,pending_orders.add,dc.add,samples.add';
+$router->get('/requests', [RequestController::class, 'index'], ['auth', $reqAny]);
+$router->get('/requests/view/{type}/{id}', [RequestController::class, 'show'], ['auth', $reqAny]);
+$router->post('/requests/sample/{id}/decide', [RequestController::class, 'decideSample'], ['auth', 'can:samples.approve', 'csrf']);
+$router->post('/requests/{type}', [RequestController::class, 'store'], ['auth', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // HRM: employees, departments, designations
