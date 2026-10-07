@@ -73,6 +73,13 @@ for approval at each step). Each item says **what was chosen** and **where to ch
 | A3 | Owner confirmed: Sales Executives are view only (their own data). They cannot enter leads, daily totals, orders, DC or sample requests, or follow-ups. |
 | A4 | Follow up has its own rights: *View Follow up* (lists and statements) and *Add Follow up* (record a payment follow-up). |
 
+## Look and feel (owner's design, 07-10-2026)
+
+| # | Decision |
+|---|---|
+| D1 | The screens follow the design the owner sent: black rounded sidebar with icons and a purple active item, large bold titles, soft grey cards, black pill tabs and buttons, table rows as rounded bars with a black total bar, and the first KPI card in black. |
+| D2 | It is CSS only (Theme v2 at the end of app.css): no external fonts or scripts, so the security policy is unchanged. Menu icons are inline SVG masks. Dark mode is kept. |
+
 ## Figures and periods
 
 | # | Decision | Change it |

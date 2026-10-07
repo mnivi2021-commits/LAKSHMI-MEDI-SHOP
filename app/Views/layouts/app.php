@@ -52,12 +52,13 @@ $isActive = static function (array $m) use ($path): bool {
 
     <div class="shell">
         <nav id="sidebar" class="sidebar" aria-label="Main">
+            <a class="sidebar-brand" href="<?= e(url('/')) ?>"><span class="brand-mark" aria-hidden="true">M</span> Marketing CRM</a>
             <?php if (!$user['must_change_password']): ?>
-                <ul>
+                <ul class="sidebar-menu">
                     <?php foreach ($menu as $m): ?>
                         <li>
                             <?php if ($m['ready']): ?>
-                                <a href="<?= e(url($m['path'])) ?>" class="<?= $isActive($m) ? 'active' : '' ?>"<?= $isActive($m) ? ' aria-current="page"' : '' ?>><?= e($m['label']) ?></a>
+                                <a href="<?= e(url($m['path'])) ?>" class="<?= $isActive($m) ? 'active' : '' ?>"<?= $isActive($m) ? ' aria-current="page"' : '' ?>><span class="nav-ico ico-<?= e($m['key']) ?>" aria-hidden="true"></span><?= e($m['label']) ?></a>
                             <?php else: ?>
                                 <span class="soon" title="Coming in a later phase"><?= e($m['label']) ?> <small>Soon</small></span>
                             <?php endif; ?>
@@ -66,7 +67,13 @@ $isActive = static function (array $m) use ($path): bool {
                 </ul>
             <?php endif; ?>
             <ul class="sidebar-account">
-                <li><a href="<?= e(url('password/change')) ?>">Change password</a></li>
+                <li><a href="<?= e(url('password/change')) ?>"><span class="nav-ico ico-settings" aria-hidden="true"></span>Account settings</a></li>
+                <li>
+                    <form method="post" action="<?= e(url('logout')) ?>" class="inline-form">
+                        <?= Csrf::field() ?>
+                        <button type="submit" class="sidebar-logout"><span class="nav-ico ico-logout" aria-hidden="true"></span>Logout</button>
+                    </form>
+                </li>
             </ul>
         </nav>
         <main class="main">
