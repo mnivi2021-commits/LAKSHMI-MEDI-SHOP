@@ -614,3 +614,40 @@ tr.unread td { font-weight: 600; }
 
 /* ---- Phase 22: Settings & audit ---------------------------------------- */
 .audit-diff { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; line-height: 1.45; max-width: 520px; overflow-wrap: anywhere; }
+
+/* ---- Branch Performance + daily entry sheets ----------------------------- */
+.th-sub { display: block; font-size: .72rem; font-weight: 400; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.center { text-align: center; }
+.pos { color: var(--ok-fg); }
+.bp-table th { vertical-align: bottom; }
+.bp-table .bp-group { border-bottom: 1px solid var(--border); }
+.bp-table td.num a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.bp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0 8px; }
+@media (max-width: 1100px) { .bp-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .bp-grid { grid-template-columns: 1fr; } }
+.bp-card { padding: 16px 18px; }
+.bp-title { font-size: 1rem; margin: 0 0 10px; }
+.bp-sub { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 4px; }
+.bp-list { margin: 0; }
+.bp-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--border); }
+.bp-list > div:last-child { border-bottom: 0; }
+.bp-list dt { color: var(--text); }
+.bp-list dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bp-list dd a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.bp-list .bp-total { border-top: 1px solid var(--border); }
+.bp-list .bp-total dt, .bp-list .bp-total dd { font-weight: 700; }
+.sheet-filters { grid-template-columns: 1fr 1fr auto; }
+.sheet-table th, .sheet-table td { padding: 4px 4px; }
+.sheet-table .sheet-name { position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 130px; text-align: left; padding-left: 12px; }
+.sheet-table thead .sheet-name { background: var(--surface); }
+.sheet-table .sheet-group { border-left: 2px solid var(--border); border-bottom: 1px solid var(--border); }
+.sheet-table input { width: 92px; padding: 6px 7px; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: .88rem; text-align: right; background: var(--surface); color: var(--text); }
+.sheet-table input.sheet-count { width: 58px; }
+.sheet-table input::placeholder { color: var(--muted); opacity: .7; }
+.sheet-table input:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+.sheet-table .sheet-error input { border-color: var(--fail-fg); background: var(--fail-bg); }
+.sheet-table tr.sheet-saved .sheet-name { box-shadow: inset 3px 0 0 var(--ok-fg); }
+.dash-filters.dash-filters-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: end; }
+@media (max-width: 900px) { .dash-filters.dash-filters-4 { grid-template-columns: 1fr 1fr; } }
+.dash-filters.dash-filters-4 .filter-actions { grid-column: auto; }
+@media (max-width: 900px) { .dash-filters.dash-filters-4 .filter-actions { grid-column: 1 / -1; } }

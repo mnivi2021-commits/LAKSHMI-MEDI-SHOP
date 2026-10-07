@@ -21,7 +21,7 @@ first_login() {
   post "$1" /login /login --data-urlencode "identifier=$2" --data-urlencode "password=$3" >/dev/null
   post "$1" /password/change /password/change --data-urlencode "current_password=$3" --data-urlencode "new_password=$4" --data-urlencode "confirm_password=$4" >/dev/null
 }
-salesTotal() { req A GET / >/dev/null; tr -d '\n' < "$TMP/body" | grep -o 'Total sales FY [0-9-]*</span>[^₹]*₹[0-9,]*' | grep -o '₹[0-9,]*' | head -1; }
+salesTotal() { req A GET "/?view=bills" >/dev/null; tr -d '\n' < "$TMP/body" | grep -o 'Total sales FY [0-9-]*</span>[^₹]*₹[0-9,]*' | grep -o '₹[0-9,]*' | head -1; }
 settings() { post A /settings /settings --data-urlencode "company__name=$1" --data "finance__sales_amount_basis=$2&outstanding__source=$3&outstanding__aging_basis=$4" --data-urlencode "outstanding__aging_buckets=$5"; }
 
 first_login A admin 'Admin@2026' 'Teal-Harbour-7391'

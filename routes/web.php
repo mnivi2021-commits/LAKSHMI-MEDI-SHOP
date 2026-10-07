@@ -30,6 +30,7 @@ use App\Modules\Sms\SmsController;
 use App\Modules\Sales\SalesDetailsController;
 use App\Modules\Dashboard\CollectionController;
 use App\Modules\Dashboard\DashboardController;
+use App\Modules\Dashboard\EntryController;
 use App\Modules\Dashboard\OutstandingController;
 use App\Modules\Dashboard\PendingOrderController;
 use App\Modules\Dashboard\SalesController;
@@ -54,6 +55,12 @@ $router->get('/', static function (): void {
 // Dashboard quick-add (JSON, session + CSRF header) and scope-limited lookups
 $router->post('/dashboard/add/{type}', [DashboardController::class, 'quickAdd'], ['auth', 'csrf']);
 $router->get('/dashboard/lookup/{type}', [DashboardController::class, 'lookup'], ['auth', 'can:dashboard.view']);
+
+// Branch Performance: + ADD sheets (month start / daily) and the rows behind each figure
+$router->get('/entry', [EntryController::class, 'sheet'], ['auth', 'can_any:daily_entry.add,targets.add']);
+$router->post('/entry/day', [EntryController::class, 'saveDay'], ['auth', 'can:daily_entry.add', 'csrf']);
+$router->post('/entry/month', [EntryController::class, 'saveMonth'], ['auth', 'can:targets.add', 'csrf']);
+$router->get('/dashboard/entries', [EntryController::class, 'entries'], ['auth', 'can:dashboard.view']);
 
 // Step A1 - Sales Performance drill-down, export, mobile API
 $router->get('/dashboard/sales', [SalesController::class, 'detail'], ['auth', 'can:dashboard.view', 'can:sales.view']);

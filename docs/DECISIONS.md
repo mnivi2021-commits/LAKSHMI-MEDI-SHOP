@@ -3,6 +3,21 @@
 During the build, the owner asked for decisions to be made with sensible defaults and listed here (rather than stopping
 for approval at each step). Each item says **what was chosen** and **where to change it** if the business prefers otherwise.
 
+## Branch Performance (dashboard first page) - decided with the owner on 07-10-2026
+
+| # | Decision |
+|---|---|
+| B1 | The first page is built from **daily entry sheets with totals per sales employee** (owner's choice), not from individual bills. The bill-wise dashboard remains as the *Bill-wise detail* tab. |
+| B2 | Opening outstanding is **one total per employee per month**, typed on the month-start sheet (owner's choice). |
+| B3 | Sales and collection carry **NOB** (number of bills) and **NOC** (number of customers). NOC may not exceed NOB; a value needs at least one bill. |
+| B4 | "Sales as on previous day" and "This month sales" stop at yesterday; today is shown separately, so nothing is counted twice. |
+| B5 | Positions (pending orders, enquiries, open DC, samples, overdue, 90 / 150 days) use each employee's **latest entered figure on or before the as-on date**. A blank cell means "unchanged". They are never added up over days. |
+| B6 | "Enquiry pending" and "Leads created" are counts. Leads created are added up for the month; enquiries pending are a position. |
+| B7 | "90 days" = 91-150 days and "150 days" = over 150 days, as elsewhere in the CRM; the employee types these totals from the accounts software. |
+| B8 | % figures are coloured against the share of the month already gone (green = ahead, red = below 80% of pace), so early-month figures are not shown red unfairly. |
+| B9 | The month sheet writes targets into the same targets table used everywhere, so targets agree across the dashboard, Sales Details and reports. |
+| B10 | New permission **Daily Entry Sheet** (view / add / edit): given to Admin Coordinator, Sales Manager, Branch Manager and Sales Executive (own row only). The month sheet needs *Add Sales Targets*. |
+
 ## Figures and periods
 
 | # | Decision | Change it |

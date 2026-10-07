@@ -12,8 +12,12 @@
 /** @var int $currentFyId */
 use App\Core\Csrf;
 
+$dashView ??= 'bills';
+$isBranch = $dashView === 'branch';
 $f = $ctx->filters;
 $asOn = $ctx->asOn->format('d-m-Y');
+$windows ??= $ctx->windows();
+$addTypes ??= [];
 $prev = $windows['fy_to_previous_day'];
 $mtdPrev = $windows['month_to_previous_day'];
 $monthName = $ctx->asOn->format('F');
@@ -26,23 +30,30 @@ ob_start();
 <div class="page-head dash-head">
     <div>
         <p class="eyebrow">Management dashboard</p>
-        <h1>Dashboard</h1>
+        <h1><?= $isBranch ? 'Branch Performance' : 'Dashboard · bill-wise detail' ?></h1>
         <p class="muted asof">
             As on <strong><?= e($asOn) ?></strong> · <?= e($ctx->fyRow['label']) ?>
             <?php if ($ctx->isLive): ?><span class="badge badge-ok" title="Includes today's entries so far">Live</span>
             <?php else: ?><span class="badge badge-muted" title="A closed period: figures will not change">Closed period</span><?php endif; ?>
         </p>
     </div>
-    <?php if ($addTypes): ?>
+    <?php if ($isBranch && ($canEntry ?? false)): ?>
+        <a class="btn btn-primary btn-lg" href="<?= e(url('entry') . ($f['branch_id'] ? '?branch=' . $f['branch_id'] : '')) ?>">+ ADD</a>
+    <?php elseif (!$isBranch && $addTypes): ?>
         <button type="button" class="btn btn-primary btn-lg" data-drawer-open="quick-add" aria-controls="quick-add">+ ADD</button>
     <?php endif; ?>
 </div>
+
+<nav class="tabs" aria-label="Dashboard view">
+    <a href="<?= e(url('/') . '?' . $ctx->query(['customer' => null, 'product' => null])) ?>" class="<?= $isBranch ? 'active' : '' ?>">Branch performance</a>
+    <a href="<?= e(url('/') . '?' . $ctx->query(['view' => 'bills'])) ?>" class="<?= $isBranch ? '' : 'active' ?>">Bill-wise detail</a>
+</nav>
 
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
 <?php foreach ($ctx->notices as $n): ?><div class="alert alert-info"><?= e($n) ?></div><?php endforeach; ?>
 
 <!-- Filters (GET, so every view is a shareable, bookmarkable link) -->
-<form method="get" action="<?= e(url('/')) ?>" class="card dash-filters" aria-label="Dashboard filters">
+<form method="get" action="<?= e(url('/')) ?>" class="card dash-filters<?= $isBranch ? ' dash-filters-4' : '' ?>" aria-label="Dashboard filters">
     <label class="field">
         <span>Financial year</span>
         <select name="fy" data-autosubmit>
@@ -78,6 +89,8 @@ ob_start();
             <?php endforeach; ?>
         </select>
     </label>
+    <?php if (!$isBranch): ?>
+    <input type="hidden" name="view" value="bills">
     <div class="field">
         <span>Customer</span>
         <div class="lookup" data-lookup="customers">
@@ -94,11 +107,17 @@ ob_start();
             <ul class="lookup-list" role="listbox" hidden></ul>
         </div>
     </div>
+    <?php endif; ?>
     <div class="filter-actions">
         <button type="submit" class="btn btn-primary">Apply</button>
-        <?php if ($activeFilters): ?><a class="btn" href="<?= e(url('/') . '?fy=' . $f['fy_id']) ?>">Reset</a><?php endif; ?>
+        <?php if ($activeFilters): ?><a class="btn" href="<?= e(url('/') . '?fy=' . $f['fy_id'] . ($isBranch ? '' : '&view=bills')) ?>">Reset</a><?php endif; ?>
     </div>
 </form>
+
+<?php if ($isBranch): ?>
+<?php require __DIR__ . '/_branch_performance.php'; ?>
+<?php if ($mail !== null) { require __DIR__ . '/_mail_section.php'; } ?>
+<?php else: ?>
 
 <!-- Section A: KPI cards. Figures are built in Phases 6-8; the periods are live now. -->
 <section aria-labelledby="sec-a">
@@ -125,7 +144,9 @@ ob_start();
     </ul>
 </section>
 
-<?php if ($addTypes): ?>
+<?php endif; ?>
+
+<?php if (!$isBranch && $addTypes): ?>
 <!-- Quick ADD drawer -->
 <div class="drawer-backdrop" data-drawer-close hidden></div>
 <aside id="quick-add" class="drawer" role="dialog" aria-modal="true" aria-labelledby="quick-add-title" hidden>

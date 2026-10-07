@@ -12,26 +12,53 @@ Screen-by-screen guide to the Marketing CRM. Pictures of every screen are in [`.
 * Forgot your password? Ask the Admin Head to reset it (**Access → Users**).
 * **Sign out** is at the top right. Changing your password signs you out everywhere else, including the mobile app.
 
-## Dashboard (02-05)
+## Dashboard: Branch Performance (02-05)
 
-**Filters:** Financial year · Month · Branch · Sales employee · Customer · Product. The page address keeps the
-filters, so you can bookmark or share a view.
+The first page shows **Branch Performance** from the daily entry sheets (see **+ ADD** below).
+Filters: Financial year · Month · Branch · Sales employee.
+* **No branch chosen:** one row per branch, plus a total.
+* **A branch chosen:** its sales employees, with the total row being that branch's one row.
+* **One employee chosen:** a single row.
 
-* **As on:** the current month shows today's figures (**Live**). A past month shows figures as on its last day.
-* **Sales Performance:**
-  * annual target and sales so far (FY start → yesterday, plus today; never double-counted)
-  * target achieved % and target pending
-  * average monthly sales and the monthly sales still needed
-* **Payment Collection:** this month's collection against the collection target, today's receipts, overdue bills.
-* **Branch Pending Order:** value not yet supplied, current month's orders, oldest order, ageing.
-* **Email:** New Enquiry · Order · New Lead · Payment Advice · Other. Each card shows the month count, as-on-day count and open emails.
-* **Sales representative:** pick a rep (a Sales Executive sees their own panel automatically). The panel shows sales, collection, pending orders, samples and DC, and the overdue split up to 90 / 91-150 / 150+ days.
-* **Customer / Product:** choosing a customer or product in the filter opens its panel.
-* **Every amount is a link** to the list of documents behind it. Lists show **matches dashboard** when they add up to the card.
-* **+ ADD** (top right) quickly records a target, sale, collection, pending order, sample or DC.
-  Collections are adjusted against the customer's oldest open bills automatically.
+1. **Sales performance**
+   * Annual target and sales as on the previous day (FY start → yesterday).
+   * Month target and this month's sales up to yesterday (value, NOB = number of bills, NOC = number of customers).
+   * % = month sales ÷ month target × 100. Today's sales are shown separately.
+   * % figures are coloured against how much of the month has passed: green = ahead of pace, red = well behind.
+2. **Pending order · Enquiry · Lead**
+   * Pending orders (no stock / price issue / doubtful).
+   * Enquiries pending (new customer / new product).
+   * Leads created this month (new customer / new product).
+3. **Payment collection**
+   * Month opening outstanding.
+   * Collection this month up to yesterday (with NOB / NOC, % of collection target and % of opening outstanding).
+   * Today's collection.
+   * Overdue payment, and outstanding of 90 days (91-150) and 150 days (over 150).
+4. **Open DC · Samples:** open DC with order / mail confirmation / rep's inform; samples returnable / non-returnable.
 
-Drill-down pages: Sales (06), Collection (07), Pending orders (08), Outstanding 90/150 days (09). Each has an **Export CSV**.
+**Email** cards stay at the end of the page.
+
+* Every figure is a link to the sheet rows behind it, showing who entered them and when.
+* **Positions** (pending orders, enquiries, DC, samples, outstanding) are not added up over days. Each employee's **latest figure on or before the as-on date** is used, then employees are added together.
+
+### + ADD: the entry sheets
+
+**+ ADD** opens a sheet like Excel, with one row per sales employee:
+
+* **Month start** (opens first until the month's figures are complete): Sales target, Collection target, Opening outstanding.
+  These are totals per employee, not bill-wise. Needs *Add Sales Targets* permission.
+* **Daily entry** (choose the date):
+  * **Sales and collection** for the day: value, NOB and NOC (NOC cannot be more than NOB).
+  * **Leads created** that day.
+  * **The position at the end of the day:** pending orders, enquiries, open DC, samples, overdue / 90 / 150 days.
+    Leave a position cell blank if it hasn't changed; the grey figure (the last one entered) stays in use.
+* Saving the same date again updates it (needs *Edit Daily Entry Sheet*). Rows left blank are not saved.
+* A Sales Executive sees and fills only their own row.
+
+### Bill-wise detail
+
+The **Bill-wise detail** tab keeps the earlier dashboard, built from uploaded or added bills (invoices, receipts, orders, samples, DC).
+It has the Customer and Product filters, the drill-down pages (06-09) and the bill-by-bill **+ ADD** panel. Use it when bills are uploaded through Excel Upload.
 
 ## Sales Details (12-14)
 

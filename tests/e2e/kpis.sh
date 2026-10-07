@@ -37,7 +37,7 @@ first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 TA=$(token admin 'Teal-Harbour-7391'); TJ=$(token jana 'Monsoon-Field-2087')
 
 echo "== A2 Payment Collection"
-r=$(req A GET /); contains "collection card live" "$TMP/body" 'data-kpi="collection"'
+r=$(req A GET "/?view=bills"); contains "collection card live" "$TMP/body" 'data-kpi="collection"'
 contains "collection card shows overdue" "$TMP/body" "Overdue collection"
 for w in month prev today fy; do page_ok A "/dashboard/collection?w=$w" "collection window $w"; done
 contains "overdue bill list" "$TMP/body" "Overdue bills (oldest first)"
@@ -54,7 +54,7 @@ s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TJ" "$BA
 contains "API has overdue" "$TMP/body" '"overdue":"'
 
 echo "== A3 Branch Pending Order"
-r=$(req A GET /); contains "pending card live" "$TMP/body" 'data-kpi="pending"'
+r=$(req A GET "/?view=bills"); contains "pending card live" "$TMP/body" 'data-kpi="pending"'
 contains "aging rows on card" "$TMP/body" "150+ days"
 page_ok A "/dashboard/pending" "pending detail"
 contains "oldest order shown" "$TMP/body" "SO/25-26/0412"
@@ -70,16 +70,16 @@ s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BA
 contains "API has aging" "$TMP/body" '"aging":\['
 
 echo "== Step B: Sales Representative panel"
-r=$(req A GET "/?employee=2"); expect "admin selects JANA" "${r%% *}" 200
+r=$(req A GET "/?view=bills&employee=2"); expect "admin selects JANA" "${r%% *}" 200
 contains "panel shows JANA's short name" "$TMP/body" 'rep-name">JANA<'
 contains "panel has sales box" "$TMP/body" "rep-box"
 contains "panel has overdue grid" "$TMP/body" "overdue-grid"
 contains "JANA chip marked selected" "$TMP/body" 'aria-current="true"'
-r=$(req A GET "/?employee=999"); contains "unknown employee filter explained" "$TMP/body" "do not have access to the selected employee"
-r=$(req J GET "/"); contains "JANA auto-selected on her own dashboard" "$TMP/body" 'rep-name">JANA<'
+r=$(req A GET "/?view=bills&employee=999"); contains "unknown employee filter explained" "$TMP/body" "do not have access to the selected employee"
+r=$(req J GET "/?view=bills"); contains "JANA auto-selected on her own dashboard" "$TMP/body" 'rep-name">JANA<'
 contains "JANA has no Clear-selection link (only option)" "$TMP/body" "rep-panel"
 lacks "JANA cannot select another rep via URL" "$TMP/body" "MUKESH R"
-r=$(req J GET "/?employee=3"); lacks "JANA cannot view MUKESH's panel" "$TMP/body" "MUKESH R"
+r=$(req J GET "/?view=bills&employee=3"); lacks "JANA cannot view MUKESH's panel" "$TMP/body" "MUKESH R"
 
 echo "== 90 / 150 Day Outstanding"
 r=$(req A GET /dashboard/collection); contains "collection links to outstanding" "$TMP/body" "dashboard/outstanding"
@@ -97,22 +97,22 @@ s=$(curl -s -o "$TMP/body" -w '%{http_code}' -H "Authorization: Bearer $TA" "$BA
 contains "API has d90 category" "$TMP/body" '"d90"'
 
 echo "== Section C: Customer / Product drill-down"
-r=$(req A GET "/?customer=1"); expect "admin selects a customer" "${r%% *}" 200
+r=$(req A GET "/?view=bills&customer=1"); expect "admin selects a customer" "${r%% *}" 200
 contains "customer panel shows name" "$TMP/body" "Sri Balaji Traders"
 contains "customer panel has sales box" "$TMP/body" 'id="customer"'
 contains "customer panel has overdue grid" "$TMP/body" "Overdue payment"
 contains "customer panel shows last order/payment" "$TMP/body" "Last order"
-r=$(req A GET "/?product=3"); expect "admin selects a product" "${r%% *}" 200
+r=$(req A GET "/?view=bills&product=3"); expect "admin selects a product" "${r%% *}" 200
 contains "product panel shows name" "$TMP/body" "BOPP Tape"
 contains "product panel has quantity sold" "$TMP/body" "Quantity sold"
 contains "product panel explains collection n/a" "$TMP/body" "not apply here"
-r=$(req A GET "/?customer=1&product=3"); contains "both panels shown together" "$TMP/body" "Sri Balaji Traders"
+r=$(req A GET "/?view=bills&customer=1&product=3"); contains "both panels shown together" "$TMP/body" "Sri Balaji Traders"
 contains "both panels shown together (product)" "$TMP/body" "BOPP Tape"
-r=$(req J GET "/?customer=1"); expect "JANA selects her own customer" "${r%% *}" 200
+r=$(req J GET "/?view=bills&customer=1"); expect "JANA selects her own customer" "${r%% *}" 200
 contains "JANA sees her customer's panel" "$TMP/body" "Sri Balaji Traders"
-r=$(req J GET "/?customer=6"); lacks "JANA cannot select another rep's customer" "$TMP/body" "Kongu Textiles"
+r=$(req J GET "/?view=bills&customer=6"); lacks "JANA cannot select another rep's customer" "$TMP/body" "Kongu Textiles"
 contains "...and is told why" "$TMP/body" "do not have access to the selected customer"
-r=$(req A GET "/"); lacks "no customer panel without a selection" "$TMP/body" 'id="customer"'
+r=$(req A GET "/?view=bills"); lacks "no customer panel without a selection" "$TMP/body" 'id="customer"'
 lacks "no product panel without a selection" "$TMP/body" 'id="product"'
 
 rm -rf "$TMP"

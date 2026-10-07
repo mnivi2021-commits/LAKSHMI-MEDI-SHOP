@@ -34,7 +34,7 @@ for k in sales-register sales-by-customer sales-by-product target-achievement co
 done
 
 echo "== Totals match the dashboard"
-req A GET / >/dev/null
+req A GET "/?view=bills" >/dev/null
 DASH=$(tr -d '\n' < "$TMP/body" | grep -o 'Total sales FY 2026-27</span>[^₹]*₹[0-9,]*' | grep -o '₹[0-9,]*' | head -1)
 req A GET /reports/sales-register >/dev/null
 TOT=$(tr -d '\n' < "$TMP/body" | grep -o '<tr class="total-row">.*</tr>' | grep -o '₹[0-9,]*' | head -1)

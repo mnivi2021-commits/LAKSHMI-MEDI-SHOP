@@ -39,6 +39,7 @@ FROM (
 UNION ALL SELECT 'branches',       'Branch Details',               2, '["view","add","edit","delete","export"]'
 UNION ALL SELECT 'sales',          'Sales',                        3, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'targets',        'Sales Targets',                4, '["view","add","edit","delete","import"]'
+UNION ALL SELECT 'daily_entry',    'Daily Entry Sheet',           21, '["view","add","edit"]'
 UNION ALL SELECT 'collections',    'Payment Collection',           5, '["view","add","edit","delete","import","export"]'
 UNION ALL SELECT 'outstanding',    'Outstanding',                  6, '["view","import","export"]'
 UNION ALL SELECT 'pending_orders', 'Pending Orders',               7, '["view","add","edit","delete","import","export"]'
@@ -69,7 +70,7 @@ SELECT 2, id FROM permissions WHERE slug IN (
  'pending_orders.view','pending_orders.import','samples.view','samples.import','dc.view','dc.import',
  'hrm.view','reports.view','reports.export',
  'customers.view','products.view','leads.view','leads.add','leads.edit',
- 'mail.view','sms.view','sms.send');
+ 'mail.view','sms.view','sms.send','daily_entry.view','daily_entry.add','daily_entry.edit');
 
 -- Sales Manager
 INSERT INTO role_permissions (role_id, permission_id)
@@ -77,21 +78,23 @@ SELECT 3, id FROM permissions WHERE slug IN (
  'dashboard.view','sales.view','sales.export','targets.view','targets.add','targets.edit',
  'collections.view','outstanding.view','outstanding.export','pending_orders.view','samples.view','dc.view',
  'customers.view','customers.add','customers.edit','products.view',
- 'leads.view','leads.add','leads.edit','leads.export','reports.view','reports.export','mail.view','sms.view','sms.send');
+ 'leads.view','leads.add','leads.edit','leads.export','reports.view','reports.export','mail.view','sms.view','sms.send',
+ 'daily_entry.view','daily_entry.add','daily_entry.edit');
 
 -- Sales Executive (own data only via data_scope = own)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 4, id FROM permissions WHERE slug IN (
  'dashboard.view','sales.view','targets.view','collections.view','outstanding.view',
  'pending_orders.view','samples.view','dc.view','customers.view','products.view',
- 'leads.view','leads.add','leads.edit','mail.view');
+ 'leads.view','leads.add','leads.edit','mail.view','daily_entry.view','daily_entry.add','daily_entry.edit');
 
 -- Branch Manager
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 5, id FROM permissions WHERE slug IN (
  'dashboard.view','branches.view','sales.view','sales.export','targets.view','collections.view','outstanding.view',
  'pending_orders.view','samples.view','dc.view','hrm.view','customers.view','customers.add','customers.edit',
- 'products.view','leads.view','leads.add','leads.edit','reports.view','reports.export','mail.view','sms.view','sms.send');
+ 'products.view','leads.view','leads.add','leads.edit','reports.view','reports.export','mail.view','sms.view','sms.send',
+ 'daily_entry.view','daily_entry.add','daily_entry.edit');
 
 -- HR
 INSERT INTO role_permissions (role_id, permission_id)

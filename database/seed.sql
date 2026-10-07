@@ -323,6 +323,56 @@ FROM email_messages WHERE provider_message_id = 'demo-010';
 -- -----------------------------------------------------------------------------
 
 
+-- -----------------------------------------------------------------------------
+-- Daily entry sheets (Branch Performance dashboard): one row per rep per working
+-- day 01-04-2026 .. 06-10-2026 (Sundays off) and a monthly opening outstanding.
+-- Values are deterministic so the dashboard can be checked with plain SQL.
+-- Position fields are left empty on Wednesdays to exercise "latest figure applies".
+-- -----------------------------------------------------------------------------
+INSERT INTO rep_month_openings (financial_year_id, employee_id, branch_id, opening_month, opening_outstanding, created_by)
+WITH RECURSIVE months AS (
+    SELECT DATE('2026-04-01') AS m UNION ALL SELECT DATE_ADD(m, INTERVAL 1 MONTH) FROM months WHERE m < '2026-10-01'
+)
+SELECT 2, e.id, e.branch_id, months.m, (e.id * 50000) + (MONTH(months.m) * 7500), 1
+FROM months CROSS JOIN employees e WHERE e.is_sales_rep = 1;
+
+INSERT INTO rep_daily_totals (financial_year_id, entry_date, employee_id, branch_id,
+       sales_value, sales_bills, sales_customers, collection_value, collection_bills, collection_customers,
+       lead_new_customer, lead_new_product,
+       po_non_stock, po_price_issue, po_doubt, enq_new_customer, enq_new_product,
+       dc_order, dc_mail, dc_rep_inform, sample_returnable, sample_non_returnable, os_overdue, os_90, os_150, created_by)
+WITH RECURSIVE days AS (
+    SELECT DATE('2026-04-01') AS d, 1 AS n UNION ALL SELECT DATE_ADD(d, INTERVAL 1 DAY), n + 1 FROM days WHERE d < '2026-10-06'
+), reps AS (
+              SELECT 2 AS employee_id, 90000 AS monthly
+    UNION ALL SELECT 3, 80000 UNION ALL SELECT 4, 75000 UNION ALL SELECT 5, 70000 UNION ALL SELECT 6, 65000
+)
+SELECT 2, days.d, r.employee_id, e.branch_id,
+       ROUND(r.monthly / 25 * (0.6 + MOD(days.n * 7 + r.employee_id * 13, 9) / 10), -2),
+       1 + MOD(days.n + r.employee_id, 4),
+       LEAST(1 + MOD(days.n + r.employee_id, 4), 1 + MOD(days.n + r.employee_id * 2, 3)),
+       ROUND(r.monthly / 25 * 0.9 * (0.5 + MOD(days.n * 5 + r.employee_id * 3, 11) / 10), -2),
+       1 + MOD(days.n + r.employee_id, 3),
+       LEAST(1 + MOD(days.n + r.employee_id, 3), 1 + MOD(days.n * 2 + r.employee_id, 2)),
+       IF(MOD(days.n + r.employee_id, 6) = 0, 1, 0),
+       IF(MOD(days.n + r.employee_id * 2, 9) = 0, 1, 0),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 5000 * MOD(r.employee_id + FLOOR(days.n / 7), 4)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 3000 * MOD(r.employee_id * 2 + FLOOR(days.n / 7), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 2000 * MOD(r.employee_id + FLOOR(days.n / 5), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, MOD(r.employee_id + FLOOR(days.n / 4), 4)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, MOD(r.employee_id * 3 + FLOOR(days.n / 6), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 4000 * MOD(r.employee_id + FLOOR(days.n / 7), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 2500 * MOD(r.employee_id * 2 + FLOOR(days.n / 9), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 1500 * MOD(r.employee_id + FLOOR(days.n / 11), 2)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 1200 * MOD(r.employee_id + FLOOR(days.n / 8), 3)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, 800 * MOD(r.employee_id * 2 + FLOOR(days.n / 10), 4)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, r.monthly * 0.4 + 1000 * MOD(days.n, 30)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, r.monthly * 0.2 + 500 * MOD(days.n, 20)),
+       IF(DAYOFWEEK(days.d) = 4, NULL, r.monthly * 0.1 + 300 * MOD(days.n, 10)),
+       1
+FROM days CROSS JOIN reps r JOIN employees e ON e.id = r.employee_id
+WHERE DAYOFWEEK(days.d) <> 1;
+
 -- Demo values on top of database/base.sql
 UPDATE settings SET setting_value = 'Marketing CRM Demo Pvt Ltd' WHERE setting_group = 'company' AND setting_key = 'name';
 UPDATE number_sequences SET next_number = 13 WHERE name IN ('customer', 'lead');

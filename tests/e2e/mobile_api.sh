@@ -32,7 +32,7 @@ TA=$(token admin 'Teal-Harbour-7391'); TJ=$(token jana 'Monsoon-Field-2087')
 echo "== Dashboard summary = web dashboard"
 s=$(api "$TA" /api/dashboard/summary); expect "summary" "$s" 200
 API_SALES=$(grep -o '"sales":{"total":"[0-9.]*"' "$TMP/body" | grep -o '[0-9.]*"$' | tr -d '"')
-req A GET / >/dev/null
+req A GET "/?view=bills" >/dev/null
 WEB=$(tr -d '\n' < "$TMP/body" | grep -o 'Total sales FY [0-9-]*</span>[^₹]*₹[0-9,]*' | grep -o '₹[0-9,]*' | tr -d '₹,')
 [ -n "$API_SALES" ] && [ "${API_SALES%.*}" = "$WEB" ] && ok "app sales $API_SALES = web ₹$WEB" || bad "app sales = web" "$API_SALES vs $WEB"
 api "$TA" /api/dashboard/summary >/dev/null

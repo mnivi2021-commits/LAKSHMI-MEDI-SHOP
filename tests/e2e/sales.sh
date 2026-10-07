@@ -29,7 +29,7 @@ first_login() {
 
 echo "== Admin: card"
 first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
-r=$(req A GET /);  expect "dashboard loads" "${r%% *}" 200
+r=$(req A GET "/?view=bills");  expect "dashboard loads" "${r%% *}" 200
 contains "card is live (no placeholder)" "$TMP/body" 'kpi-live'
 seeded "total sales FY to date" "$TMP/body" "₹38,23,200"
 seeded "annual target" "$TMP/body" "₹45,60,000"
@@ -77,7 +77,7 @@ r=$(req C GET "/dashboard/sales/export?w=fy"); expect "export refused (403)" "${
 
 echo "== JANA: own figures only"
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
-r=$(req J GET "/");               seeded "JANA total" "$TMP/body" "₹9,53,300"
+r=$(req J GET "/?view=bills");               seeded "JANA total" "$TMP/body" "₹9,53,300"
 seeded "JANA target" "$TMP/body" "₹10,80,000"
 r=$(req J GET "/dashboard/sales?employee=3&branch=2"); contains "tampered filters refused" "$TMP/body" "do not have access"
 seeded "JANA detail still JANA only" "$TMP/body" "₹9,53,300"

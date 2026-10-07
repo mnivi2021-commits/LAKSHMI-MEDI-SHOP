@@ -29,7 +29,7 @@ ids() { grep -o '"id":[0-9]*' "$TMP/body" | grep -o '[0-9]*' | sort -n | tr '\n'
 
 echo "== Admin dashboard"
 first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
-r=$(req A GET /);                     expect "dashboard loads" "${r%% *}" 200
+r=$(req A GET "/?view=bills");                     expect "dashboard loads" "${r%% *}" 200
 contains "shows as-on date" "$TMP/body" "As on <strong>$(date +%d-%m-%Y)</strong>"
 contains "live badge for today" "$TMP/body" ">Live<"
 contains "financial year filter" "$TMP/body" 'name="fy"'
@@ -42,9 +42,9 @@ contains "all six ADD tabs" "$TMP/body" 'data-tab="dc"'
 contains "data freshness strip" "$TMP/body" "Latest entries in your view"
 lacks "no inline scripts (CSP)" "$TMP/body" "<script>"
 
-r=$(req A GET "/?month=2026-08");     contains "past month as-on = month end" "$TMP/body" "As on <strong>31-08-2026</strong>"
+r=$(req A GET "/?view=bills&month=2026-08");     contains "past month as-on = month end" "$TMP/body" "As on <strong>31-08-2026</strong>"
 contains "past month is a closed period" "$TMP/body" "Closed period"
-r=$(req A GET "/?branch=999");        contains "unknown branch explained" "$TMP/body" "do not have access to the selected branch"
+r=$(req A GET "/?view=bills&branch=999");        contains "unknown branch explained" "$TMP/body" "do not have access to the selected branch"
 
 echo "== Lookups (scoped)"
 r=$(req A GET "/dashboard/lookup/customers?q=");   expect "customer lookup" "${r%% *}" 200
@@ -77,23 +77,23 @@ contains "field errors returned" "$TMP/body" '"invoice_no"'
 r=$(req A POST /dashboard/add/sale -H 'Accept: application/json' --data "invoice_no=X")
 expect "missing CSRF = 403" "${r%% *}" 403
 contains "CSRF error is JSON" "$TMP/body" '"success":false'
-r=$(req A GET /);                     contains "freshness reflects today's entries" "$TMP/body" "$(date +%d-%m-%Y)"
+r=$(req A GET "/?view=bills");                     contains "freshness reflects today's entries" "$TMP/body" "$(date +%d-%m-%Y)"
 
 echo "== Coordinator (view only)"
 first_login C coordinator 'Coord@2026' 'Saffron-Kite-4415'
-r=$(req C GET /);                     expect "coordinator dashboard" "${r%% *}" 200
+r=$(req C GET "/?view=bills");                     expect "coordinator dashboard" "${r%% *}" 200
 lacks "no ADD button without add rights" "$TMP/body" "+ ADD"
 r=$(add C sale --data "invoice_no=C/1&invoice_date=$TODAY&customer_id=1&product_id=1&quantity=1&taxable_amount=1")
 expect "server refuses coordinator ADD (403)" "${r%% *}" 403
 
 echo "== Sales executive JANA (own data only)"
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
-r=$(req J GET /);                     expect "JANA dashboard" "${r%% *}" 200
+r=$(req J GET "/?view=bills");                     expect "JANA dashboard" "${r%% *}" 200
 contains "branch filter = own branch only" "$TMP/body" "Chennai Head Office (CHN)"
 lacks "no other branches offered" "$TMP/body" "Coimbatore Branch (CBE)"
 lacks "no other reps offered" "$TMP/body" "MUKESH - "
 r=$(req J GET "/dashboard/lookup/customers?q=");   expect "JANA's lookup = her customers 1, 2, 5" "$(ids)" "1 2 5"
-r=$(req J GET "/?branch=2&customer=6");            contains "URL tampering is refused and explained" "$TMP/body" "do not have access to the selected branch"
+r=$(req J GET "/?view=bills&branch=2&customer=6");            contains "URL tampering is refused and explained" "$TMP/body" "do not have access to the selected branch"
 r=$(add J collection --data "receipt_no=J/1&receipt_date=$TODAY&customer_id=1&amount=1&payment_mode=upi")
 expect "JANA has no collection add right (403)" "${r%% *}" 403
 

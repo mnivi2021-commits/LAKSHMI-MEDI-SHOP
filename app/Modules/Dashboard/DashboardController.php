@@ -23,6 +23,29 @@ final class DashboardController
         }
 
         $today = new DateTimeImmutable('today');
+
+        // First page: Branch Performance from the daily entry sheets (4 filters only).
+        // ?view=bills keeps the bill-wise dashboard (uploaded invoices, receipts, orders ...).
+        if (($_GET['view'] ?? '') !== 'bills') {
+            $ctx = DashboardContext::fromRequest($user, array_intersect_key($_GET, array_flip(['fy', 'month', 'branch', 'employee'])), $today);
+            $bp = new Kpi\BranchPerformance($ctx);
+            Response::view('dashboard/index', [
+                'title'      => 'Branch Performance · Marketing CRM',
+                'flash'      => Session::takeFlash(),
+                'dashView'   => 'branch',
+                'ctx'        => $ctx,
+                'fyOptions'  => DashboardContext::financialYearOptions($today),
+                'months'     => $ctx->monthOptions($today),
+                'branches'   => $ctx->branchOptions(),
+                'employees'  => $ctx->employeeOptions($ctx->filters['branch_id']),
+                'bp'         => ['periods' => $bp->periods(), 'sales' => $bp->sales(), 'positions' => $bp->positions(),
+                                 'leads' => $bp->leadsThisMonth(), 'collection' => $bp->collection()],
+                'mail'       => Gate::allows('mail.view', $user) ? self::mailPanel($ctx, $user) : null,
+                'canEntry'   => Gate::allows('daily_entry.add', $user) || Gate::allows('targets.add', $user),
+            ]);
+            return;
+        }
+
         $ctx = DashboardContext::fromRequest($user, $_GET, $today);
         $employees = $ctx->employeeOptions($ctx->filters['branch_id']);
 
@@ -45,6 +68,7 @@ final class DashboardController
         Response::view('dashboard/index', [
             'title'      => 'Dashboard · Marketing CRM',
             'flash'      => Session::takeFlash(),
+            'dashView'   => 'bills',
             'ctx'        => $ctx,
             'windows'    => $ctx->windows(),
             'fyOptions'  => DashboardContext::financialYearOptions($today),
