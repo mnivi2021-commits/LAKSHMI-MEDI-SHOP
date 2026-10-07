@@ -57,7 +57,7 @@ contains "errors shown" "$TMP/body" "Nothing was saved"
 contains "informed by required" "$TMP/body" "Informed by (Manager / Rep)"
 
 echo "== Enquiry (existing customer -> offer)"
-r=$(post A /requests/enquiry "/requests?type=enquiry" --data "informed_by=manager&enquiry_source=mail&lead_type=new_product&customer_id=1" \
+r=$(post A /requests/enquiry "/requests?type=enquiry" --data "valid_until=2027-12-31&informed_by=manager&enquiry_source=mail&lead_type=new_product&customer_id=1" \
      --data-urlencode "contact_person=Mr. Ravi" --data "lines[0][product_id]=2&lines[0][qty]=10" --data-urlencode "lines[0][price]=1,250")
 redir "enquiry saved" "$r" "/requests/view/enquiry/"
 ENQ=${r##*/}
@@ -68,6 +68,12 @@ contains "customer from master" "$TMP/body" "Sri Balaji Traders"
 contains "attn" "$TMP/body" "Attn: Mr. Ravi"
 contains "source" "$TMP/body" "Customer request mail"
 contains "offer total" "$TMP/body" "12,500.00"
+contains "offer valid until" "$TMP/body" "Offer valid until"
+r=$(post A /requests/enquiry "/requests?type=enquiry" --data "informed_by=manager&enquiry_source=mail&lead_type=new_product&customer_id=1&lines[0][product_id]=2&lines[0][qty]=1&lines[0][price]=10")
+req A GET "/requests?type=enquiry" >/dev/null; contains "expiry date required" "$TMP/body" "Enquiry expiry date is required"
+contains "form shows amount column" "$TMP/body" "Amount (₹)"
+contains "form shows total row" "$TMP/body" "data-lines-total"
+req A GET "/requests/view/enquiry/$ENQ" >/dev/null
 contains "SMS button" "$TMP/body" "Send enquiry SMS"
 r=$(req A GET "/requests/view/lead/$ENQ"); expect "enquiry not shown as lead" "${r%% *}" 404
 

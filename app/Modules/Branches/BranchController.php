@@ -65,7 +65,32 @@ final class BranchController
             $params
         );
 
+        // Sales team of one branch: name, area, division, month target with 80%, opening outstanding with 60%
+        [$tw, $tp] = DataScope::for($user)->branchListWhere('id');
+        $teamBranches = Database::fetchAll("SELECT id, name FROM branches WHERE deleted_at IS NULL AND status = 'active' AND {$tw} ORDER BY name", $tp);
+        $teamBranch = (int) ($_GET['team_branch'] ?? 0);
+        $teamBranch = in_array($teamBranch, array_map('intval', array_column($teamBranches, 'id')), true) ? $teamBranch : 0;
+        $teamMonth = date('Y-m-01');
+        [$ew, $ep] = DataScope::for($user)->where('e.branch_id', 'e.id');
+        $team = Database::fetchAll(
+            "SELECT e.id, e.name, e.short_name, e.area, b.name AS branch,
+                    (SELECT GROUP_CONCAT(DISTINCT d.name ORDER BY d.id SEPARATOR ', ') FROM annual_targets t JOIN divisions d ON d.id = t.division_id
+                     JOIN financial_years fy ON fy.id = t.financial_year_id
+                     WHERE t.employee_id = e.id AND ? BETWEEN fy.start_date AND fy.end_date) AS divisions,
+                    (SELECT SUM(st.sales_target) FROM sales_targets st WHERE st.employee_id = e.id AND st.target_month = ?) AS target,
+                    (SELECT o.opening_outstanding FROM rep_month_openings o WHERE o.employee_id = e.id AND o.opening_month = ?) AS opening
+             FROM employees e JOIN branches b ON b.id = e.branch_id
+             WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.is_sales_rep = 1 AND {$ew}" . ($teamBranch ? ' AND e.branch_id = ' . $teamBranch : '') . "
+             ORDER BY b.name, e.area, e.name",
+            array_merge([$teamMonth, $teamMonth, $teamMonth], $ep)
+        );
+
         Response::view('branches/index', [
+            'teamBranches' => $teamBranches,
+            'teamBranch'   => $teamBranch,
+            'team'         => $team,
+            'teamMonth'    => $teamMonth,
+            'pcts'         => \App\Modules\Dashboard\EntryController::pcts(),
             'title'    => 'Branch Details',
             'flash'    => Session::takeFlash(),
             'branches' => $branches,

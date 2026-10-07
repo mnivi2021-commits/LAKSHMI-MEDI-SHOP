@@ -399,3 +399,16 @@ VALUES (NULL, 'system', NULL, '127.0.0.1', 'system.seeded', 'system', JSON_OBJEC
 -- Customer PO references on most demo invoices (Payment follow up statement).
 UPDATE sales_invoices SET customer_po_no = CONCAT('PO/', LPAD(customer_id, 3, '0'), '/', LPAD(id, 4, '0'))
 WHERE document_type = 'invoice' AND MOD(id, 7) <> 3;
+
+-- Annual targets (Targets tab) for FY 2026-27: division, area and sales employee
+INSERT INTO annual_targets (financial_year_id, level, division_id, area_id, employee_id, annual_target) VALUES
+ (2, 'division', 1, NULL, NULL, 10000000.00), (2, 'division', 2, NULL, NULL, 6000000.00), (2, 'division', 3, NULL, NULL, 2400000.00),
+ (2, 'area', 1, 1, NULL, 3000000.00), (2, 'area', 2, 1, NULL, 1800000.00), (2, 'area', 3, 1, NULL, 600000.00),
+ (2, 'area', 1, 2, NULL, 2400000.00), (2, 'area', 2, 2, NULL, 1200000.00),
+ (2, 'area', 1, 3, NULL, 1800000.00), (2, 'area', 2, 3, NULL, 900000.00),
+ (2, 'area', 1, 4, NULL, 1500000.00), (2, 'area', 3, 4, NULL, 300000.00),
+ (2, 'employee', 1, NULL, 2, 1200000.00), (2, 'employee', 2, NULL, 2, 600000.00),
+ (2, 'employee', 1, NULL, 3, 1000000.00),
+ (2, 'employee', 1, NULL, 4, 900000.00), (2, 'employee', 3, NULL, 4, 240000.00),
+ (2, 'employee', 2, NULL, 5, 800000.00),
+ (2, 'employee', 1, NULL, 6, 1500000.00), (2, 'employee', 2, NULL, 6, 600000.00);

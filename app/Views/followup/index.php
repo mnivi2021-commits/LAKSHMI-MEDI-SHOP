@@ -14,6 +14,12 @@
 /** @var array<string, string> $errors */
 /** @var bool $canSms */
 /** @var bool $canRecord */
+/** @var list<string> $areas */
+/** @var array<int, string> $divisions */
+$areas ??= [];
+$divisions ??= [];
+$area ??= '';
+$division ??= 0;
 use App\Core\Csrf;
 use App\Core\Money;
 use App\Modules\Followup\FollowupController as F;
@@ -21,7 +27,7 @@ use App\Modules\Followup\FollowupController as F;
 $d = static fn (?string $v): string => $v ? date('d-m-Y', strtotime($v)) : '—';
 $m = static fn ($v, int $dec = 0): string => rupees($v === null ? null : Money::fromDb($v), $dec);
 $qty = static fn ($v): string => rtrim(rtrim((string) $v, '0'), '.');
-$link = static fn (array $q): string => url('followup') . '?' . http_build_query(array_filter($q + ['employee' => $employee], static fn ($v) => $v !== null && $v !== ''));
+$link = static fn (array $q): string => url('followup') . '?' . http_build_query(array_filter($q + ['employee' => $employee, 'area' => $area ?? '', 'division' => $division ?? 0], static fn ($v) => $v !== null && $v !== '' && $v !== 0));
 $overdue = static fn (?string $due): bool => $due !== null && $due < $today;
 $err = static fn (string $f): string => isset($errors[$f]) ? '<span class="field-error">' . e($errors[$f]) . '</span>' : '';
 $total = 0;
@@ -39,12 +45,26 @@ ob_start();
 
 <form method="get" action="<?= e(url('followup')) ?>" class="card fu-filters no-print" aria-label="Follow up filters">
     <label class="field">
-        <span>Sales employee</span>
+        <span>Sales name</span>
         <select name="employee" data-autosubmit data-reset="customer">
             <?php if (count($employees) !== 1): ?><option value="">— choose —</option><?php endif; ?>
             <?php foreach ($employees as $id => $lbl): ?>
                 <option value="<?= e($id) ?>"<?= $id === $employee ? ' selected' : '' ?>><?= e($lbl) ?></option>
             <?php endforeach; ?>
+        </select>
+    </label>
+    <label class="field">
+        <span>Area</span>
+        <select name="area" data-autosubmit data-reset="employee,customer">
+            <option value="">All areas</option>
+            <?php foreach ($areas as $a): ?><option value="<?= e($a) ?>"<?= $a === $area ? ' selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?>
+        </select>
+    </label>
+    <label class="field">
+        <span>Division</span>
+        <select name="division" data-autosubmit data-reset="employee,customer">
+            <option value="">All divisions</option>
+            <?php foreach ($divisions as $id => $n): ?><option value="<?= e($id) ?>"<?= (int) $id === (int) $division ? ' selected' : '' ?>><?= e($n) ?></option><?php endforeach; ?>
         </select>
     </label>
     <label class="field">

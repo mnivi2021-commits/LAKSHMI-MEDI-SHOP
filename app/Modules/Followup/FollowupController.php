@@ -36,7 +36,13 @@ final class FollowupController
     {
         $user = Auth::user();
         $scope = DataScope::for($user);
-        $employees = self::employees($scope);
+        // Area and Division narrow the sales name list
+        $areas = array_column(Database::fetchAll("SELECT name FROM sales_areas WHERE status = 'active' ORDER BY id"), 'name');
+        $divisions = array_column(Database::fetchAll("SELECT id, name FROM divisions WHERE status = 'active' ORDER BY id"), 'name', 'id');
+        $area = in_array((string) ($_GET['area'] ?? ''), $areas, true) ? (string) $_GET['area'] : '';
+        $division = (int) ($_GET['division'] ?? 0);
+        $division = isset($divisions[$division]) ? $division : 0;
+        $employees = self::employees($scope, $area, $division);
         $emp = (int) ($_GET['employee'] ?? 0) ?: null;
         if ($emp !== null && !isset($employees[$emp])) {
             $emp = null;
@@ -67,6 +73,10 @@ final class FollowupController
             'flash'     => Session::takeFlash(),
             'errors'    => Session::pull('_fu_errors', []),
             'employees' => $employees,
+            'areas'     => $areas,
+            'area'      => $area,
+            'divisions' => $divisions,
+            'division'  => $division,
             'employee'  => $emp,
             'list'      => $list,
             'lists'     => self::LISTS,
@@ -253,11 +263,21 @@ final class FollowupController
     // =========================================================================
 
     /** Sales employees the user may see. @return array<int, string> */
-    private static function employees(DataScope $scope): array
+    private static function employees(DataScope $scope, string $area = '', int $division = 0): array
     {
         [$w, $p] = $scope->where('e.branch_id', 'e.id');
+        if ($area !== '') {
+            $w .= ' AND e.area = ?';
+            $p[] = $area;
+        }
+        if ($division > 0) {
+            // sales people with a target in this division (current financial year)
+            $w .= ' AND EXISTS (SELECT 1 FROM annual_targets t JOIN financial_years fy ON fy.id = t.financial_year_id
+                               WHERE t.employee_id = e.id AND t.division_id = ? AND CURDATE() BETWEEN fy.start_date AND fy.end_date)';
+            $p[] = $division;
+        }
         $rows = Database::fetchAll(
-            "SELECT e.id, CONCAT(COALESCE(e.short_name, e.name), ' - ', e.name, ' (', b.name, ')') AS label
+            "SELECT e.id, CONCAT(COALESCE(e.short_name, e.name), ' - ', e.name, ' (', COALESCE(e.area, b.name), ')') AS label
              FROM employees e JOIN branches b ON b.id = e.branch_id
              WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.is_sales_rep = 1 AND {$w}
              ORDER BY COALESCE(e.short_name, e.name)",

@@ -134,22 +134,27 @@ final class RequestController
         $customer = $f->customer(false);
         $lines = $f->lines(true, $type === 'enquiry' ? 'Offer price' : 'Approx. price');
         $source = null;
+        $validUntil = null;
         $leadType = $customer['id'] !== null ? 'new_product' : 'new_customer';
         if ($type === 'enquiry') {
             $source = $f->choice('enquiry_source', self::SOURCES, 'Enquiry came by');
             $leadType = $f->choice('lead_type', ['new_customer' => 'New customer', 'new_product' => 'New product'], 'Enquiry for') ?? $leadType;
+            $validUntil = $f->date('valid_until', 'Enquiry expiry date', true, false);
+            if ($validUntil !== null && $validUntil < date('Y-m-d')) {
+                $f->error('valid_until', 'The expiry date cannot be before today.');
+            }
         }
         if ($f->failed()) {
             return null;
         }
         $number = NumberSequence::next($type === 'enquiry' ? 'enquiry' : 'lead');
         Database::query(
-            "INSERT INTO leads (lead_number, record_type, lead_type, name, company_name, contact_person, mobile, email, enquiry_source,
+            "INSERT INTO leads (lead_number, record_type, lead_type, name, company_name, contact_person, mobile, email, enquiry_source, valid_until,
                                 branch_id, employee_id, informed_by, informed_employee_id, status, priority, expected_value, remarks,
                                 customer_id, created_by, updated_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'medium', ?, ?, ?, ?, ?)",
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'medium', ?, ?, ?, ?, ?)",
             [$number, $type, $leadType, $customer['name'], $customer['company'], $f->text('contact_person', 150), $customer['mobile'], $customer['email'],
-             $source, $customer['branch_id'], $customer['employee_id'], $informed['by'], $informed['employee_id'],
+             $source, $validUntil, $customer['branch_id'], $customer['employee_id'], $informed['by'], $informed['employee_id'],
              $type === 'enquiry' ? 'quotation' : 'new', Money::toDecimal(array_sum(array_column($lines, 'amount'))), $f->text('remarks', 2000),
              $customer['id'], $f->uid(), $f->uid()]
         );

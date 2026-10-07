@@ -261,7 +261,8 @@ final class EmployeeController
                  WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.sales_role = 'sales_coordinator' AND e.id <> ? ORDER BY e.name",
                 [$emp['id'] ?? 0]
             ),
-            'areas'        => array_column(Database::fetchAll("SELECT DISTINCT area FROM employees WHERE area IS NOT NULL AND deleted_at IS NULL AND area NOT LIKE '%,%' ORDER BY area"), 'area'),
+            'areas'        => array_column(Database::fetchAll("SELECT name AS area FROM sales_areas WHERE status = 'active'
+                                                               UNION SELECT DISTINCT area FROM employees WHERE area IS NOT NULL AND deleted_at IS NULL AND area NOT LIKE '%,%' ORDER BY area"), 'area'),
             'managers'     => Database::fetchAll(
                 "SELECT e.id, e.name, e.employee_code, b.branch_code FROM employees e JOIN branches b ON b.id = e.branch_id
                  WHERE e.deleted_at IS NULL AND e.status = 'active' AND e.id <> ? ORDER BY e.name",

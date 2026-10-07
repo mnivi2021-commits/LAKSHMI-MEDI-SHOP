@@ -43,7 +43,7 @@ req A GET /sms/templates >/dev/null
 for t in "Enquiry Offer" "Purchase Order Received" "Payment Due" "Payment Reminder"; do contains "template: $t" "$TMP/body" "$t"; done
 
 echo "== Enquiry SMS"
-r=$(post A /requests/enquiry "/requests?type=enquiry" --data "informed_by=manager&enquiry_source=mail&lead_type=new_product&customer_id=1&lines[0][product_id]=2&lines[0][qty]=10&lines[0][price]=1250")
+r=$(post A /requests/enquiry "/requests?type=enquiry" --data "valid_until=2027-12-31&informed_by=manager&enquiry_source=mail&lead_type=new_product&customer_id=1&lines[0][product_id]=2&lines[0][qty]=10&lines[0][price]=1250")
 ENQ=${r##*/}
 r=$(req A GET "/sms/send?for=enquiry&id=$ENQ"); expect "compose from enquiry" "${r%% *}" 200
 contains "context banner" "$TMP/body" "For <strong>Enquiry ENQ-00001"

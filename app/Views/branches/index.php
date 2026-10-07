@@ -93,6 +93,49 @@ ob_start();
         </nav>
     <?php endif; ?>
 </section>
+
+<?php
+$teamBranches ??= []; $team ??= []; $teamBranch ??= 0; $pcts ??= ['sales' => 80, 'collection' => 60]; $teamMonth ??= date('Y-m-01');
+$p = static fn ($v): int => \App\Core\Money::fromDb($v);
+?>
+<section class="card table-card team-card">
+    <div class="team-head">
+        <h2>Sales team · <?= e(date('F Y', strtotime($teamMonth))) ?></h2>
+        <form method="get" action="<?= e(url('branches')) ?>" class="team-filter">
+            <label class="field"><span>Branch</span>
+                <select name="team_branch" data-autosubmit>
+                    <option value="">All branches</option>
+                    <?php foreach ($teamBranches as $tb): ?><option value="<?= e($tb['id']) ?>"<?= (int) $tb['id'] === $teamBranch ? ' selected' : '' ?>><?= e($tb['name']) ?></option><?php endforeach; ?>
+                </select></label>
+            <noscript><button type="submit" class="btn">Show</button></noscript>
+        </form>
+    </div>
+    <?php if (!$team): ?><p class="empty">No sales people<?= $teamBranch ? ' in this branch' : '' ?>.</p><?php else: ?>
+    <div class="table-scroll"><table class="table compact">
+        <thead><tr>
+            <th>Name</th><th>Area</th><th>Division</th>
+            <th class="right th-sales">Target</th><th class="right th-sales"><?= e($pcts['sales']) ?>%</th>
+            <th class="right th-coll">OP outstanding</th><th class="right th-coll"><?= e($pcts['collection']) ?>%</th>
+        </tr></thead>
+        <tbody>
+        <?php $t1 = 0; $t2 = 0; foreach ($team as $m): $tg = $p($m['target']); $op = $p($m['opening']); $t1 += $tg; $t2 += $op; ?>
+            <tr>
+                <td><b><?= e($m['short_name'] ?: $m['name']) ?></b> <span class="muted small"><?= e($m['name']) ?></span><?= $teamBranch ? '' : '<div class="muted small">' . e($m['branch']) . '</div>' ?></td>
+                <td><?= e($m['area'] ?: '—') ?></td>
+                <td><?= e($m['divisions'] ?: '—') ?></td>
+                <td class="right num"><?= $tg ? e(rupees($tg)) : '—' ?></td>
+                <td class="right num sheet-calc-sales"><?= $tg ? e(rupees((int) round($tg * $pcts['sales'] / 100))) : '—' ?></td>
+                <td class="right num"><?= $op ? e(rupees($op)) : '—' ?></td>
+                <td class="right num sheet-calc-collection"><?= $op ? e(rupees((int) round($op * $pcts['collection'] / 100))) : '—' ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+        <tfoot><tr class="total-row"><th colspan="3">Total</th>
+            <th class="right num"><?= e(rupees($t1)) ?></th><th class="right num"><?= e(rupees((int) round($t1 * $pcts['sales'] / 100))) ?></th>
+            <th class="right num"><?= e(rupees($t2)) ?></th><th class="right num"><?= e(rupees((int) round($t2 * $pcts['collection'] / 100))) ?></th></tr></tfoot>
+    </table></div>
+    <?php endif; ?>
+</section>
 <?php
 $content = ob_get_clean();
 require dirname(__DIR__) . '/layouts/app.php';

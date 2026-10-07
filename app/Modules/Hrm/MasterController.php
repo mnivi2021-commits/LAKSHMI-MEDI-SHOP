@@ -18,6 +18,8 @@ final class MasterController
     private const TYPES = [
         'departments'  => ['label' => 'Departments', 'singular' => 'Department', 'fk' => 'department_id'],
         'designations' => ['label' => 'Designations', 'singular' => 'Designation', 'fk' => 'designation_id'],
+        'divisions'    => ['label' => 'Divisions', 'singular' => 'Division', 'fk' => null],
+        'sales_areas'  => ['label' => 'Sales areas', 'singular' => 'Sales area', 'fk' => null],
     ];
 
     public static function index(array $p): void
@@ -28,8 +30,11 @@ final class MasterController
         }
         $def = self::TYPES[$type];
         $rows = Database::fetchAll(
-            "SELECT t.id, t.name, t.status,
-                    (SELECT COUNT(*) FROM employees e WHERE e.{$def['fk']} = t.id AND e.deleted_at IS NULL) AS employees
+            "SELECT t.id, t.name, t.status, " . match (true) {
+                $def['fk'] !== null => "(SELECT COUNT(*) FROM employees e WHERE e.{$def['fk']} = t.id AND e.deleted_at IS NULL)",
+                $type === 'sales_areas' => '(SELECT COUNT(*) FROM employees e WHERE e.area = t.name AND e.deleted_at IS NULL)',
+                default => '(SELECT COUNT(DISTINCT a.employee_id) FROM annual_targets a WHERE a.division_id = t.id)',
+            } . " AS employees
              FROM {$type} t ORDER BY t.status = 'active' DESC, t.name"
         );
         Response::view('hrm/masters', [

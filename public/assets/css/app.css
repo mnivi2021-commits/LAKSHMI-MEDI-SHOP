@@ -959,3 +959,28 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .inv-doc { background: var(--inv-doc-bg); border-color: var(--inv-doc-line); box-shadow: none; }
 .inv-doc .inv-meta { border-bottom-color: var(--inv-doc-line); }
 .req-form > fieldset.req-step { background: var(--inv-lines-bg); }
+
+/* Targets tab */
+.tg-box { margin-bottom: 16px; }
+.tg-areas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.tg-area { margin: 0; padding: 14px; min-width: 0; }
+.tg-area-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.tg-area-head h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.tg-area:nth-child(4n+1) { background: #eef8f2; } .tg-area:nth-child(4n+2) { background: #fdf8ec; }
+.tg-area:nth-child(4n+3) { background: #eef3fc; } .tg-area:nth-child(4n+4) { background: #f6eff9; }
+.tg-area .table td { background: rgba(255, 255, 255, .75); }
+.tg-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.tg-edit { display: grid; gap: 16px; }
+@media (max-width: 1100px) { .tg-areas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .tg-areas, .tg-two { grid-template-columns: 1fr; } }
+@media (prefers-color-scheme: dark) { .tg-area:nth-child(n) { background: var(--surface); } .tg-area .table td { background: var(--surface-2); } }
+
+/* Branch Details: sales team of the chosen branch */
+.team-card { margin-top: 18px; }
+.team-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.team-head h2 { margin: 0; }
+.team-filter .field { min-width: 240px; }
+.tg-areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1750px) { .tg-areas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .tg-areas { grid-template-columns: 1fr; } }
+.tg-area .table.compact td, .tg-area .table.compact th { padding-left: 10px; padding-right: 10px; }

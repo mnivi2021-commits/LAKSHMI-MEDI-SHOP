@@ -23,6 +23,8 @@ ob_start();
         <?php if ($canEdit): ?>
             <a class="btn" href="<?= e(url('hrm/lists/departments')) ?>">Departments</a>
             <a class="btn" href="<?= e(url('hrm/lists/designations')) ?>">Designations</a>
+            <a class="btn" href="<?= e(url('hrm/lists/divisions')) ?>">Divisions</a>
+            <a class="btn" href="<?= e(url('hrm/lists/sales_areas')) ?>">Sales areas</a>
         <?php endif; ?>
         <?php if ($canExport): ?><a class="btn" href="<?= e(url('hrm/export')) ?>">Export CSV</a><?php endif; ?>
         <?php if ($canAdd): ?><a class="btn btn-primary" href="<?= e(url('hrm/new')) ?>">Add employee</a><?php endif; ?>

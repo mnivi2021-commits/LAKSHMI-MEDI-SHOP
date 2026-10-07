@@ -47,6 +47,8 @@
             o.textContent = inr(sum);
         });
     };
+    document.querySelectorAll('input[data-total]').forEach(function (i) { i.addEventListener('input', totals); });
+    if (document.querySelector('[data-total-of]')) { totals(); }
     outs.forEach(function (o) {
         var src = document.getElementById(o.getAttribute('data-pct-of'));
         if (!src) { return; }
@@ -71,6 +73,26 @@
             });
             form.submit();
         });
+    });
+
+    // Request forms: amount = quantity x rate per line (or the value itself for DC / samples) and the total
+    document.querySelectorAll('table.req-lines').forEach(function (table) {
+        var money = function (t) { t = String(t || '').replace(/[,\s\u20b9]/g, ''); return /^\d+(\.\d{1,2})?$/.test(t) ? Math.round(parseFloat(t) * 100) : 0; };
+        var qty = function (t) { t = String(t || '').replace(/[,\s]/g, ''); return /^\d+(\.\d{1,3})?$/.test(t) ? parseFloat(t) : 0; };
+        var inr2 = function (p) { return '\u20b9' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+        var recalc = function () {
+            var total = 0;
+            table.querySelectorAll('tr[data-line]').forEach(function (tr) {
+                var q = tr.querySelector('[data-qty]'), p = tr.querySelector('[data-price]'), out = tr.querySelector('[data-line-amount]');
+                var amt = tr.getAttribute('data-line') === 'value' ? money(p && p.value) : Math.round(qty(q && q.value) * money(p && p.value));
+                total += amt;
+                if (out) { out.textContent = amt ? inr2(amt) : '\u2014'; }
+            });
+            var t = table.querySelector('[data-lines-total]');
+            if (t) { t.textContent = inr2(total); }
+        };
+        table.addEventListener('input', recalc);
+        recalc();
     });
 
     // Print buttons: <button data-print>

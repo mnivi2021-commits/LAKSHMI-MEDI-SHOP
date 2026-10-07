@@ -121,6 +121,7 @@ ob_start();
                 <?php elseif ($type === 'enquiry'): ?>
                     <label class="field<?= $cls('enquiry_source') ?>"><span>Ref: enquiry came by *</span><?= $sel('enquiry_source', R::SOURCES, 'Choose') ?><?= $err('enquiry_source') ?></label>
                     <label class="field<?= $cls('lead_type') ?>"><span>Enquiry for *</span><?= $sel('lead_type', ['new_customer' => 'New customer', 'new_product' => 'New product'], 'Choose') ?><?= $err('lead_type') ?></label>
+                    <label class="field<?= $cls('valid_until') ?>"><span>Enquiry expiry date *</span><input type="date" name="valid_until" value="<?= e($v('valid_until')) ?>" min="<?= e(date('Y-m-d')) ?>"><?= $err('valid_until') ?></label>
                 <?php elseif ($type === 'dc'): ?>
                     <label class="field<?= $cls('approval_type') ?>"><span>Ref: approved by *</span><?= $sel('approval_type', R::DC_APPROVALS, 'Choose') ?><?= $err('approval_type') ?></label>
                     <label class="field<?= $cls('approval_reference') ?>"><span>Mail details * (date, from, subject)</span><input type="text" name="approval_reference" value="<?= e($v('approval_reference')) ?>" maxlength="255" placeholder="e.g. 06-10-2026, purchase@customer.com"><?= $err('approval_reference') ?></label>
@@ -144,10 +145,11 @@ ob_start();
         <legend>Products</legend>
         <div class="table-scroll">
         <table class="table compact req-lines">
-            <thead><tr><th>#</th><th>Product<?= $isLead ? ' (or type it if not in the list)' : '' ?></th><th class="right">Quantity</th><th class="right"><?= e($priceHead) ?></th></tr></thead>
+            <?php $valueIsTotal = in_array($type, ['dc', 'sample'], true); ?>
+            <thead><tr><th>#</th><th>Product<?= $isLead ? ' (or type it if not in the list)' : '' ?></th><th class="right">Quantity</th><th class="right"><?= e($priceHead) ?></th><?php if (!$valueIsTotal): ?><th class="right">Amount (₹)</th><?php endif; ?></tr></thead>
             <tbody>
             <?php for ($i = 0; $i < R::LINES; $i++): $le = "lines.{$i}"; ?>
-                <tr>
+                <tr data-line="<?= $valueIsTotal ? 'value' : 'mul' ?>">
                     <td class="muted"><?= $i + 1 ?></td>
                     <td class="<?= isset($errors["{$le}.product"]) ? 'sheet-error' : '' ?>">
                         <div class="lookup" data-lookup="products">
@@ -158,11 +160,13 @@ ob_start();
                         <?php if ($isLead): ?><input type="text" class="req-desc" name="lines[<?= $i ?>][description]" value="<?= e($line($i, 'description')) ?>" maxlength="200" placeholder="…or describe a product not in the list" aria-label="Description line <?= $i + 1 ?>"><?php endif; ?>
                         <?= $err("{$le}.product") ?>
                     </td>
-                    <td class="right<?= isset($errors["{$le}.qty"]) ? ' sheet-error' : '' ?>"><input type="text" class="req-num" name="lines[<?= $i ?>][qty]" value="<?= e($line($i, 'qty')) ?>" inputmode="decimal" aria-label="Quantity line <?= $i + 1 ?>"><?= $err("{$le}.qty") ?></td>
-                    <td class="right<?= isset($errors["{$le}.price"]) ? ' sheet-error' : '' ?>"><input type="text" class="req-num" name="lines[<?= $i ?>][price]" value="<?= e($line($i, 'price')) ?>" inputmode="decimal" aria-label="Price line <?= $i + 1 ?>"><?= $err("{$le}.price") ?></td>
+                    <td class="right<?= isset($errors["{$le}.qty"]) ? ' sheet-error' : '' ?>"><input type="text" class="req-num" name="lines[<?= $i ?>][qty]" data-qty value="<?= e($line($i, 'qty')) ?>" inputmode="decimal" aria-label="Quantity line <?= $i + 1 ?>"><?= $err("{$le}.qty") ?></td>
+                    <td class="right<?= isset($errors["{$le}.price"]) ? ' sheet-error' : '' ?>"><input type="text" class="req-num" name="lines[<?= $i ?>][price]" data-price value="<?= e($line($i, 'price')) ?>" inputmode="decimal" aria-label="Price line <?= $i + 1 ?>"><?= $err("{$le}.price") ?></td>
+                    <?php if (!$valueIsTotal): ?><td class="right num"><output data-line-amount>—</output></td><?php endif; ?>
                 </tr>
             <?php endfor; ?>
             </tbody>
+            <tfoot><tr class="total-row"><th colspan="<?= $valueIsTotal ? 3 : 4 ?>">Total</th><th class="right num"><output data-lines-total>₹0</output></th></tr></tfoot>
         </table>
         </div>
         <label class="field field-wide"><span>Remarks</span><textarea name="remarks" rows="2" maxlength="500"><?= e($v('remarks')) ?></textarea></label>

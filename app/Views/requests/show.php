@@ -83,6 +83,7 @@ ob_start();
     <dl class="doc-facts">
         <?php if ($informedText): ?><div><dt>Informed by</dt><dd><?= e($informedText) ?></dd></div><?php endif; ?>
         <?php if (in_array($type, ['lead', 'enquiry'], true)): ?><div><dt>For</dt><dd><?= $doc['lead_type'] === 'new_product' ? 'New product (existing customer)' : 'New customer' ?></dd></div><?php endif; ?>
+        <?php if ($type === 'enquiry' && !empty($doc['valid_until'])): ?><div><dt>Offer valid until</dt><dd><?= e(date('d-m-Y', strtotime($doc['valid_until']))) ?></dd></div><?php endif; ?>
         <?php if ($type === 'enquiry' && $doc['enquiry_source']): ?><div><dt>Enquiry came by</dt><dd><?= e(R::SOURCES[$doc['enquiry_source']] ?? $doc['enquiry_source']) ?></dd></div><?php endif; ?>
         <?php if ($type === 'order'): ?>
             <div><dt>Order came by</dt><dd><?= e(R::ORDER_REFS[$doc['reference_type']] ?? '—') ?></dd></div>

@@ -59,6 +59,10 @@ $router->post('/dashboard/add/{type}', [DashboardController::class, 'quickAdd'],
 $router->get('/dashboard/lookup/{type}', [DashboardController::class, 'lookup'], ['auth', 'can:dashboard.view']);
 
 // Branch Performance: + ADD sheets (month start / daily) and the rows behind each figure
+// Targets tab: annual targets by division / area / sales employee
+$router->get('/targets', [\App\Modules\Dashboard\TargetController::class, 'index'], ['auth', 'can_any:targets.view,targets.add']);
+$router->get('/targets/edit', [\App\Modules\Dashboard\TargetController::class, 'edit'], ['auth', 'can:targets.add']);
+$router->post('/targets', [\App\Modules\Dashboard\TargetController::class, 'save'], ['auth', 'can:targets.add', 'csrf']);
 $router->get('/entry', [EntryController::class, 'sheet'], ['auth', 'can_any:daily_entry.add,targets.add']);
 $router->post('/entry/day', [EntryController::class, 'saveDay'], ['auth', 'can:daily_entry.add', 'csrf']);
 $router->post('/entry/month', [EntryController::class, 'saveMonth'], ['auth', 'can:targets.add', 'csrf']);

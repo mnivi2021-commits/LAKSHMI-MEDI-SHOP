@@ -14,6 +14,8 @@ ob_start();
     <div class="form-actions">
         <a class="btn<?= $type === 'departments' ? ' btn-primary' : '' ?>" href="<?= e(url('hrm/lists/departments')) ?>">Departments</a>
         <a class="btn<?= $type === 'designations' ? ' btn-primary' : '' ?>" href="<?= e(url('hrm/lists/designations')) ?>">Designations</a>
+        <a class="btn<?= $type === 'divisions' ? ' btn-primary' : '' ?>" href="<?= e(url('hrm/lists/divisions')) ?>">Divisions</a>
+        <a class="btn<?= $type === 'sales_areas' ? ' btn-primary' : '' ?>" href="<?= e(url('hrm/lists/sales_areas')) ?>">Sales areas</a>
     </div>
 </div>
 

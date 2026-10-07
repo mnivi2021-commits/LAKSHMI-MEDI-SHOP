@@ -137,6 +137,9 @@ INSERT INTO designations (id, name) VALUES
  (1, 'Branch Manager'), (2, 'Sales Manager'), (3, 'Sales Executive'),
  (4, 'Admin Coordinator'), (5, 'Accounts Executive'), (6, 'HR Executive');
 
+INSERT INTO divisions (id, name) VALUES (1, 'PPE'), (2, 'MAAP'), (3, 'TRAINING');
+INSERT INTO sales_areas (id, name) VALUES (1, 'Madurai'), (2, 'Trichy'), (3, 'TTN'), (4, 'TVL');
+
 INSERT INTO lead_sources (id, name, sort_order) VALUES
  (1, 'Email', 1), (2, 'Website', 2), (3, 'Phone', 3), (4, 'Referral', 4),
  (5, 'Trade Show', 5), (6, 'Walk-in', 6), (7, 'IndiaMART', 7);
