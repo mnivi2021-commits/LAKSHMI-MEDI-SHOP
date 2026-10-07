@@ -35,8 +35,8 @@ r=$(req A GET "/hrm?reps=1"); contains "sales-rep filter" "$TMP/body" "5 employe
 r=$(req A GET "/hrm?branch=2"); contains "branch filter" "$TMP/body" "3 employees"
 
 echo "== Create and validate"
-post A /hrm /hrm/new --data "name=Rep Without Short&branch_id=1&is_sales_rep=1&status=active" >/dev/null; req A GET /hrm/new >/dev/null
-contains "sales rep needs short name" "$TMP/body" "need a short name"
+post A /hrm /hrm/new --data "name=Rep Without Short&branch_id=1&is_sales_rep=1&status=active" >/dev/null; req A GET "/hrm?q=Rep+Without" >/dev/null
+contains "sales rep gets a short name from the first name" "$TMP/body" "REP"
 post A /hrm /hrm/new --data "name=Dup Short&short_name=jana&branch_id=1&status=active" >/dev/null; req A GET /hrm/new >/dev/null
 contains "duplicate active short name refused" "$TMP/body" "already uses this short name"
 post A /hrm /hrm/new --data "name=Bad Dates&branch_id=1&joining_date=2026-05-01&relieving_date=2026-04-01&status=active" >/dev/null; req A GET /hrm/new >/dev/null
@@ -46,7 +46,7 @@ contains "resigned needs relieving date" "$TMP/body" "Enter the relieving date"
 r=$(post A /hrm /hrm/new --data "name=Deepa Raman&short_name=deepa&mobile=9000000010&branch_id=3&department_id=1&designation_id=3&reporting_manager_id=9&joining_date=2026-09-01&is_sales_rep=1&status=active")
 expect "employee created" "$r" "303 $BASE/hrm"
 req A GET "/hrm?q=Deepa" >/dev/null
-contains "auto code EMP011" "$TMP/body" "EMP011"
+contains "auto code EMP012" "$TMP/body" "EMP012"
 contains "short name uppercased" "$TMP/body" "DEEPA"
 contains "reports to Karthik" "$TMP/body" "Karthik V"
 NEW=$(emp_id "Deepa Raman")

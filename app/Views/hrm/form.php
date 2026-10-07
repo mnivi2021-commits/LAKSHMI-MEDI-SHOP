@@ -38,11 +38,51 @@ ob_start();
 <form method="post" action="<?= e(url($isEdit ? "hrm/{$emp['id']}" : 'hrm')) ?>" class="card form form-grid" novalidate>
     <?= Csrf::field() ?>
 
-    <label class="field<?= $cls('name') ?>">
-        <span>Full name *</span>
-        <input type="text" name="name" value="<?= e($values['name'] ?? '') ?>" maxlength="120" required>
-        <?= $err('name') ?>
-    </label>
+    <fieldset class="field-wide req-step">
+        <legend>Basic details</legend>
+        <div class="req-row hrm-basic">
+            <label class="field<?= $cls('name') ?>">
+                <span>Name *</span>
+                <input type="text" name="name" value="<?= e($values['name'] ?? '') ?>" maxlength="120" required>
+                <?= $err('name') ?>
+            </label>
+            <label class="field<?= $cls('date_of_birth') ?>">
+                <span>Date of birth (DOB)</span>
+                <input type="date" name="date_of_birth" id="dob" data-age-target="age-out" value="<?= e($values['date_of_birth'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>">
+                <?= $err('date_of_birth') ?>
+            </label>
+            <div class="field">
+                <span>Age</span>
+                <output id="age-out" class="age-out" for="dob"><?= !empty($values['date_of_birth']) && strtotime((string) $values['date_of_birth']) ? e((new DateTimeImmutable((string) $values['date_of_birth']))->diff(new DateTimeImmutable('today'))->y) : '—' ?></output>
+            </div>
+            <label class="field<?= $cls('joining_date') ?>">
+                <span>Date of joining (DOJ)</span>
+                <input type="date" name="joining_date" value="<?= e($values['joining_date'] ?? '') ?>">
+                <?= $err('joining_date') ?>
+            </label>
+            <label class="field<?= $cls('branch_id') ?>">
+                <span>Branch *</span>
+                <?= $select('branch_id', $branches, 'Choose branch', static fn ($b) => "{$b['name']} ({$b['branch_code']})") ?>
+                <?= $err('branch_id') ?>
+            </label>
+            <label class="field<?= $cls('sales_role') ?>">
+                <span>Sales or Admin</span>
+                <select name="sales_role">
+                    <option value="">Other staff</option>
+                    <optgroup label="Sales">
+                        <?php foreach (['manager', 'sales_executive', 'sales_coordinator'] as $k): ?><option value="<?= e($k) ?>"<?= ($values['sales_role'] ?? '') === $k ? ' selected' : '' ?>><?= e($roles[$k]) ?></option><?php endforeach; ?>
+                    </optgroup>
+                    <optgroup label="Admin">
+                        <option value="sales_support"<?= ($values['sales_role'] ?? '') === 'sales_support' ? ' selected' : '' ?>><?= e($roles['sales_support']) ?></option>
+                    </optgroup>
+                </select>
+                <?= $err('sales_role') ?>
+            </label>
+        </div>
+    </fieldset>
+
+    <p class="field-wide muted small">More details (optional)</p>
+
     <label class="field<?= $cls('short_name') ?>">
         <span>Short name (dashboard)</span>
         <input type="text" name="short_name" value="<?= e($values['short_name'] ?? '') ?>" maxlength="40" class="uppercase" placeholder="e.g. JANA">
@@ -60,11 +100,6 @@ ob_start();
         <?= $err('email') ?>
     </label>
 
-    <label class="field<?= $cls('branch_id') ?>">
-        <span>Branch *</span>
-        <?= $select('branch_id', $branches, 'Choose branch', static fn ($b) => "{$b['name']} ({$b['branch_code']})") ?>
-        <?= $err('branch_id') ?>
-    </label>
     <label class="field<?= $cls('reporting_manager_id') ?>">
         <span>Reporting manager</span>
         <?= $select('reporting_manager_id', $managers, 'None', static fn ($m) => "{$m['name']} ({$m['employee_code']}, {$m['branch_code']})") ?>
@@ -82,19 +117,6 @@ ob_start();
         <?= $err('designation_id') ?>
     </label>
 
-    <label class="field<?= $cls('date_of_birth') ?>">
-        <span>Date of birth</span>
-        <input type="date" name="date_of_birth" value="<?= e($values['date_of_birth'] ?? '') ?>" max="<?= e(date('Y-m-d')) ?>">
-        <?= $err('date_of_birth') ?>
-        <?php if (!empty($values['date_of_birth']) && strtotime((string) $values['date_of_birth'])): ?><span class="muted small">Age <?= e((new DateTimeImmutable((string) $values['date_of_birth']))->diff(new DateTimeImmutable('today'))->y) ?></span><?php endif; ?>
-    </label>
-    <div></div>
-
-    <label class="field<?= $cls('joining_date') ?>">
-        <span>Joining date</span>
-        <input type="date" name="joining_date" value="<?= e($values['joining_date'] ?? '') ?>">
-        <?= $err('joining_date') ?>
-    </label>
     <label class="field<?= $cls('relieving_date') ?>">
         <span>Relieving date</span>
         <input type="date" name="relieving_date" value="<?= e($values['relieving_date'] ?? '') ?>">
@@ -119,14 +141,6 @@ ob_start();
     <fieldset class="field-wide req-step">
         <legend>Sales person details</legend>
         <div class="req-row">
-            <label class="field<?= $cls('sales_role') ?>">
-                <span>Sales role</span>
-                <select name="sales_role">
-                    <option value="">Not in the sales team</option>
-                    <?php foreach ($roles as $k => $l): ?><option value="<?= e($k) ?>"<?= ($values['sales_role'] ?? '') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
-                </select>
-                <?= $err('sales_role') ?>
-            </label>
             <label class="field<?= $cls('area') ?>">
                 <span>Area</span>
                 <input type="text" name="area" value="<?= e($values['area'] ?? '') ?>" maxlength="80" list="area-list" placeholder="e.g. Trichy">

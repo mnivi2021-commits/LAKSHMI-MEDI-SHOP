@@ -19,8 +19,8 @@ ob_start();
         <h1>Employees</h1>
     </div>
     <div class="form-actions">
+        <a class="btn" href="<?= e(url('hrm/sales-team')) ?>">Sales person details</a>
         <?php if ($canEdit): ?>
-            <a class="btn" href="<?= e(url('hrm/sales-team')) ?>">Sales person details</a>
             <a class="btn" href="<?= e(url('hrm/lists/departments')) ?>">Departments</a>
             <a class="btn" href="<?= e(url('hrm/lists/designations')) ?>">Designations</a>
         <?php endif; ?>

@@ -103,6 +103,12 @@ SELECT r.id, p.id FROM roles r JOIN permissions p ON (p.action = 'view' AND p.mo
 WHERE r.slug IN ('sales_manager', 'branch_manager')
   AND NOT EXISTS (SELECT 1 FROM role_permissions x WHERE x.role_id = r.id AND x.permission_id = p.id);
 
+-- Managers add and edit employees in HRM (not delete)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r JOIN permissions p ON p.slug IN ('hrm.add', 'hrm.edit')
+WHERE r.slug IN ('sales_manager', 'branch_manager')
+  AND NOT EXISTS (SELECT 1 FROM role_permissions x WHERE x.role_id = r.id AND x.permission_id = p.id);
+
 -- HR
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT 6, id FROM permissions WHERE slug IN ('dashboard.view','branches.view','hrm.view','hrm.add','hrm.edit','hrm.export');

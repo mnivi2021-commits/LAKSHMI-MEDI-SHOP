@@ -292,6 +292,22 @@ final class EmployeeController
             'status'               => Request::input('status', 10) ?: 'active',
         ];
 
+        // A Sales Executive is always a sales representative; give a short name if none was typed.
+        if ($data['sales_role'] === 'sales_executive') {
+            $data['is_sales_rep'] = 1;
+        }
+        if ($data['is_sales_rep'] === 1 && $data['short_name'] === null && $data['name'] !== '') {
+            $data['short_name'] = mb_strtoupper(mb_substr(preg_split('/\s+/', $data['name'])[0], 0, 40));
+        }
+        // Managers (team data scope) add people into their own team, so they keep seeing them.
+        $me = Auth::user();
+        $myScope = DataScope::for($me);
+        if (!$myScope->isUnrestricted() && !empty($me['employee_id'])) {
+            if ($data['reporting_manager_id'] === null && ($existing === null || (int) $existing['id'] !== (int) $me['employee_id'])) {
+                $data['reporting_manager_id'] = (int) $me['employee_id'];
+            }
+        }
+
         $v = (new Validator())->required('name', $data['name'], 'Name')->maxLength('name', $data['name'], 120, 'Name')
             ->in('status', $data['status'], array_keys(self::STATUSES), 'status');
         if ($data['mobile']) {

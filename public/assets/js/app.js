@@ -14,6 +14,22 @@
         });
     });
 
+    // Age from a date of birth: <input type="date" data-age-target="id-of-output">
+    document.querySelectorAll('[data-age-target]').forEach(function (input) {
+        var out = document.getElementById(input.getAttribute('data-age-target'));
+        if (!out) { return; }
+        var show = function () {
+            var d = input.value ? new Date(input.value + 'T00:00:00') : null;
+            if (!d || isNaN(d.getTime())) { out.textContent = '\u2014'; return; }
+            var t = new Date(), age = t.getFullYear() - d.getFullYear();
+            if (t.getMonth() < d.getMonth() || (t.getMonth() === d.getMonth() && t.getDate() < d.getDate())) { age--; }
+            out.textContent = age >= 0 ? age + ' years' : '\u2014';
+        };
+        input.addEventListener('input', show);
+        input.addEventListener('change', show);
+        show();
+    });
+
     // Print buttons: <button data-print>
     document.querySelectorAll('[data-print]').forEach(function (b) {
         b.addEventListener('click', function () { window.print(); });
