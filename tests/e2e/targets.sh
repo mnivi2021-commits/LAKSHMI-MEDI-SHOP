@@ -44,8 +44,13 @@ r=$(req A GET "/?branch=3"); contains "Madurai title" "$TMP/body" "MADURAI BRANC
 contains "Madurai annual" "$TMP/body" "₹54,00,000"
 contains "Madurai this month" "$TMP/body" "₹4,50,000"
 lacks "only Madurai row" "$TMP/body" "<b>Chennai Head Office</b>"
+for a in Madurai Trichy TTN TVL; do contains "Madurai branch shows area $a" "$TMP/body" "<h3>$a</h3>"; done
+lacks "Madurai branch: no Jana in employee list" "$TMP/body" "<b>JANA</b>"
+r=$(req A GET "/?branch=1"); lacks "Chennai: no Madurai areas" "$TMP/body" "<h3>Trichy</h3>"
+contains "Chennai: no-areas message" "$TMP/body" "No sales areas for this branch yet"
+contains "Chennai: Jana listed" "$TMP/body" "<b>JANA</b>"
 contains "Apr - Mar shown" "$TMP/body" "Apr 2026 – Mar 2027"
-contains "coordinator with reps" "$TMP/body" "Divya R"
+req A GET / >/dev/null; contains "coordinator with reps" "$TMP/body" "Divya R"
 contains "admin head listed" "$TMP/body" "Admin Head"
 
 echo "== Set annual targets"
@@ -78,12 +83,16 @@ r=$(req A GET "/followup?division=3"); contains "TRAINING division: Prakash" "$T
 lacks "TRAINING division: no Jana" "$TMP/body" "JANA - Janakiraman"
 
 echo "== Branch Details: sales team"
-r=$(req A GET "/branches"); contains "branch select" "$TMP/body" 'name="team_branch"'
+r=$(req A GET "/branches"); contains "sales name box" "$TMP/body" 'name="rep"'
 contains "columns" "$TMP/body" "OP outstanding"
-r=$(req A GET "/branches?team_branch=3"); contains "Madurai team: Muthuvel" "$TMP/body" "MUTHUVEL"
-lacks "Madurai team: no Jana" "$TMP/body" "<b>JANA</b>"
+lacks "branch box removed" "$TMP/body" 'name="team_branch"'
 contains "division shown" "$TMP/body" "PPE, MAAP"
 contains "80% of 65,000 target" "$TMP/body" "₹52,000"
+r=$(req A GET "/branches?rep=6"); expect "one rep" "${r%% *}" 200
+for h in "<h3>Sales</h3>" "<h3>Pending order</h3>" "<h3>Payment</h3>" "<h3>Sample &amp; DC</h3>"; do contains "box $h" "$TMP/body" "$h"; done
+contains "annual target (15 + 6 lakh)" "$TMP/body" "₹21,00,000"
+contains "OP O/S" "$TMP/body" "₹3,75,000"
+lacks "only this rep (no team table)" "$TMP/body" "<b>JANA</b>"
 
 echo
 echo "targets e2e: $PASS passed, $FAIL failed"

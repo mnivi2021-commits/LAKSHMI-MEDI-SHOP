@@ -157,9 +157,9 @@ final class TargetController
         $divisions = Database::fetchAll("SELECT id, name FROM divisions WHERE status = 'active' ORDER BY id");
         [$bw, $bp] = $scope->branchListWhere('b.id');
         $branches = Database::fetchAll("SELECT b.id, b.name FROM branches b WHERE b.deleted_at IS NULL AND b.status = 'active' AND {$bw} ORDER BY b.id", $bp);
-        $areas = Database::fetchAll("SELECT id, name FROM sales_areas WHERE status = 'active' ORDER BY id");
+        $areas = Database::fetchAll("SELECT id, name, branch_id FROM sales_areas WHERE status = 'active' ORDER BY id");
         $employees = Database::fetchAll(
-            "SELECT e.id, e.name, e.short_name, e.area, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id
+            "SELECT e.id, e.name, e.short_name, e.area, e.branch_id, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id
              WHERE e.deleted_at IS NULL AND e.status = 'active' AND (e.is_sales_rep = 1 OR e.sales_role = 'sales_executive') AND {$ew}
              ORDER BY e.area IS NULL, e.area, e.name", $ep);
         $map = [];
@@ -167,7 +167,7 @@ final class TargetController
             $map[$r['scope_key']] = Money::fromDb($r['annual_target']);
         }
         $coordinators = Database::fetchAll(
-            "SELECT c.id, c.name, c.short_name, c.area, b.name AS branch,
+            "SELECT c.id, c.name, c.short_name, c.area, c.branch_id, b.name AS branch,
                     (SELECT GROUP_CONCAT(COALESCE(r.short_name, r.name) ORDER BY r.name SEPARATOR ', ') FROM employees r
                      WHERE r.coordinator_id = c.id AND r.deleted_at IS NULL AND r.status = 'active') AS reps,
                     (SELECT GROUP_CONCAT(DISTINCT d.name ORDER BY d.id SEPARATOR ', ') FROM employees r

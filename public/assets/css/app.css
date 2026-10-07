@@ -1014,3 +1014,19 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 .company-title { color: #0d0d10; }
 @media (prefers-color-scheme: dark) { .tg-area:nth-child(n) { background: var(--surface); } .tg-area .table td { background: var(--surface-2); } .tg-area .table th { color: var(--muted); } }
 .tg-area .table .total-row > th, .tg-area .table .total-row > td { color: #fff; font-weight: 800; }
+
+/* Branch Details: one sales rep in boxes */
+.rep-boxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 6px 0 4px; }
+.rep-box { border-radius: 16px; overflow: hidden; border: 2px solid transparent; background: var(--surface-2); }
+.rep-box h3 { margin: 0; padding: 10px 16px; color: #fff; font-size: 1.05rem; letter-spacing: .02em; }
+.rep-box dl { margin: 0; padding: 8px 16px 12px; display: grid; gap: 2px; }
+.rep-box dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--border); }
+.rep-box dl > div:last-child { border-bottom: 0; }
+.rep-box dt { color: var(--muted); }
+.rep-box dd { margin: 0; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.rep-box .rep-total dt, .rep-box .rep-total dd { color: var(--text); font-weight: 800; }
+.rep-sales { border-color: #1a9a4b; } .rep-sales h3 { background: #1a9a4b; }
+.rep-po    { border-color: #e07b00; } .rep-po h3 { background: #e07b00; }
+.rep-pay   { border-color: #2457d6; } .rep-pay h3 { background: #2457d6; }
+.rep-sdc   { border-color: #7a3fd1; } .rep-sdc h3 { background: #7a3fd1; }
+@media (max-width: 800px) { .rep-boxes { grid-template-columns: 1fr; } }

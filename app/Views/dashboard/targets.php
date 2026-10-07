@@ -37,6 +37,12 @@ ob_start();
 $chosen = null;
 foreach ($branches as $br) { if ((int) $br['id'] === $branch) { $chosen = $br; } }
 $shown = $chosen ? [$chosen] : $branches;
+// The chosen branch also narrows the areas, sales employees and coordinators below
+if ($chosen) {
+    $areas = array_values(array_filter($areas, static fn ($a) => (int) ($a['branch_id'] ?? 0) === (int) $chosen['id']));
+    $employees = array_values(array_filter($employees, static fn ($m) => (int) $m['branch_id'] === (int) $chosen['id']));
+    $coordinators = array_values(array_filter($coordinators, static fn ($c) => (int) $c['branch_id'] === (int) $chosen['id']));
+}
 ?>
 <section class="card tg-box">
     <div class="tg-branch-head">
@@ -64,7 +70,8 @@ $shown = $chosen ? [$chosen] : $branches;
 </section>
 
 <!-- 2. Area-wise: one separate box per area -->
-<h2 class="section-title">Area-wise target</h2>
+<h2 class="section-title">Area-wise target<?= $chosen ? ' · ' . e($chosen['name']) : '' ?></h2>
+<?php if (!$areas): ?><div class="card"><p class="empty">No sales areas for this branch yet. Add them under HRM → Sales areas and choose the branch.</p></div><?php endif; ?>
 <div class="tg-areas">
     <?php foreach ($areas as $ar): $at = 0; ?>
     <section class="card tg-area">

@@ -85,7 +85,14 @@ final class BranchController
             array_merge([$teamMonth, $teamMonth, $teamMonth], $ep)
         );
 
+        // One sales rep chosen: only that person's figures, in boxes
+        $teamRep = (int) ($_GET['rep'] ?? 0);
+        $teamRep = in_array($teamRep, array_map('intval', array_column($team, 'id')), true) ? $teamRep : 0;
+        $repData = $teamRep ? self::repFigures($teamRep) : null;
+
         Response::view('branches/index', [
+            'teamRep'      => $teamRep,
+            'repData'      => $repData,
             'teamBranches' => $teamBranches,
             'teamBranch'   => $teamBranch,
             'team'         => $team,
@@ -103,6 +110,41 @@ final class BranchController
             'canDelete'=> Gate::allows('branches.delete'),
             'canExport'=> Gate::allows('branches.export'),
         ]);
+    }
+
+    /**
+     * One sales rep's figures from the daily entry sheets: annual target, sales (year / month),
+     * latest pending orders, opening outstanding and this month's collection, latest samples and DC.
+     *
+     * @return array<string, mixed>
+     */
+    private static function repFigures(int $id): array
+    {
+        $today = date('Y-m-d');
+        $monthStart = date('Y-m-01');
+        $fy = Database::fetch('SELECT id, start_date FROM financial_years WHERE ? BETWEEN start_date AND end_date', [$today]);
+        $fyStart = $fy['start_date'] ?? $monthStart;
+        $p = static fn ($v): int => \App\Core\Money::fromDb($v);
+        $sum = static fn (string $col, string $from) => Database::value(
+            "SELECT COALESCE(SUM({$col}), 0) FROM rep_daily_totals WHERE employee_id = ? AND entry_date BETWEEN ? AND ?", [$id, $from, $today]);
+        $latest = static function (string $col) use ($id, $today, $p): ?int {
+            $v = Database::value("SELECT {$col} FROM rep_daily_totals WHERE employee_id = ? AND entry_date <= ? AND {$col} IS NOT NULL ORDER BY entry_date DESC LIMIT 1", [$id, $today]);
+            return $v === null ? null : $p($v);
+        };
+        $e = Database::fetch('SELECT e.name, e.short_name, e.area, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id WHERE e.id = ?', [$id]);
+        return [
+            'name'        => $e['name'], 'short_name' => $e['short_name'], 'area' => $e['area'], 'branch' => $e['branch'],
+            'annual_target' => $fy ? $p(Database::value("SELECT SUM(annual_target) FROM annual_targets WHERE financial_year_id = ? AND level = 'employee' AND employee_id = ?", [$fy['id'], $id])) : 0,
+            'month_target'  => $p(Database::value('SELECT SUM(sales_target) FROM sales_targets WHERE employee_id = ? AND target_month = ?', [$id, $monthStart])),
+            'annual_sales'  => $p($sum('sales_value', $fyStart)),
+            'month_sales'   => $p($sum('sales_value', $monthStart)),
+            'po_non_stock'  => $latest('po_non_stock'), 'po_price_issue' => $latest('po_price_issue'), 'po_doubt' => $latest('po_doubt'),
+            'opening'       => $p(Database::value('SELECT opening_outstanding FROM rep_month_openings WHERE employee_id = ? AND opening_month = ?', [$id, $monthStart])),
+            'month_collection' => $p($sum('collection_value', $monthStart)),
+            'dc_order' => $latest('dc_order'), 'dc_mail' => $latest('dc_mail'), 'dc_rep_inform' => $latest('dc_rep_inform'),
+            'sample_returnable' => $latest('sample_returnable'), 'sample_non_returnable' => $latest('sample_non_returnable'),
+            'month' => date('F Y'),
+        ];
     }
 
     public static function create(): void

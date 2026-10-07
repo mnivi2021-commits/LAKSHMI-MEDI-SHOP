@@ -19,7 +19,7 @@ ob_start();
     </div>
 </div>
 
-<?php require dirname(__DIR__) . '/partials/flash.php'; ?>
+<?php $branches ??= []; require dirname(__DIR__) . '/partials/flash.php'; ?>
 
 <?php if ($canEdit): ?>
 <form method="post" action="<?= e(url("hrm/lists/{$type}")) ?>" class="filters card">
@@ -28,6 +28,12 @@ ob_start();
         <span>New <?= e(strtolower($def['singular'])) ?></span>
         <input type="text" name="name" maxlength="80" required>
     </label>
+    <?php if ($type === 'sales_areas'): ?>
+    <label class="field"><span>Branch</span>
+        <select name="branch_id"><option value="">—</option>
+            <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"><?= e($b['name']) ?></option><?php endforeach; ?>
+        </select></label>
+    <?php endif; ?>
     <div class="filter-actions">
         <button type="submit" class="btn btn-primary">Add</button>
     </div>
@@ -47,7 +53,12 @@ ob_start();
                         <form method="post" action="<?= e(url("hrm/lists/{$type}/{$r['id']}")) ?>" class="inline-rename">
                             <?= Csrf::field() ?>
                             <input type="text" name="name" value="<?= e($r['name']) ?>" maxlength="80" aria-label="Name" required>
-                            <button type="submit" class="btn btn-sm">Rename</button>
+                            <?php if ($type === 'sales_areas'): ?>
+                            <select name="branch_id" aria-label="Branch"><option value="">— branch —</option>
+                                <?php foreach ($branches as $b): ?><option value="<?= e($b['id']) ?>"<?= (int) ($r['branch_id'] ?? 0) === (int) $b['id'] ? ' selected' : '' ?>><?= e($b['name']) ?></option><?php endforeach; ?>
+                            </select>
+                            <?php endif; ?>
+                            <button type="submit" class="btn btn-sm"><?= $type === 'sales_areas' ? 'Save' : 'Rename' ?></button>
                         </form>
                     <?php else: ?>
                         <?= e($r['name']) ?>

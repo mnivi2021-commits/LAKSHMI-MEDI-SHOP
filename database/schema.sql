@@ -459,12 +459,14 @@ CREATE TABLE divisions (
 CREATE TABLE sales_areas (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(80)  NOT NULL COMMENT 'Matches employees.area',
+    branch_id       INT UNSIGNED NULL COMMENT 'Branch the area belongs to',
     status          ENUM('active','inactive') NOT NULL DEFAULT 'active',
     created_by      INT UNSIGNED NULL,
     updated_by      INT UNSIGNED NULL,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_sales_areas_name (name),
+    CONSTRAINT fk_area_branch FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL,
     CONSTRAINT fk_area_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_area_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

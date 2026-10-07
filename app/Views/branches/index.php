@@ -95,22 +95,62 @@ ob_start();
 </section>
 
 <?php
-$teamBranches ??= []; $team ??= []; $teamBranch ??= 0; $pcts ??= ['sales' => 80, 'collection' => 60]; $teamMonth ??= date('Y-m-01');
+$teamBranches ??= []; $team ??= []; $teamBranch ??= 0; $teamRep ??= 0; $repData ??= null; $pcts ??= ['sales' => 80, 'collection' => 60]; $teamMonth ??= date('Y-m-01');
 $p = static fn ($v): int => \App\Core\Money::fromDb($v);
 ?>
 <section class="card table-card team-card">
     <div class="team-head">
         <h2>Sales team · <?= e(date('F Y', strtotime($teamMonth))) ?></h2>
         <form method="get" action="<?= e(url('branches')) ?>" class="team-filter">
-            <label class="field"><span>Branch</span>
-                <select name="team_branch" data-autosubmit>
-                    <option value="">All branches</option>
-                    <?php foreach ($teamBranches as $tb): ?><option value="<?= e($tb['id']) ?>"<?= (int) $tb['id'] === $teamBranch ? ' selected' : '' ?>><?= e($tb['name']) ?></option><?php endforeach; ?>
+            <label class="field"><span>Sales name</span>
+                <select name="rep" data-autosubmit>
+                    <option value="">All sales people</option>
+                    <?php foreach ($team as $tm): ?><option value="<?= e($tm['id']) ?>"<?= (int) $tm['id'] === $teamRep ? ' selected' : '' ?>><?= e(($tm['short_name'] ?: $tm['name']) . ' - ' . $tm['name']) ?></option><?php endforeach; ?>
                 </select></label>
             <noscript><button type="submit" class="btn">Show</button></noscript>
         </form>
     </div>
-    <?php if (!$team): ?><p class="empty">No sales people<?= $teamBranch ? ' in this branch' : '' ?>.</p><?php else: ?>
+    <?php if ($repData): $r = $repData; $m = static fn (?int $v): string => $v ? rupees($v) : '—'; ?>
+    <div class="rep-boxes">
+        <section class="rep-box rep-sales">
+            <h3>Sales</h3>
+            <dl>
+                <div><dt>Sales name</dt><dd><?= e(($r['short_name'] ?: $r['name']) . ' - ' . $r['name']) ?></dd></div>
+                <div><dt>Area / branch</dt><dd><?= e(($r['area'] ?: '—') . ' · ' . $r['branch']) ?></dd></div>
+                <div><dt>Target (annual)</dt><dd><?= e($m($r['annual_target'])) ?></dd></div>
+                <div><dt>Annual sales (this year)</dt><dd><?= e($m($r['annual_sales'])) ?></dd></div>
+                <div><dt>Month sales (<?= e($r['month']) ?>)</dt><dd><?= e($m($r['month_sales'])) ?><?= $r['month_target'] ? ' <span class="muted small">of ' . e(rupees($r['month_target'])) . '</span>' : '' ?></dd></div>
+            </dl>
+        </section>
+        <section class="rep-box rep-po">
+            <h3>Pending order</h3>
+            <dl>
+                <div><dt>Non stock</dt><dd><?= e($m($r['po_non_stock'])) ?></dd></div>
+                <div><dt>Price issue</dt><dd><?= e($m($r['po_price_issue'])) ?></dd></div>
+                <div><dt>Doubt</dt><dd><?= e($m($r['po_doubt'])) ?></dd></div>
+                <div class="rep-total"><dt>Total pending</dt><dd><?= e($m(($r['po_non_stock'] ?? 0) + ($r['po_price_issue'] ?? 0) + ($r['po_doubt'] ?? 0))) ?></dd></div>
+            </dl>
+        </section>
+        <section class="rep-box rep-pay">
+            <h3>Payment</h3>
+            <dl>
+                <div><dt>OP O/S (opening outstanding)</dt><dd><?= e($m($r['opening'])) ?></dd></div>
+                <div><dt>This month collection</dt><dd><?= e($m($r['month_collection'])) ?></dd></div>
+                <div><dt>Collected of OP O/S</dt><dd><?= $r['opening'] ? e(number_format($r['month_collection'] * 100 / $r['opening'], 1)) . '%' : '—' ?></dd></div>
+            </dl>
+        </section>
+        <section class="rep-box rep-sdc">
+            <h3>Sample &amp; DC</h3>
+            <dl>
+                <div><dt>DC with order</dt><dd><?= e($m($r['dc_order'])) ?></dd></div>
+                <div><dt>DC mail confirmation</dt><dd><?= e($m($r['dc_mail'])) ?></dd></div>
+                <div><dt>DC rep's inform</dt><dd><?= e($m($r['dc_rep_inform'])) ?></dd></div>
+                <div><dt>Sample returnable</dt><dd><?= e($m($r['sample_returnable'])) ?></dd></div>
+                <div><dt>Sample non-returnable</dt><dd><?= e($m($r['sample_non_returnable'])) ?></dd></div>
+            </dl>
+        </section>
+    </div>
+    <?php elseif (!$team): ?><p class="empty">No sales people.</p><?php else: ?>
     <div class="table-scroll"><table class="table compact">
         <thead><tr>
             <th>Name</th><th>Area</th><th>Division</th>

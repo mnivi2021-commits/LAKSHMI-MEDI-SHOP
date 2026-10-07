@@ -30,7 +30,7 @@ final class MasterController
         }
         $def = self::TYPES[$type];
         $rows = Database::fetchAll(
-            "SELECT t.id, t.name, t.status, " . match (true) {
+            "SELECT t.id, t.name, t.status, " . ($type === 'sales_areas' ? '(SELECT b.name FROM branches b WHERE b.id = t.branch_id) AS branch_name, t.branch_id, ' : '') . match (true) {
                 $def['fk'] !== null => "(SELECT COUNT(*) FROM employees e WHERE e.{$def['fk']} = t.id AND e.deleted_at IS NULL)",
                 $type === 'sales_areas' => '(SELECT COUNT(*) FROM employees e WHERE e.area = t.name AND e.deleted_at IS NULL)',
                 default => '(SELECT COUNT(DISTINCT a.employee_id) FROM annual_targets a WHERE a.division_id = t.id)',
@@ -38,6 +38,7 @@ final class MasterController
              FROM {$type} t ORDER BY t.status = 'active' DESC, t.name"
         );
         Response::view('hrm/masters', [
+            'branches' => $type === 'sales_areas' ? Database::fetchAll("SELECT id, name FROM branches WHERE deleted_at IS NULL AND status = 'active' ORDER BY name") : [],
             'title'   => $def['label'] . ' · HRM',
             'flash'   => Session::takeFlash(),
             'type'    => $type,
@@ -58,6 +59,9 @@ final class MasterController
             Session::flash('error', $error);
         } else {
             Database::query("INSERT INTO {$type} (name, created_by, updated_by) VALUES (?, ?, ?)", [$name, Auth::id(), Auth::id()]);
+            if ($type === 'sales_areas') {
+                self::setBranch((int) Database::connection()->lastInsertId());
+            }
             Audit::log(rtrim($type, 's') . '.created', 'hrm', (int) Database::connection()->lastInsertId(), null, ['name' => $name]);
             Session::flash('success', self::TYPES[$type]['singular'] . " \"{$name}\" added.");
         }
@@ -85,6 +89,12 @@ final class MasterController
             $name = Request::input('name', 80);
             if (($error = self::nameError($type, $name, (int) $row['id'])) !== null) {
                 Session::flash('error', $error);
+            } elseif ($type === 'sales_areas' && (int) Request::input('branch_id', 10) !== (int) ($row['branch_id'] ?? 0)) {
+                if ($name !== $row['name']) {
+                    Database::query("UPDATE {$type} SET name = ?, updated_by = ? WHERE id = ?", [$name, Auth::id(), $row['id']]);
+                }
+                self::setBranch((int) $row['id']);
+                Session::flash('success', "\"{$name}\" saved.");
             } elseif ($name !== $row['name']) {
                 Database::query("UPDATE {$type} SET name = ?, updated_by = ? WHERE id = ?", [$name, Auth::id(), $row['id']]);
                 Audit::log(rtrim($type, 's') . '.renamed', 'hrm', (int) $row['id'], ['name' => $row['name']], ['name' => $name]);
@@ -92,6 +102,16 @@ final class MasterController
             }
         }
         Response::redirect("/hrm/lists/{$type}");
+    }
+
+    /** Sales areas: store the branch chosen on the form (blank = no branch). */
+    private static function setBranch(int $id): void
+    {
+        $b = (int) Request::input('branch_id', 10) ?: null;
+        if ($b !== null && !Database::value('SELECT 1 FROM branches WHERE id = ? AND deleted_at IS NULL', [$b])) {
+            $b = null;
+        }
+        Database::query('UPDATE sales_areas SET branch_id = ?, updated_by = ? WHERE id = ?', [$b, Auth::id(), $id]);
     }
 
     private static function type(array $p): ?string

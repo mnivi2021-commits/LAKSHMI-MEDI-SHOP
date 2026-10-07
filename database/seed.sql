@@ -414,3 +414,6 @@ INSERT INTO annual_targets (financial_year_id, level, division_id, area_id, empl
  (2, 'employee', 1, NULL, 6, 1500000.00), (2, 'employee', 2, NULL, 6, 600000.00);
 INSERT INTO annual_targets (financial_year_id, level, branch_id, annual_target) VALUES
  (2, 'branch', 1, 8000000.00), (2, 'branch', 2, 6000000.00), (2, 'branch', 3, 5400000.00);
+
+-- Sales areas of Madurai Branch
+UPDATE sales_areas SET branch_id = 3 WHERE name IN ('Madurai', 'Trichy', 'TTN', 'TVL');
