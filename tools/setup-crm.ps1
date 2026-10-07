@@ -49,14 +49,63 @@ $lines = [IO.File]::ReadAllLines($envFile, $utf8) | ForEach-Object { if ($_ -mat
 [IO.File]::WriteAllLines($envFile, $lines, $utf8)
 
 # ---------------------------------------------------------------------------
-Step 2 'Create the database and the crm_app user (enter the MySQL ROOT password when asked)'
-$sql = [IO.File]::ReadAllText((Join-Path $root 'database\setup_user.sql'), $utf8).Replace('CHANGE_ME_STRONG_PASSWORD', $current)
-$sql += "`nALTER USER 'crm_app'@'localhost' IDENTIFIED BY '$current';`nALTER USER 'crm_app'@'127.0.0.1' IDENTIFIED BY '$current';`nFLUSH PRIVILEGES;`n"
+Step 2 'Create the database and the crm_app user'
+# One statement per line, no comments (works both as a normal script and as a MySQL --init-file).
+$grants = 'SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES, CREATE VIEW, SHOW VIEW'
+$userSql = @(
+    'CREATE DATABASE IF NOT EXISTS marketing_crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;',
+    "CREATE USER IF NOT EXISTS 'crm_app'@'localhost' IDENTIFIED BY '$current';",
+    "CREATE USER IF NOT EXISTS 'crm_app'@'127.0.0.1' IDENTIFIED BY '$current';",
+    "ALTER USER 'crm_app'@'localhost' IDENTIFIED BY '$current';",
+    "ALTER USER 'crm_app'@'127.0.0.1' IDENTIFIED BY '$current';",
+    "GRANT $grants ON marketing_crm.* TO 'crm_app'@'localhost';",
+    "GRANT $grants ON marketing_crm.* TO 'crm_app'@'127.0.0.1';"
+)
 $tmp = Join-Path $env:TEMP ('crm_setup_' + [Guid]::NewGuid().ToString('N') + '.sql')
-[IO.File]::WriteAllText($tmp, $sql, $utf8)
+$knows = Read-Host 'Do you know the MySQL ROOT password? (y = yes, n = no / forgotten)'
 try {
-    cmd /c "`"$mysql`" -u root -p < `"$tmp`""
-    if ($LASTEXITCODE -ne 0) { throw 'MySQL did not accept the root password, or the script failed. Run this setup again.' }
+    if ($knows -match '^[yY]') {
+        [IO.File]::WriteAllText($tmp, (($userSql + 'FLUSH PRIVILEGES;') -join "`n") + "`n", $utf8)
+        Write-Host 'Type the MySQL ROOT password when asked:'
+        cmd /c "`"$mysql`" -u root -p < `"$tmp`""
+        if ($LASTEXITCODE -ne 0) { throw 'MySQL did not accept the root password. Run this setup again and answer n to set a new one.' }
+    } else {
+        # Forgotten root password: start MySQL once with an init file that sets a NEW root password
+        # and creates the CRM user. The databases themselves are not changed.
+        Write-Host 'Choose a NEW MySQL root password (at least 8 characters). Write it down and keep it safe.' -ForegroundColor Yellow
+        do {
+            $p1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host 'New root password' -AsSecureString)))
+            $p2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host 'Type it again' -AsSecureString)))
+            if ($p1 -ne $p2) { Write-Host 'The two passwords are different. Try again.' -ForegroundColor Red }
+            elseif ($p1.Length -lt 8) { Write-Host 'Use at least 8 characters.' -ForegroundColor Red }
+        } while ($p1 -ne $p2 -or $p1.Length -lt 8)
+        $rootPw = $p1.Replace("'", "''")
+        $initSql = @("ALTER USER 'root'@'localhost' IDENTIFIED BY '$rootPw';") + $userSql + 'FLUSH PRIVILEGES;'
+        [IO.File]::WriteAllText($tmp, ($initSql -join "`n") + "`n", $utf8)
+
+        $svc = Get-CimInstance Win32_Service -Filter "Name='MySQL80'"
+        if (-not $svc) { throw 'The MySQL80 service was not found.' }
+        $defaults = [regex]::Match($svc.PathName, '--defaults-file="?([^"]+)"?').Groups[1].Value
+        Write-Host 'Stopping MySQL for a moment...'
+        Stop-Service -Name 'MySQL80' -Force
+        Start-Sleep -Seconds 3
+        $proc = Start-Process -FilePath (Join-Path (Split-Path $mysql) 'mysqld.exe') -ArgumentList @("--defaults-file=`"$defaults`"", "--init-file=`"$tmp`"") -PassThru -WindowStyle Hidden
+        $env:MYSQL_PWD = $current
+        $ok = $false
+        for ($i = 0; $i -lt 60 -and -not $ok; $i++) {
+            Start-Sleep -Seconds 2
+            & $mysql -u crm_app -h 127.0.0.1 -e 'SELECT 1' 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { $ok = $true }
+        }
+        $env:MYSQL_PWD = $p1
+        & (Join-Path (Split-Path $mysql) 'mysqladmin.exe') -u root -h 127.0.0.1 shutdown 2>$null
+        Remove-Item Env:MYSQL_PWD -ErrorAction SilentlyContinue
+        $proc.WaitForExit(60000) | Out-Null
+        if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+        Start-Service -Name 'MySQL80'
+        if (-not $ok) { throw 'MySQL did not start with the setup file. MySQL80 has been restarted unchanged; send a screenshot of this window.' }
+        Write-Host 'New MySQL root password set. Keep it safe; the CRM itself does not need it.' -ForegroundColor Green
+    }
 } finally {
     Remove-Item $tmp -Force -ErrorAction SilentlyContinue
 }
