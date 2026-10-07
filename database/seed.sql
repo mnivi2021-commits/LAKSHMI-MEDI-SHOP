@@ -412,3 +412,5 @@ INSERT INTO annual_targets (financial_year_id, level, division_id, area_id, empl
  (2, 'employee', 1, NULL, 4, 900000.00), (2, 'employee', 3, NULL, 4, 240000.00),
  (2, 'employee', 2, NULL, 5, 800000.00),
  (2, 'employee', 1, NULL, 6, 1500000.00), (2, 'employee', 2, NULL, 6, 600000.00);
+INSERT INTO annual_targets (financial_year_id, level, branch_id, annual_target) VALUES
+ (2, 'branch', 1, 8000000.00), (2, 'branch', 2, 6000000.00), (2, 'branch', 3, 5400000.00);

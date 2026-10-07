@@ -1,6 +1,7 @@
 <?php
 /** @var array<string, mixed> $fy */
 /** @var list<array<string, mixed>> $divisions */
+/** @var list<array<string, mixed>> $branches */
 /** @var list<array<string, mixed>> $areas */
 /** @var list<array<string, mixed>> $employees */
 /** @var array<string, int> $map */
@@ -33,11 +34,11 @@ ob_start();
     <input type="hidden" name="fy" value="<?= e($fy['id']) ?>">
 
     <section class="card table-card">
-        <h2>1. Division (annual ₹)</h2>
+        <h2>1. Branch annual target (₹)</h2>
         <div class="table-scroll"><table class="table compact sheet-table">
-            <thead><tr><?php foreach ($divisions as $d): ?><th class="right th-sales"><?= e($d['name']) ?></th><?php endforeach; ?><th class="right">All divisions</th></tr></thead>
-            <tbody><tr><?php foreach ($divisions as $d): ?><?= $cell("d{$d['id']}", "division:{$d['id']}:0:0", 'div') ?><?php endforeach; ?>
-                <td class="right num"><b><output data-total-of="div"></output></b></td></tr></tbody>
+            <thead><tr><?php foreach ($branches as $br): ?><th class="right th-sales"><?= e($br['name']) ?></th><?php endforeach; ?><th class="right">All branches</th></tr></thead>
+            <tbody><tr><?php foreach ($branches as $br): ?><?= $cell("b{$br['id']}", "branch:0:0:0:{$br['id']}", 'brs') ?><?php endforeach; ?>
+                <td class="right num"><b><output data-total-of="brs"></output></b></td></tr></tbody>
         </table></div>
     </section>
 
@@ -48,7 +49,7 @@ ob_start();
             <tbody>
             <?php foreach ($areas as $a): ?>
                 <tr><th class="sheet-name"><?= e($a['name']) ?></th>
-                    <?php foreach ($divisions as $d): ?><?= $cell("a{$a['id']}d{$d['id']}", "area:{$d['id']}:{$a['id']}:0", "area{$a['id']}") ?><?php endforeach; ?>
+                    <?php foreach ($divisions as $d): ?><?= $cell("a{$a['id']}d{$d['id']}", "area:{$d['id']}:{$a['id']}:0:0", "area{$a['id']}") ?><?php endforeach; ?>
                     <td class="right num"><b><output data-total-of="area<?= e($a['id']) ?>"></output></b></td></tr>
             <?php endforeach; ?>
             </tbody>
@@ -63,7 +64,7 @@ ob_start();
             <tbody>
             <?php foreach ($employees as $em): ?>
                 <tr><th class="sheet-name"><?= e($em['short_name'] ?: $em['name']) ?><div class="th-sub"><?= e($em['branch']) ?></div></th><td><?= e($em['area'] ?: '—') ?></td>
-                    <?php foreach ($divisions as $d): ?><?= $cell("e{$em['id']}d{$d['id']}", "employee:{$d['id']}:0:{$em['id']}", "emp{$em['id']}") ?><?php endforeach; ?>
+                    <?php foreach ($divisions as $d): ?><?= $cell("e{$em['id']}d{$d['id']}", "employee:{$d['id']}:0:{$em['id']}:0", "emp{$em['id']}") ?><?php endforeach; ?>
                     <td class="right num"><b><output data-total-of="emp<?= e($em['id']) ?>"></output></b></td></tr>
             <?php endforeach; ?>
             </tbody>

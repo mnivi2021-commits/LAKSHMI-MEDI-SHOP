@@ -8,9 +8,11 @@
 /** @var list<array<string, mixed>> $coordinators */
 /** @var list<array<string, mixed>> $leaders */
 /** @var bool $canEdit */
-/** @var list<array<string, mixed>> $branchTotals */
+/** @var list<array<string, mixed>> $branches */
+/** @var int $branch */
 /** @var bool $canEntry */
-$branchTotals ??= [];
+$branches ??= [];
+$branch ??= 0;
 $canEntry ??= false;
 use App\Modules\Dashboard\TargetController;
 
@@ -35,6 +37,7 @@ ob_start();
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
 
 <form method="get" action="<?= e(url('/')) ?>" class="card fu-filters" aria-label="Year">
+    <?php if ($branch): ?><input type="hidden" name="branch" value="<?= e($branch) ?>"><?php endif; ?>
     <label class="field"><span>Year</span>
         <select name="fy" data-autosubmit>
             <?php foreach ($fyList as $f): ?><option value="<?= e($f['id']) ?>"<?= (int) $f['id'] === (int) $fy['id'] ? ' selected' : '' ?>><?= e($f['label']) ?></option><?php endforeach; ?>
@@ -42,41 +45,39 @@ ob_start();
     <div class="form-actions"><button type="submit" class="btn">Show</button></div>
 </form>
 
-<!-- 1. Division -->
+<!-- Branch annual target (choose a branch) -->
+<?php
+$chosen = null;
+foreach ($branches as $br) { if ((int) $br['id'] === $branch) { $chosen = $br; } }
+$shown = $chosen ? [$chosen] : $branches;
+?>
 <section class="card tg-box">
-    <h2 class="card-title">1. Division target</h2>
+    <div class="tg-branch-head">
+        <h2 class="card-title"><?= e(strtoupper($chosen ? $chosen['name'] : 'All branches')) ?> ANNUAL TARGET <?= e(str_replace('FY ', '', $fy['label'])) ?></h2>
+        <form method="get" action="<?= e(url('/')) ?>" class="tg-branch-pick">
+            <input type="hidden" name="fy" value="<?= e($fy['id']) ?>">
+            <label class="field"><span>Branch</span>
+                <select name="branch" data-autosubmit>
+                    <option value="">All branches</option>
+                    <?php foreach ($branches as $br): ?><option value="<?= e($br['id']) ?>"<?= (int) $br['id'] === $branch ? ' selected' : '' ?>><?= e($br['name']) ?></option><?php endforeach; ?>
+                </select></label>
+        </form>
+    </div>
     <div class="table-scroll"><table class="table compact">
-        <thead><tr><th>Year</th><th>Division</th><th class="right">Annual target</th><th>Month</th><th class="right">Current month target</th></tr></thead>
+        <thead><tr><th>Branch</th><th class="right">Annual target</th><th>Month</th><th class="right">This month</th></tr></thead>
         <tbody>
-        <?php $tot = 0; foreach ($divisions as $d): $a = $val("division:{$d['id']}:0:0"); $tot += $a; ?>
-            <tr><td><?= e($fy['label']) ?></td><td><b><?= e($d['name']) ?></b></td><td class="right num"><?= e($money($a)) ?></td><td><?= e($months) ?></td><td class="right num"><?= e($month($a)) ?></td></tr>
+        <?php $bsum = 0; foreach ($shown as $br): $a = $val("branch:0:0:0:{$br['id']}"); $bsum += $a; ?>
+            <tr><td><b><?= e($br['name']) ?></b></td><td class="right num"><?= e($money($a)) ?></td><td><?= e($months) ?></td><td class="right num"><?= e($month($a)) ?></td></tr>
         <?php endforeach; ?>
         </tbody>
-        <tfoot><tr class="total-row"><th><?= e($fy['label']) ?></th><th>All divisions</th><th class="right num"><?= e($money($tot)) ?></th><th><?= e($months) ?></th><th class="right num"><?= e($month($tot)) ?></th></tr></tfoot>
+        <?php if (count($shown) > 1): ?>
+        <tfoot><tr class="total-row"><th>All branches</th><th class="right num"><?= e($money($bsum)) ?></th><th><?= e($months) ?></th><th class="right num"><?= e($month($bsum)) ?></th></tr></tfoot>
+        <?php endif; ?>
     </table></div>
-</section>
-
-<!-- Branch total: sum of the sales employees' annual targets in each branch -->
-<section class="card tg-box">
-    <h2 class="card-title">Branch total target</h2>
-    <div class="table-scroll"><table class="table compact">
-        <thead><tr><th>Year</th><th>Branch</th><?php foreach ($divisions as $d): ?><th class="right"><?= e($d['name']) ?></th><?php endforeach; ?><th class="right">Annual target</th><th>Month</th><th class="right">Current month target</th></tr></thead>
-        <tbody>
-        <?php $grand = 0; $gd = []; foreach ($branchTotals as $b): $bt = 0; ?>
-            <tr><td><?= e($fy['label']) ?></td><td><b><?= e($b['name']) ?></b></td>
-                <?php foreach ($divisions as $d): $a = $b['div'][(int) $d['id']] ?? 0; $bt += $a; $gd[(int) $d['id']] = ($gd[(int) $d['id']] ?? 0) + $a; ?><td class="right num"><?= e($money($a)) ?></td><?php endforeach; ?>
-                <td class="right num"><b><?= e($money($bt)) ?></b></td><td><?= e($months) ?></td><td class="right num"><?= e($month($bt)) ?></td></tr>
-        <?php $grand += $bt; endforeach; ?>
-        </tbody>
-        <tfoot><tr class="total-row"><th><?= e($fy['label']) ?></th><th>All branches</th>
-            <?php foreach ($divisions as $d): ?><th class="right num"><?= e($money($gd[(int) $d['id']] ?? 0)) ?></th><?php endforeach; ?>
-            <th class="right num"><?= e($money($grand)) ?></th><th><?= e($months) ?></th><th class="right num"><?= e($month($grand)) ?></th></tr></tfoot>
-    </table></div>
-    <p class="muted small padded">Branch figures add up the annual targets of the sales people in each branch (3. Sales employee target).</p>
 </section>
 
 <!-- 2. Area-wise: one separate box per area -->
-<h2 class="section-title">2. Area-wise target</h2>
+<h2 class="section-title">Area-wise target</h2>
 <div class="tg-areas">
     <?php foreach ($areas as $ar): $at = 0; ?>
     <section class="card tg-area">
@@ -84,7 +85,7 @@ ob_start();
         <table class="table compact">
             <thead><tr><th>Division</th><th class="right">Annual</th><th class="right">Month</th></tr></thead>
             <tbody>
-            <?php foreach ($divisions as $d): $a = $val("area:{$d['id']}:{$ar['id']}:0"); $at += $a; ?>
+            <?php foreach ($divisions as $d): $a = $val("area:{$d['id']}:{$ar['id']}:0:0"); $at += $a; ?>
                 <tr><td><?= e($d['name']) ?></td><td class="right num"><?= e($money($a)) ?></td><td class="right num"><?= e($month($a)) ?></td></tr>
             <?php endforeach; ?>
             </tbody>
@@ -96,7 +97,7 @@ ob_start();
 
 <!-- 3. Sales employees -->
 <section class="card tg-box">
-    <h2 class="card-title">3. Sales employee target</h2>
+    <h2 class="card-title">Sales employee target</h2>
     <?php if (!$employees): ?><p class="empty">No sales employees.</p><?php else: ?>
     <div class="table-scroll"><table class="table compact">
         <thead><tr><th>Sales employee</th><th>Area</th><th>Division</th><th class="right">Annual target</th><th class="right">Current month target</th></tr></thead>
@@ -104,7 +105,7 @@ ob_start();
         <?php $tot = 0; foreach ($employees as $em):
             $rows = [];
             foreach ($divisions as $d) {
-                $a = $val("employee:{$d['id']}:0:{$em['id']}");
+                $a = $val("employee:{$d['id']}:0:{$em['id']}:0");
                 if ($a > 0) { $rows[] = [$d['name'], $a]; $tot += $a; }
             }
             if (!$rows) { $rows[] = ['—', 0]; }
@@ -126,7 +127,7 @@ ob_start();
 <div class="tg-two">
     <!-- 4. Sales coordinators -->
     <section class="card tg-box">
-        <h2 class="card-title">4. Sales coordinators (support team)</h2>
+        <h2 class="card-title">Sales coordinators (support team)</h2>
         <?php if (!$coordinators): ?><p class="empty">No sales coordinators. Set Sales role = Sales Coordinator in HRM.</p><?php else: ?>
         <table class="table compact">
             <thead><tr><th>Sales coordinator</th><th>Area</th><th>Sales reps</th><th>Division</th></tr></thead>
@@ -141,7 +142,7 @@ ob_start();
 
     <!-- 5. Admin Head / Sales Manager -->
     <section class="card tg-box">
-        <h2 class="card-title">5. Admin Head · Sales Manager</h2>
+        <h2 class="card-title">Admin Head · Sales Manager</h2>
         <?php if (!$leaders): ?><p class="empty">No users with these roles yet.</p><?php else: ?>
         <table class="table compact">
             <thead><tr><th>Name</th><th>Role</th><th>Branch</th></tr></thead>

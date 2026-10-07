@@ -29,30 +29,35 @@ first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 echo "== Targets tab"
 r=$(req A GET /); contains "dashboard is the Targets screen" "$TMP/body" "<h1>Targets</h1>"
 lacks "no Branch performance tab" "$TMP/body" ">Branch performance<"
-contains "branch total box" "$TMP/body" "Branch total target"
 contains "+ ADD on dashboard" "$TMP/body" 'href="/marketing_crm/entry"'
 r=$(req A GET /targets); expect "targets page" "${r%% *}" 200
-for h in "1. Division target" "2. Area-wise target" "3. Sales employee target" "4. Sales coordinators" "5. Admin Head · Sales Manager"; do contains "box: $h" "$TMP/body" "$h"; done
+for h in "ALL BRANCHES ANNUAL TARGET 2026-27" "Area-wise target" "Sales employee target" "Sales coordinators" "Admin Head · Sales Manager"; do contains "box: $h" "$TMP/body" "$h"; done
+lacks "division box removed" "$TMP/body" "Division target"
+lacks "branch total box removed" "$TMP/body" "Branch total target"
 for d in PPE MAAP TRAINING; do contains "division $d" "$TMP/body" ">$d<"; done
 for a in Madurai Trichy TTN TVL; do contains "area box $a" "$TMP/body" "<h3>$a</h3>"; done
-contains "division annual PPE 1 crore" "$TMP/body" "₹1,00,00,000"
-contains "month = annual / 12 (1 crore / 12)" "$TMP/body" "₹8,33,333"
-contains "all divisions total" "$TMP/body" "₹1,84,00,000"
+contains "Chennai annual 80 lakh" "$TMP/body" "₹80,00,000"
+contains "month = annual / 12 (80 lakh / 12)" "$TMP/body" "₹6,66,667"
+contains "all branches total" "$TMP/body" "₹1,94,00,000"
+r=$(req A GET "/?branch=3"); contains "Madurai title" "$TMP/body" "MADURAI BRANCH ANNUAL TARGET 2026-27"
+contains "Madurai annual" "$TMP/body" "₹54,00,000"
+contains "Madurai this month" "$TMP/body" "₹4,50,000"
+lacks "only Madurai row" "$TMP/body" "<b>Chennai Head Office</b>"
 contains "Apr - Mar shown" "$TMP/body" "Apr 2026 – Mar 2027"
 contains "coordinator with reps" "$TMP/body" "Divya R"
 contains "admin head listed" "$TMP/body" "Admin Head"
 
 echo "== Set annual targets"
 r=$(req A GET /targets/edit?fy=2); expect "edit sheet" "${r%% *}" 200
-contains "division box" "$TMP/body" 'name="t\[d1\]"'
+contains "branch box" "$TMP/body" 'name="t\[b3\]"'
 contains "area x division box" "$TMP/body" 'name="t\[a2d1\]"'
 contains "employee x division box" "$TMP/body" 'name="t\[e2d1\]"'
-r=$(post A /targets /targets/edit?fy=2 --data "fy=2" --data-urlencode "t[d1]=1,20,00,000" --data "t[d2]=6000000&t[d3]=2400000&t[a1d1]=3000000&t[e2d1]=")
+r=$(post A /targets /targets/edit?fy=2 --data "fy=2" --data-urlencode "t[b3]=1,20,00,000" --data "t[a1d1]=3000000&t[e2d1]=")
 case "$r" in "303 "*"/?fy=2"*) ok "saved";; *) bad "saved" "$r";; esac
 req A GET /targets?fy=2 >/dev/null
-contains "new PPE annual" "$TMP/body" "₹1,20,00,000"
-contains "new PPE month (÷12)" "$TMP/body" "₹10,00,000"
-post A /targets /targets/edit?fy=2 --data "fy=2&t[d1]=lots" >/dev/null; req A GET /targets/edit?fy=2 >/dev/null
+contains "new Madurai annual" "$TMP/body" "₹1,20,00,000"
+contains "new Madurai month (÷12)" "$TMP/body" "₹10,00,000"
+post A /targets /targets/edit?fy=2 --data "fy=2&t[b1]=lots" >/dev/null; req A GET /targets/edit?fy=2 >/dev/null
 contains "bad amount refused" "$TMP/body" "need correcting"
 r=$(req J GET /targets); expect "rep can view targets" "${r%% *}" 200
 r=$(req J GET /targets/edit); expect "rep cannot set targets" "${r%% *}" 403

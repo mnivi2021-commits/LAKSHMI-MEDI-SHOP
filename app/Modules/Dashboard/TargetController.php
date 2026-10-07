@@ -33,7 +33,7 @@ final class TargetController
             'fyList'   => Database::fetchAll('SELECT id, label FROM financial_years ORDER BY start_date DESC'),
             'canEdit'  => Gate::allows('targets.add', $user),
             'canEntry' => Gate::allowsAny(['daily_entry.add', 'targets.add'], $user),
-            'branchTotals' => self::branchTotals((int) $fy['id'], $user),
+            'branch'   => (int) ($_GET['branch'] ?? 0),
         ] + $data);
     }
 
@@ -85,13 +85,15 @@ final class TargetController
             }
             $wanted[$key] = $parts + ['paise' => $p];
         };
+        foreach (array_column($data['branches'], 'id') as $b) {
+            $read("b{$b}", "branch:0:0:0:{$b}", ['level' => 'branch', 'division' => null, 'area' => null, 'employee' => null, 'branch' => (int) $b]);
+        }
         foreach ($divisions as $d) {
-            $read("d{$d}", "division:{$d}:0:0", ['level' => 'division', 'division' => $d, 'area' => null, 'employee' => null]);
             foreach ($areas as $a) {
-                $read("a{$a}d{$d}", "area:{$d}:{$a}:0", ['level' => 'area', 'division' => $d, 'area' => $a, 'employee' => null]);
+                $read("a{$a}d{$d}", "area:{$d}:{$a}:0:0", ['level' => 'area', 'division' => $d, 'area' => $a, 'employee' => null, 'branch' => null]);
             }
             foreach ($employees as $e) {
-                $read("e{$e}d{$d}", "employee:{$d}:0:{$e}", ['level' => 'employee', 'division' => $d, 'area' => null, 'employee' => $e]);
+                $read("e{$e}d{$d}", "employee:{$d}:0:{$e}:0", ['level' => 'employee', 'division' => $d, 'area' => null, 'employee' => $e, 'branch' => null]);
             }
         }
         foreach ($wanted as $key => $w) {
@@ -122,10 +124,10 @@ final class TargetController
                     continue;
                 }
                 Database::query(
-                    'INSERT INTO annual_targets (financial_year_id, level, division_id, area_id, employee_id, annual_target, created_by, updated_by)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    'INSERT INTO annual_targets (financial_year_id, level, division_id, branch_id, area_id, employee_id, annual_target, created_by, updated_by)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                      ON DUPLICATE KEY UPDATE annual_target = VALUES(annual_target), updated_by = VALUES(updated_by)',
-                    [$fy['id'], $w['level'], $w['division'], $w['area'], $w['employee'], Money::toDecimal($w['paise']), $user['id'], $user['id']]
+                    [$fy['id'], $w['level'], $w['division'], $w['branch'], $w['area'], $w['employee'], Money::toDecimal($w['paise']), $user['id'], $user['id']]
                 );
                 $changed++;
             }
@@ -153,6 +155,8 @@ final class TargetController
         $scope = DataScope::for($user);
         [$ew, $ep] = $scope->where('e.branch_id', 'e.id');
         $divisions = Database::fetchAll("SELECT id, name FROM divisions WHERE status = 'active' ORDER BY id");
+        [$bw, $bp] = $scope->branchListWhere('b.id');
+        $branches = Database::fetchAll("SELECT b.id, b.name FROM branches b WHERE b.deleted_at IS NULL AND b.status = 'active' AND {$bw} ORDER BY b.id", $bp);
         $areas = Database::fetchAll("SELECT id, name FROM sales_areas WHERE status = 'active' ORDER BY id");
         $employees = Database::fetchAll(
             "SELECT e.id, e.name, e.short_name, e.area, b.name AS branch FROM employees e JOIN branches b ON b.id = e.branch_id
@@ -176,26 +180,7 @@ final class TargetController
              FROM users u JOIN roles r ON r.id = u.role_id LEFT JOIN employees e ON e.id = u.employee_id LEFT JOIN branches b ON b.id = e.branch_id
              WHERE u.deleted_at IS NULL AND u.status = 'active' AND r.slug IN ('admin_head', 'sales_manager')
              ORDER BY r.id, u.name");
-        return compact('divisions', 'areas', 'employees', 'map', 'coordinators', 'leaders');
-    }
-
-    /** Annual targets per branch and division (sum of that branch's sales employees). @return list<array{name: string, div: array<int, int>}> */
-    private static function branchTotals(int $fyId, array $user): array
-    {
-        [$bw, $bp] = DataScope::for($user)->branchListWhere('b.id');
-        $out = [];
-        foreach (Database::fetchAll("SELECT b.id, b.name FROM branches b WHERE b.deleted_at IS NULL AND b.status = 'active' AND {$bw} ORDER BY b.id", $bp) as $b) {
-            $out[(int) $b['id']] = ['name' => $b['name'], 'div' => []];
-        }
-        foreach (Database::fetchAll(
-            "SELECT e.branch_id, t.division_id, SUM(t.annual_target) AS total
-             FROM annual_targets t JOIN employees e ON e.id = t.employee_id
-             WHERE t.financial_year_id = ? AND t.level = 'employee' GROUP BY e.branch_id, t.division_id", [$fyId]) as $r) {
-            if (isset($out[(int) $r['branch_id']])) {
-                $out[(int) $r['branch_id']]['div'][(int) $r['division_id']] = Money::fromDb($r['total']);
-            }
-        }
-        return array_values($out);
+        return compact('divisions', 'branches', 'areas', 'employees', 'map', 'coordinators', 'leaders');
     }
 
     /** "Apr 2026 - Mar 2027" for a financial year row. */

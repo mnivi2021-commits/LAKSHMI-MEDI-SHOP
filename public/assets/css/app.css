@@ -984,3 +984,7 @@ body.minimal .topbar .brand { display: inline-flex; color: var(--text); font-wei
 @media (min-width: 1750px) { .tg-areas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .tg-areas { grid-template-columns: 1fr; } }
 .tg-area .table.compact td, .tg-area .table.compact th { padding-left: 10px; padding-right: 10px; }
+
+.tg-branch-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.tg-branch-head .card-title { margin: 0; letter-spacing: .02em; }
+.tg-branch-pick .field { min-width: 240px; }
