@@ -27,7 +27,8 @@ first_login A admin 'Admin@2026' 'Teal-Harbour-7391'
 first_login J jana 'Sales@2026' 'Monsoon-Field-2087'
 
 echo "== Targets tab"
-r=$(req A GET /); contains "dashboard is the Targets screen" "$TMP/body" "<h1>Targets</h1>"
+r=$(req A GET /); contains "dashboard shows the company name" "$TMP/body" "LAKSHMI SAFETY EQUIPMENT PRIVATE LIMITED</h1>"
+lacks "no Year box" "$TMP/body" "aria-label=\"Year\""
 lacks "no Branch performance tab" "$TMP/body" ">Branch performance<"
 contains "+ ADD on dashboard" "$TMP/body" 'href="/marketing_crm/entry"'
 r=$(req A GET /targets); expect "targets page" "${r%% *}" 200

@@ -23,11 +23,7 @@ $month = static fn (int $p): string => $p > 0 ? rupees((int) round($p / 12)) : '
 ob_start();
 ?>
 <div class="page-head dash-head">
-    <div>
-        <p class="eyebrow">Management dashboard</p>
-        <h1>Targets</h1>
-        <p class="asof">Year <strong><?= e($fy['label']) ?></strong> · <?= e($months) ?> · current month target = annual ÷ 12</p>
-    </div>
+    <h1 class="company-title"><?= e(\App\Modules\Sms\SmsService::company()) ?></h1>
     <div class="form-actions">
         <?php if ($canEntry): ?><a class="btn btn-lg" href="<?= e(url('entry')) ?>">+ ADD</a><?php endif; ?>
         <?php if ($canEdit): ?><a class="btn btn-primary btn-lg" href="<?= e(url('targets/edit') . '?fy=' . $fy['id']) ?>">+ Set annual targets</a><?php endif; ?>
@@ -35,15 +31,6 @@ ob_start();
 </div>
 
 <?php require dirname(__DIR__) . '/partials/flash.php'; ?>
-
-<form method="get" action="<?= e(url('/')) ?>" class="card fu-filters" aria-label="Year">
-    <?php if ($branch): ?><input type="hidden" name="branch" value="<?= e($branch) ?>"><?php endif; ?>
-    <label class="field"><span>Year</span>
-        <select name="fy" data-autosubmit>
-            <?php foreach ($fyList as $f): ?><option value="<?= e($f['id']) ?>"<?= (int) $f['id'] === (int) $fy['id'] ? ' selected' : '' ?>><?= e($f['label']) ?></option><?php endforeach; ?>
-        </select></label>
-    <div class="form-actions"><button type="submit" class="btn">Show</button></div>
-</form>
 
 <!-- Branch annual target (choose a branch) -->
 <?php
