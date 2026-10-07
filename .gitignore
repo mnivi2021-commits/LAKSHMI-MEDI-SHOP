@@ -41,3 +41,6 @@ desktop.ini
 
 # Built web version of the mobile app (npm run build:web in mobile/)
 /public/app/
+
+# Local-only files with passwords (never commit)
+/private/
